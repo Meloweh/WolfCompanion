@@ -14,8 +14,8 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
-public class ExampleBEBLock extends Block implements BlockEntityProvider {
-    public ExampleBEBLock(Settings settings) {
+public class ExampleBEBlock extends Block implements BlockEntityProvider {
+    public ExampleBEBlock(Settings settings) {
         super(settings);
     }
 

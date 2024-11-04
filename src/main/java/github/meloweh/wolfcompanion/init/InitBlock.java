@@ -1,10 +1,10 @@
 package github.meloweh.wolfcompanion.init;
 
 import github.meloweh.wolfcompanion.WolfCompanion;
-import github.meloweh.wolfcompanion.block.ExampleBEBLock;
+import github.meloweh.wolfcompanion.block.ExampleBEBlock;
+import github.meloweh.wolfcompanion.block.ExampleTickingBEBlock;
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
-import net.minecraft.block.Blocks;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.registry.Registries;
@@ -16,10 +16,16 @@ public class InitBlock {
             .requiresTool()
             ));
 
-    public static final ExampleBEBLock EXAMPLE_BE_BLOCK = registerWithItem("example_be_block", new ExampleBEBLock(
+    public static final ExampleBEBlock EXAMPLE_BE_BLOCK = registerWithItem("example_be_block", new ExampleBEBlock(
             AbstractBlock.Settings.create()
             .strength(1.5F, 6.0F)
             .requiresTool()
+    ));
+
+    public static final ExampleTickingBEBlock EXAMPLE_TICKING_BE_BLOCK = registerWithItem("example_ticking_be_block", new ExampleTickingBEBlock(
+            AbstractBlock.Settings.create()
+                    .strength(1.5F, 6.0F)
+                    .requiresTool()
     ));
 
     public static <T extends Block> T register(String name, T block) {
