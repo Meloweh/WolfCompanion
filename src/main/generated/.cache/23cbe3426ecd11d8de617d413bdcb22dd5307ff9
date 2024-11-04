@@ -1,6 +1,9 @@
-// 1.21.1	2024-11-03T21:53:45.623225097	Wolf Companion/Model Definitions
+// 1.21.1	2024-11-04T07:17:19.987837238	Wolf Companion/Model Definitions
 b70f647e89939c5758c887845b9c1d181c2db3c2 assets/wolfcompanion/blockstates/example_block.json
 82da976f1dd0ce48062f9600662baa1bee7c2fba assets/wolfcompanion/models/item/food_item.json
 f90a592c677d8899931958f350870013bc0901a3 assets/wolfcompanion/models/item/toy_item.json
 561c350998a974ca2f4099c3682e2e877fe53cdb assets/wolfcompanion/models/block/example_block.json
+323caeac444f9acd650c548ab1eecc1545b5dd8e assets/wolfcompanion/models/item/example_be_block.json
+6db565d0fc31c1820476d4f510a8b8e52f60feaf assets/wolfcompanion/models/block/example_be_block.json
 e2001b303a30e822fb5b5a276b97836123c9f7e5 assets/wolfcompanion/models/item/example_block.json
+9fa131e79a010e1273c10957635e500413dce5b7 assets/wolfcompanion/blockstates/example_be_block.json

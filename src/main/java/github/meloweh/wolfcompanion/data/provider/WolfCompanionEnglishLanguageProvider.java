@@ -19,5 +19,6 @@ public class WolfCompanionEnglishLanguageProvider extends FabricLanguageProvider
         translationBuilder.add(InitItem.FOOD_ITEM, "Food Item");
         translationBuilder.add(InitItem.TOY_ITEM, "Toy Item");
         translationBuilder.add(InitBlock.EXAMPLE_BLOCK, "Example Block");
+        translationBuilder.add(InitBlock.EXAMPLE_BE_BLOCK, "Example BE Block");
     }
 }

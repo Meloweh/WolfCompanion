@@ -1,6 +1,7 @@
 package github.meloweh.wolfcompanion.init;
 
 import github.meloweh.wolfcompanion.WolfCompanion;
+import github.meloweh.wolfcompanion.block.ExampleBEBLock;
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
@@ -14,6 +15,12 @@ public class InitBlock {
             .strength(1.5F, 6.0F)
             .requiresTool()
             ));
+
+    public static final ExampleBEBLock EXAMPLE_BE_BLOCK = registerWithItem("example_be_block", new ExampleBEBLock(
+            AbstractBlock.Settings.create()
+            .strength(1.5F, 6.0F)
+            .requiresTool()
+    ));
 
     public static <T extends Block> T register(String name, T block) {
         return Registry.register(Registries.BLOCK, WolfCompanion.id(name), block);

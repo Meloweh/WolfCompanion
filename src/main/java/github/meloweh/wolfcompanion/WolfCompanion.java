@@ -1,5 +1,6 @@
 package github.meloweh.wolfcompanion;
 
+import github.meloweh.wolfcompanion.init.BlockEntityTypeInit;
 import github.meloweh.wolfcompanion.init.InitBlock;
 import github.meloweh.wolfcompanion.init.InitItem;
 import net.fabricmc.api.ModInitializer;
@@ -17,6 +18,7 @@ public class WolfCompanion implements ModInitializer {
 		LOGGER.info("Loading...");
 		InitItem.load();
 		InitBlock.load();
+		BlockEntityTypeInit.load();
 	}
 
 	public static Identifier id(String path) {
