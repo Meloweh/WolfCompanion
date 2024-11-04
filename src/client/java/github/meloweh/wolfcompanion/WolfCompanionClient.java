@@ -7,8 +7,13 @@ import github.meloweh.wolfcompanion.screen.ExampleEnergyGeneratorScreen;
 import github.meloweh.wolfcompanion.screen.ExampleInventoryBlockScreen;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
+import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.minecraft.client.gui.screen.ingame.HandledScreens;
 import net.minecraft.client.render.block.entity.BlockEntityRendererFactories;
+import net.minecraft.client.render.entity.EntityRendererFactory;
+import net.minecraft.entity.EntityType;
+import net.minecraft.entity.passive.WolfEntity;
+import renderer.CustomWolfEntityRenderer;
 import renderer.ExampleInventoryBER;
 
 public class WolfCompanionClient implements ClientModInitializer {
@@ -22,6 +27,8 @@ public class WolfCompanionClient implements ClientModInitializer {
 		HandledScreens.register(ScreenHandlerTypeInit.EXAMPLE_INVENTORY_SCREEN_HANDLER, ExampleInventoryBlockScreen::new);
 
 		BlockEntityRendererFactories.register(BlockEntityTypeInit.EXAMPLE_INVENTORY_BLOCK_ENTITY, ExampleInventoryBER::new);
+		EntityRendererRegistry.register(EntityType.WOLF, CustomWolfEntityRenderer::new);
+
 
 	}
 }

@@ -32,4 +32,8 @@ public class WolfCompanion implements ModInitializer {
 	public static Identifier id(String path) {
 		return Identifier.of(MOD_ID, path);
 	}
+
+	public static Identifier vanillaResource(String path) {
+		return Identifier.of("minecraft", path);
+	}
 }

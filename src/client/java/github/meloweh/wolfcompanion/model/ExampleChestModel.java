@@ -61,4 +61,8 @@ public class ExampleChestModel extends Model {
     public ModelPart getLid() {
         return this.lid;
     }
+
+    public RenderLayer getRenderLayer() {
+        return RenderLayer.getEntitySolid(WolfCompanion.id("textures/entity/example_chest.png"));
+    }
 }
