@@ -1,10 +1,7 @@
 package github.meloweh.wolfcompanion.init;
 
 import github.meloweh.wolfcompanion.WolfCompanion;
-import github.meloweh.wolfcompanion.block.ExampleBEBlock;
-import github.meloweh.wolfcompanion.block.ExampleEnergyGeneratorBlock;
-import github.meloweh.wolfcompanion.block.ExampleEnergyStorageBlock;
-import github.meloweh.wolfcompanion.block.ExampleTickingBEBlock;
+import github.meloweh.wolfcompanion.block.*;
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
 import net.minecraft.item.BlockItem;
@@ -40,10 +37,10 @@ public class InitBlock {
                     .strength(1.5F, 6.0F)
                     .requiresTool()));
 
-    //public static final ExampleInventoryBlock EXAMPLE_INVENTORY_BLOCK = registerWithItem("example_inventory_block",
-    //        new ExampleInventoryBlock(AbstractBlock.Settings.create()
-    //                .strength(1.5F, 6.0F)
-    //                .requiresTool()));
+    public static final ExampleInventoryBlock EXAMPLE_INVENTORY_BLOCK = registerWithItem("example_inventory_block",
+            new ExampleInventoryBlock(AbstractBlock.Settings.create()
+                    .strength(1.5F, 6.0F)
+                    .requiresTool()));
 
     public static <T extends Block> T register(String name, T block) {
         return Registry.register(Registries.BLOCK, WolfCompanion.id(name), block);

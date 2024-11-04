@@ -21,7 +21,7 @@ public class WolfCompanionModelProvider extends FabricModelProvider {
         blockStateModelGenerator.registerSimpleCubeAll(InitBlock.EXAMPLE_TICKING_BE_BLOCK);
         blockStateModelGenerator.registerSimpleCubeAll(InitBlock.EXAMPLE_ENERGY_GENERATOR_BLOCK);
         blockStateModelGenerator.registerSimpleCubeAll(InitBlock.EXAMPLE_ENERGY_STORAGE_BLOCK);
-
+        blockStateModelGenerator.registerSimpleCubeAll(InitBlock.EXAMPLE_INVENTORY_BLOCK);
     }
 
     @Override

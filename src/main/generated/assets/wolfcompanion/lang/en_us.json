@@ -1,6 +1,10 @@
 {
   "block.wolfcompanion.example_be_block": "Example BE Block",
   "block.wolfcompanion.example_block": "Example Block",
+  "block.wolfcompanion.example_energy_generator_block": "Example Energy Generator Block",
+  "block.wolfcompanion.example_energy_storage_block": "Example Energy Storage Block",
+  "block.wolfcompanion.example_inventory_block": "Example Inventory Block",
+  "block.wolfcompanion.example_ticking_be_block": "Example Ticking Block",
   "item.wolfcompanion.food_item": "Food Item",
   "item.wolfcompanion.toy_item": "Toy Item"
 }

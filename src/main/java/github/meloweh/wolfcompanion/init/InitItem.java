@@ -14,8 +14,6 @@ public class InitItem {
             new Item.Settings().food(FoodList.FOOD_FOOD_COMPONENT).maxCount(16)
     ));
 
-    //public static final BlockItem EXAMPLE_BLOCK = register("example_block", new BlockItem(InitBlock.EXAMPLE_BLOCK, new Item.Settings()));
-
     public static <T extends Item> T register(String name, T item) {
         return Registry.register(Registries.ITEM, WolfCompanion.id(name), item);
     }

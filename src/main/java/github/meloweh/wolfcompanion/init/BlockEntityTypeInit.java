@@ -1,10 +1,7 @@
 package github.meloweh.wolfcompanion.init;
 
 import github.meloweh.wolfcompanion.WolfCompanion;
-import github.meloweh.wolfcompanion.block.entity.ExampleBlockEntity;
-import github.meloweh.wolfcompanion.block.entity.ExampleEnergyGeneratorBlockEntity;
-import github.meloweh.wolfcompanion.block.entity.ExampleEnergyStorageBlockEntity;
-import github.meloweh.wolfcompanion.block.entity.ExampleTickingBlockEntity;
+import github.meloweh.wolfcompanion.block.entity.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.registry.Registries;
@@ -27,9 +24,9 @@ public class BlockEntityTypeInit {
             BlockEntityType.Builder.create(ExampleEnergyStorageBlockEntity::new, InitBlock.EXAMPLE_ENERGY_STORAGE_BLOCK)
                     .build());
 
-    //public static final BlockEntityType<ExampleInventoryBlockEntity> EXAMPLE_INVENTORY_BLOCK_ENTITY = register("example_inventory_block_entity",
-    //        BlockEntityType.Builder.create(ExampleInventoryBlockEntity::new, BlockInit.EXAMPLE_INVENTORY_BLOCK)
-    //                .build());
+    public static final BlockEntityType<ExampleInventoryBlockEntity> EXAMPLE_INVENTORY_BLOCK_ENTITY = register("example_inventory_block_entity",
+            BlockEntityType.Builder.create(ExampleInventoryBlockEntity::new, InitBlock.EXAMPLE_INVENTORY_BLOCK)
+                    .build());
 
     public static <T extends BlockEntity> BlockEntityType<T> register(String name, BlockEntityType<T> type) {
         return Registry.register(Registries.BLOCK_ENTITY_TYPE, WolfCompanion.id(name), type);

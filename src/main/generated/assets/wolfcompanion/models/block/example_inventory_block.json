@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "all": "wolfcompanion:block/example_inventory_block"
+  }
+}
