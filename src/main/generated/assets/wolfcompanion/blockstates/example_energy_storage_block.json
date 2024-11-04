@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "wolfcompanion:block/example_energy_storage_block"
+    }
+  }
+}
