@@ -1,11 +1,12 @@
 {
-	"required": true,
-	"package": "github.meloweh.wolfcompanion.mixin",
-	"compatibilityLevel": "JAVA_21",
-	"mixins": [
-		"ExampleMixin"
-	],
-	"injectors": {
-		"defaultRequire": 1
+  "required": true,
+  "package": "github.meloweh.wolfcompanion.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "ExampleMixin",
+    "WolfEntityMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
 	}
 }
