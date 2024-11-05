@@ -3,6 +3,7 @@ package renderer;
 //import github.meloweh.wolfcompanion.model.ExampleChestModel;
 import accessor.WolfEntityModelAccessor;
 import github.meloweh.wolfcompanion.WolfCompanion;
+import github.meloweh.wolfcompanion.model.WolfBagModel;
 import github.meloweh.wolfcompanion.model.WolfChestModel;
 import net.minecraft.client.model.ModelPart;
 import net.minecraft.client.render.OverlayTexture;
@@ -28,6 +29,7 @@ public class CustomWolfEntityRenderer extends WolfEntityRenderer {
     // Custom feature renderer class
     private static class CustomFeatureRenderer extends FeatureRenderer<WolfEntity, WolfEntityModel<WolfEntity>> {
         private final WolfChestModel chestModel;
+        private final WolfBagModel bagModel;
         final private ModelPart wolfTorso;
 
         public CustomFeatureRenderer(FeatureRendererContext<WolfEntity, WolfEntityModel<WolfEntity>> context) {
@@ -42,6 +44,9 @@ public class CustomWolfEntityRenderer extends WolfEntityRenderer {
             //this.chestModel = new ExampleChestModel(context.getLayerModelPart(ExampleChestModel.LAYER_LOCATION));
             final ModelPart chestRoot = WolfChestModel.getTexturedModelData().createModel();//ChestModelUtil.createChestRoot();
             this.chestModel = new WolfChestModel(chestRoot);
+            
+            final ModelPart bagRoot = WolfBagModel.getTexturedModelData().createModel();
+            this.bagModel = new WolfBagModel(bagRoot);
         }
 
 
@@ -65,6 +70,12 @@ public class CustomWolfEntityRenderer extends WolfEntityRenderer {
 // Render the chest model with the new transformations
             chestModel.render(matrices, vertexConsumers.getBuffer(RenderLayer.getEntitySolid(WolfChestModel.TEXTURE_LOCATION)), light, OverlayTexture.DEFAULT_UV);
 
+            matrices.pop();
+
+            matrices.push();
+            matrices.translate(-0.3, -0.37, 0.26);
+            matrices.multiply(new Quaternionf().rotateY((float) Math.toRadians(90)));
+            bagModel.render(matrices, vertexConsumers.getBuffer(RenderLayer.getEntitySolid(WolfBagModel.TEXTURE_LOCATION)), light, OverlayTexture.DEFAULT_UV);
             matrices.pop();
 
 
