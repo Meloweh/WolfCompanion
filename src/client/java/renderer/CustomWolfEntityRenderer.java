@@ -39,34 +39,6 @@ public class CustomWolfEntityRenderer extends WolfEntityRenderer {
             this.chestModel = new WolfChestModel(chestRoot);
         }
 
-        /*
-        private void renderChest(Direction side, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, WolfEntity entity, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
-            final boolean isRightSide = side.equals(Direction.EAST);
-            final double rotationToSide = isRightSide ? 90 : 180;
-            final Vec3d translation = new Vec3d(isRightSide ? -0.3 : 0, 0.37, 0.3);
-
-            matrices.push();
-
-            matrices.translate(translation.getX(), translation.getY(), translation.getZ());
-            //matrices.scale(0.35f, 0.35f, 0.35f); // Scale to fit on the wolf
-
-            // Rotate to the wolf side
-            Quaternionf rotation = new Quaternionf().rotateY((float) Math.toRadians(rotationToSide));
-            matrices.multiply(rotation);
-
-            VertexConsumer vertexConsumer = vertexConsumers.getBuffer(chestModel.getRenderLayer());
-
-            // Render the chest model
-            chestModel.render(matrices, vertexConsumers.getBuffer(RenderLayer.getEntitySolid(WolfChestModel.TEXTURE_LOCATION)), light, OverlayTexture.DEFAULT_UV);
-
-            matrices.pop();
-        }
-
-        @Override
-        public void render(MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, WolfEntity entity, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
-            renderChest(Direction.EAST, matrices, vertexConsumers, light, entity, limbSwing, limbSwingAmount, partialTicks, ageInTicks, netHeadYaw, headPitch);
-            renderChest(Direction.WEST, matrices, vertexConsumers, light, entity, limbSwing, limbSwingAmount, partialTicks, ageInTicks, netHeadYaw, headPitch);
-        }*/
 
         @Override
         public void render(MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, WolfEntity entity, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
