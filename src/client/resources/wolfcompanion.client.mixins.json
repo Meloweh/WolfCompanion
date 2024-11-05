@@ -4,9 +4,12 @@
   "compatibilityLevel": "JAVA_21",
   "client": [
     "ExampleClientMixin",
-    "WolfEntityRendererMixin"
+    "WolfEntityModelMixin"
   ],
   "injectors": {
     "defaultRequire": 1
-	}
+  },
+  "mixins": [
+    "WolfEntityMixin"
+  ]
 }
