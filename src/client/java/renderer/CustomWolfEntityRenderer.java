@@ -16,15 +16,20 @@ import net.minecraft.client.render.entity.feature.FeatureRendererContext;
 import net.minecraft.client.render.entity.model.WolfEntityModel;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.passive.WolfEntity;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.math.MathHelper;
 import org.joml.Quaternionf;
 
 public class CustomWolfEntityRenderer extends WolfEntityRenderer {
+    //static float degree = 45;
     public CustomWolfEntityRenderer(EntityRendererFactory.Context context) {
         super(context);
         // Add your custom feature renderer
         System.out.println("CustomWolfEntityRenderer initialized!");
         this.addFeature(new CustomFeatureRenderer(this));
     }
+
+    static float f = 0;
 
     // Custom feature renderer class
     private static class CustomFeatureRenderer extends FeatureRenderer<WolfEntity, WolfEntityModel<WolfEntity>> {
@@ -39,8 +44,6 @@ public class CustomWolfEntityRenderer extends WolfEntityRenderer {
 
             this.wolfTorso = ((WolfEntityModelAccessor) model).getTorso();
 
-            WolfCompanion.LOGGER.warn(this.wolfTorso.pitch + " " + this.wolfTorso.yaw + " " + this.wolfTorso.roll + " " + this.wolfTorso.pivotX + " " + this.wolfTorso.pivotY + " " + this.wolfTorso.pivotZ);
-
             //this.chestModel = new ExampleChestModel(context.getLayerModelPart(ExampleChestModel.LAYER_LOCATION));
             final ModelPart chestRoot = WolfChestModel.getTexturedModelData().createModel();//ChestModelUtil.createChestRoot();
             this.chestModel = new WolfChestModel(chestRoot);
@@ -49,14 +52,17 @@ public class CustomWolfEntityRenderer extends WolfEntityRenderer {
             this.bagModel = new WolfBagModel(bagRoot);
         }
 
-
         @Override
         public void render(MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, WolfEntity entity, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
-            this.wolfTorso.hidden = entity.isSitting();
+            //this.wolfTorso.hidden = entity.isSitting();
             if (!entity.isTamed()) return;
+            //this.wolfTorso.hidden = entity.isInSittingPose();
+            //this.wolfTorso.visible = entity.isInSittingPose();
+
 
             //WolfCompanion.LOGGER.warn(this.wolfTorso.pitch + " " + this.wolfTorso.yaw + " " + this.wolfTorso.roll + " " + this.wolfTorso.pivotX + " " + this.wolfTorso.pivotY + " " + this.wolfTorso.pivotZ);
 
+            /*
             matrices.push();
 
 // Translate based on the torso's pivot values to align the backpack with the wolf’s back
@@ -70,11 +76,24 @@ public class CustomWolfEntityRenderer extends WolfEntityRenderer {
 // Render the chest model with the new transformations
             chestModel.render(matrices, vertexConsumers.getBuffer(RenderLayer.getEntitySolid(WolfChestModel.TEXTURE_LOCATION)), light, OverlayTexture.DEFAULT_UV);
 
-            matrices.pop();
+            matrices.pop();*/
 
             matrices.push();
-            matrices.translate(-0.3, -0.37, 0.26);
-            matrices.multiply(new Quaternionf().rotateY((float) Math.toRadians(90)));
+
+            bagModel.animateModel(entity, this.wolfTorso);
+            float x = 0.175f, y = 0f, z = 0.15f;
+
+            float degree = 89.9f;
+            float fac = 0.12f;
+
+            if (entity.isInSittingPose()) {
+                //this.main.yaw = -torso.pitch;
+                //matrices.multiply(new Quaternionf().rotateX(18.95f)); f += 0.01f; WolfCompanion.LOGGER.warn(f + "");
+                y += fac * MathHelper.sin(degree);
+                z += fac * MathHelper.cos(degree);
+                degree += 0.015f;
+            }
+            matrices.translate(x, y, z);
             bagModel.render(matrices, vertexConsumers.getBuffer(RenderLayer.getEntitySolid(WolfBagModel.TEXTURE_LOCATION)), light, OverlayTexture.DEFAULT_UV);
             matrices.pop();
 
@@ -94,7 +113,7 @@ public class CustomWolfEntityRenderer extends WolfEntityRenderer {
 
             matrices.pop();*/
 
-            matrices.push();
+            /*matrices.push();
 
             matrices.translate(0.3, -0.37, 0.45);
             //matrices.scale(0.35f, 0.35f, 0.35f); // Scale to fit on the wolf
@@ -107,7 +126,7 @@ public class CustomWolfEntityRenderer extends WolfEntityRenderer {
             // Render the chest model
             chestModel.render(matrices, vertexConsumers.getBuffer(RenderLayer.getEntitySolid(WolfChestModel.TEXTURE_LOCATION)), light, OverlayTexture.DEFAULT_UV);
 
-            matrices.pop();
+            matrices.pop();*/
         }
     }
 }
