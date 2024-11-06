@@ -44,11 +44,9 @@ public class WolfBagModel extends Model {
         if (wolfEntity.isInSittingPose())
             this.main.setPivot(torso.pivotX, torso.pivotY, torso.pivotZ);
         else this.main.setPivot(0, torso.pivotY, torso.pivotZ);
-        this.main.yaw = -torso.pitch;// + 15.5f; f += 0.01f; WolfCompanion.LOGGER.warn(f + "");
+        this.main.yaw = -torso.pitch;
         this.main.roll = 1.5707964F  + torso.roll;
         this.main.pitch = -1.5707964F;
-        //if (wolfEntity.isTouchingWater()) torso.visible = false;
-        //if (!wolfEntity.isTouchingWater()) torso.visible = true;
     }
 
     @Override
@@ -58,5 +56,13 @@ public class WolfBagModel extends Model {
 
     public RenderLayer getRenderLayer() {
         return RenderLayer.getEntitySolid(WolfCompanion.id("textures/entity/wolf_bag.png"));
+    }
+
+    public void flipRotation(WolfEntity wolfEntity, ModelPart torso) {
+        //if (wolfEntity.isInSittingPose())
+        //    this.main.setPivot(torso.pivotX, torso.pivotY, torso.pivotZ);
+        this.main.roll *= -1;
+        if (wolfEntity.isInSittingPose()) this.main.yaw = 2 * this.main.yaw + this.main.yaw;
+        this.main.pitch *= -1;
     }
 }

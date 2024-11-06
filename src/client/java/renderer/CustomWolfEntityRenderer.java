@@ -19,6 +19,7 @@ import net.minecraft.entity.passive.WolfEntity;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
 import org.joml.Quaternionf;
+import org.lwjgl.opengl.GL11;
 
 public class CustomWolfEntityRenderer extends WolfEntityRenderer {
     //static float degree = 45;
@@ -91,10 +92,22 @@ public class CustomWolfEntityRenderer extends WolfEntityRenderer {
                 //matrices.multiply(new Quaternionf().rotateX(18.95f)); f += 0.01f; WolfCompanion.LOGGER.warn(f + "");
                 y += fac * MathHelper.sin(degree);
                 z += fac * MathHelper.cos(degree);
-                degree += 0.015f;
             }
             matrices.translate(x, y, z);
             bagModel.render(matrices, vertexConsumers.getBuffer(RenderLayer.getEntitySolid(WolfBagModel.TEXTURE_LOCATION)), light, OverlayTexture.DEFAULT_UV);
+            matrices.pop();
+
+            matrices.push();
+
+            //bagModel.animateModel(entity, this.wolfTorso);
+            bagModel.flipRotation(entity, this.wolfTorso);
+            matrices.scale(-1f, 1f, 1f);
+            matrices.translate(x, y, z);
+            GL11.glEnable(GL11.GL_CULL_FACE);
+            GL11.glCullFace(GL11.GL_FRONT);
+            bagModel.render(matrices, vertexConsumers.getBuffer(RenderLayer.getEntitySolid(WolfBagModel.TEXTURE_LOCATION)), light, OverlayTexture.DEFAULT_UV);
+            GL11.glCullFace(GL11.GL_BACK);
+            GL11.glDisable(GL11.GL_CULL_FACE);
             matrices.pop();
 
 
