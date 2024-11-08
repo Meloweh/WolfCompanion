@@ -45,7 +45,6 @@ public class CustomWolfEntityRenderer extends WolfEntityRenderer {
 
             WolfEntityModel<WolfEntity> model = context.getModel();
 
-
             this.wolfTorso = ((WolfEntityModelAccessor) model).getTorso();
 
             //this.chestModel = new ExampleChestModel(context.getLayerModelPart(ExampleChestModel.LAYER_LOCATION));
