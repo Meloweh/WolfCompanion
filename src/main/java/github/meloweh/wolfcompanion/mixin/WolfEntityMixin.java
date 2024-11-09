@@ -3,6 +3,7 @@ package github.meloweh.wolfcompanion.mixin;
 import github.meloweh.wolfcompanion.accessor.*;
 import github.meloweh.wolfcompanion.entity.WolfInventoryEntity;
 import github.meloweh.wolfcompanion.screenhandler.WolfScreenHandler;
+import net.fabricmc.fabric.api.event.player.UseEntityCallback;
 import net.minecraft.block.Blocks;
 import net.minecraft.component.EnchantmentEffectComponentTypes;
 import net.minecraft.enchantment.EnchantmentHelper;
@@ -19,6 +20,7 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.network.packet.s2c.play.OpenHorseScreenS2CPacket;
+import net.minecraft.screen.NamedScreenHandlerFactory;
 import net.minecraft.server.ServerConfigHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundEvents;
@@ -94,16 +96,16 @@ public abstract class WolfEntityMixin implements
 
     @Unique
     protected boolean getHorseFlag(int bitmask) {
-        return (self.getDataTracker().get(HORSE_FLAGS) & bitmask) != 0;
+        return (getDataTracker(self).get(HORSE_FLAGS) & bitmask) != 0;
     }
 
     @Unique
     protected void setHorseFlag(int bitmask, boolean flag) {
-        byte b = self.getDataTracker().get(HORSE_FLAGS);
+        byte b = getDataTracker(self).get(HORSE_FLAGS);
         if (flag) {
-            self.getDataTracker().set(HORSE_FLAGS, (byte)(b | bitmask));
+            getDataTracker(self).set(HORSE_FLAGS, (byte)(b | bitmask));
         } else {
-            self.getDataTracker().set(HORSE_FLAGS, (byte)(b & ~bitmask));
+            getDataTracker(self).set(HORSE_FLAGS, (byte)(b & ~bitmask));
         }
     }
 
@@ -139,9 +141,9 @@ public abstract class WolfEntityMixin implements
 
     @Unique
     protected void updateSaddledFlag() {
-        if (!self.getWorld().isClient) {
+        /*if (!self.getWorld().isClient) {
             this.setHorseFlag(SADDLED_FLAG, !this.items.getStack(0).isEmpty());
-        }
+        }*/
     }
 
     @Override
@@ -155,18 +157,20 @@ public abstract class WolfEntityMixin implements
     }
 
     @Unique
-    public void openWolfInventory(final ServerPlayerEntity player, WolfEntityMixin horse, Inventory inventory) {
+    public void openWolfInventory(final ServerPlayerEntity player, WolfEntityMixin wolfEntityMixin, Inventory inventory) {
+        /*System.out.println(player!= null);
+        assert player != null;
         if (player.currentScreenHandler != player.playerScreenHandler) {
             player.closeHandledScreen();
         }
-
         ((ServerPlayerAccessor) player).execIncrementScreenHandlerSyncId();
-        int i = horse.getInventoryColumns();
-        player.networkHandler.sendPacket(new OpenHorseScreenS2CPacket(((ServerPlayerAccessor) player).getScreenHandlerSyncId(), i, horse.getId()));
+
+        int i = wolfEntityMixin.getInventoryColumns();
+        player.networkHandler.sendPacket(new OpenHorseScreenS2CPacket(((ServerPlayerAccessor) player).getScreenHandlerSyncId(), i, wolfEntityMixin.getId()));
         player.currentScreenHandler = new WolfScreenHandler(((ServerPlayerAccessor) player).getScreenHandlerSyncId(),
                 player.getInventory(),
                 inventory, self, this.inventory, i, this.items);
-        ((ServerPlayerAccessor) player).execOnScreenHandlerOpened(player.currentScreenHandler);
+        ((ServerPlayerAccessor) player).execOnScreenHandlerOpened(player.currentScreenHandler);*/
     }
 
     @Unique
@@ -176,22 +180,29 @@ public abstract class WolfEntityMixin implements
 
     @Unique
     private int getId() {
+        System.out.println("getId");
+        System.out.println("getId: " + ((self == null) ? "self is null" : "self is not null"));
         return self.getId();
     }
 
     @Override
     public void openInventory(PlayerEntity player) {
         if (!self.getWorld().isClient) {
+            System.out.println("TESTING openInventory openWolfInventory");
             openWolfInventory((ServerPlayerEntity) player, this, player.getInventory());
+            //player.openHorseInventory();
         }
     }
 
     @Unique
     public ActionResult interactCompanion(PlayerEntity player, Hand hand) {
+        System.out.println("TESTING interactCompanion");
+
         if (player.shouldCancelInteraction()) {
+            System.out.println("TESTING interactCompanionV2 openInventory");
             this.openInventory(player);
             return ActionResult.success(self.getWorld().isClient);
-        } else {
+        } /*else {
             ItemStack itemStack = player.getStackInHand(hand);
             if (!itemStack.isEmpty()) {
                 ActionResult actionResult = itemStack.useOnEntity(player, self, hand);
@@ -199,15 +210,17 @@ public abstract class WolfEntityMixin implements
                     return actionResult;
                 }
 
-                /*if (self.canUseSlot(EquipmentSlot.BODY) && self.isHorseArmor(itemStack) && !this.isWearingBodyArmor()) {
-                    this.equipBodyArmor(itemStack.copyWithCount(1));
-                    itemStack.decrementUnlessCreative(1, player);
-                    return ActionResult.success(this.getWorld().isClient);
-                }*/
+                //if (self.canUseSlot(EquipmentSlot.BODY) && self.isHorseArmor(itemStack) && !this.isWearingBodyArmor()) {
+                //    this.equipBodyArmor(itemStack.copyWithCount(1));
+                //    itemStack.decrementUnlessCreative(1, player);
+                //    return ActionResult.success(this.getWorld().isClient);
+                //}
             }
 
             return ActionResult.success(self.getWorld().isClient);
-        }
+        }*/
+        System.out.println("TESTING interactCompanionV2 skipping");
+        return ActionResult.success(self.getWorld().isClient);
     }
 
     @Unique
@@ -321,14 +334,20 @@ public abstract class WolfEntityMixin implements
     }*/
 
     @Unique
+    private DataTracker getDataTracker(WolfEntity wolf) {
+        System.out.println("///////EEEEEEEEE////////////EEEEEEEEEEEEE//////////EEEEEEEEEE");
+        return self.getDataTracker();
+    }
+
+    @Unique
     public boolean hasChest() {
-        return self.getDataTracker().get(CHEST);
+        return getDataTracker(self).get(CHEST);
     }
 
     @Unique
     public void setHasChest(boolean hasChest) {
         //((ServerPlayerEntity)self).openHorseInventory();
-        self.getDataTracker().set(CHEST, hasChest);
+        getDataTracker(self).set(CHEST, hasChest);
     }
     /*
     @Override
@@ -493,6 +512,7 @@ public abstract class WolfEntityMixin implements
     @Unique
     public ActionResult interactCompanionV2(PlayerEntity player, Hand hand) {
         boolean bl = !self.isBaby() && player.shouldCancelInteraction();
+        System.out.println("TESTING interactCompanionV2");
         if (!self.hasPassengers() && !bl) {
             ItemStack itemStack = player.getStackInHand(hand);
             if (!itemStack.isEmpty()) {
@@ -501,9 +521,10 @@ public abstract class WolfEntityMixin implements
                     return ActionResult.success(self.getWorld().isClient);
                 }
             }
-
+            System.out.println("TESTING interactCompanionV2 chest + next interact");
             return interactCompanion(player, hand);
         } else {
+            System.out.println("TESTING interactCompanionV2 interact");
             return interactCompanion(player, hand);
         }
     }
@@ -530,9 +551,10 @@ public abstract class WolfEntityMixin implements
     private void onTickEnd(CallbackInfo ci) {
     }*/
 
-    @Inject(method = "interactMob", at = @At("TAIL"), cancellable = true)
+    @Inject(method = "interactMob", at = @At("HEAD"), cancellable = true)
     private void onRightClick(PlayerEntity player, Hand hand, CallbackInfoReturnable<ActionResult> cir) {
         if (!player.getWorld().isClient() && hand == Hand.MAIN_HAND) {
+            System.out.println("TESTING interactMob on right click");
             final ActionResult result = interactCompanionV2(player, hand);
             cir.setReturnValue(result);
             /*player.openHandledScreen(new WolfInventoryEntity(player, this));

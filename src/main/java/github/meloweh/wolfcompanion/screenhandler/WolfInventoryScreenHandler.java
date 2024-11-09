@@ -14,7 +14,7 @@ import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.ScreenHandlerContext;
 import net.minecraft.screen.slot.Slot;
 
-public class WolfInventoryScreenHandler extends ScreenHandler {
+public class WolfInventoryScreenHandler {/* extends ScreenHandler {
     private final WolfEntityMixin wolfEntity;
     private final ScreenHandlerContext context;
 
@@ -92,5 +92,5 @@ public class WolfInventoryScreenHandler extends ScreenHandler {
     @Override
     public boolean canUse(PlayerEntity player) {
         return true;//canUse(this.context, player, InitBlock.EXAMPLE_INVENTORY_BLOCK);
-    }
+    }*/
 }

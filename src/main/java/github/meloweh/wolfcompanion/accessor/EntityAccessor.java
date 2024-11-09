@@ -6,7 +6,7 @@ import net.minecraft.inventory.StackReference;
 
 public interface EntityAccessor {
     boolean invokeHasPassenger(Entity passenger);
-    DataTracker getDataTracker();
+    //DataTracker getDataTracker();
 
     StackReference getStackReference(int mappedIndex);
 }

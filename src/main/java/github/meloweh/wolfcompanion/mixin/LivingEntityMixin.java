@@ -25,8 +25,8 @@ public abstract class LivingEntityMixin {
     //@Shadow
     //protected abstract void dropInventory();
 
-    @Accessor("dropInventory")
-    protected abstract void publicDropInventory();
+    //@Accessor("dropInventory")
+    //protected abstract void publicDropInventory();
 
 }
 

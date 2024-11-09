@@ -17,8 +17,8 @@ public abstract class EntityMixin implements EntityAccessor, WolfEntityProvider 
     @Invoker("hasPassenger")
     public abstract boolean invokeHasPassenger(Entity passenger);
 
-    @Invoker("getDataTracker")
-    public abstract DataTracker getDataTracker();
+    //@Invoker("getDataTracker")
+    //public abstract DataTracker getDataTracker();
 
     //@Accessor("get")
     //public abstract ItemStack getGetBodyArmor();

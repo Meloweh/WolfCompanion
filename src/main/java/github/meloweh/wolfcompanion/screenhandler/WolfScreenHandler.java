@@ -1,7 +1,6 @@
 package github.meloweh.wolfcompanion.screenhandler;
 
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.entity.passive.AbstractHorseEntity;
+import github.meloweh.wolfcompanion.init.ScreenHandlerTypeInit;
 import net.minecraft.entity.passive.WolfEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -9,16 +8,14 @@ import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.network.PacketByteBuf;
 import net.minecraft.screen.ScreenHandler;
-//import net.minecraft.screen.slot.ArmorSlot;
 import net.minecraft.screen.slot.Slot;
 
 public class WolfScreenHandler extends ScreenHandler {
     private final Inventory inventory;
     private final Inventory horseArmorInventory;
     private final WolfEntity entity;
-    private static final int field_48835 = 1;
-    private static final int field_48836 = 2;
     private final SimpleInventory itemsOfWolf;
 
     public WolfScreenHandler(int syncId,
@@ -77,13 +74,22 @@ public class WolfScreenHandler extends ScreenHandler {
         }
     }
 
+    //@Override
+//    public static WolfScreenHandler create(int syncId, PlayerInventory playerInventory, PacketByteBuf buf) {
+//        int wolfId = buf.readInt();
+//        WolfEntity wolf = (WolfEntity) playerInventory.player.getWorld().getEntityById(wolfId);
+//        return new WolfScreenHandler(syncId, playerInventory, wolf);
+//    }
+
+
     @Override
     public boolean canUse(PlayerEntity player) {
-        return this.inventory == this.itemsOfWolf
-                && this.inventory.canPlayerUse(player)
-                && this.horseArmorInventory.canPlayerUse(player)
-                && this.entity.isAlive()
-                && player.canInteractWithEntity(this.entity, 4.0);
+        return this.entity.isAlive() && this.entity.distanceTo(player) < 8.0f;
+//        return this.inventory == this.itemsOfWolf
+//                && this.inventory.canPlayerUse(player)
+//                && this.horseArmorInventory.canPlayerUse(player)
+//                && this.entity.isAlive()
+//                && player.canInteractWithEntity(this.entity, 4.0);
     }
 
     @Override
