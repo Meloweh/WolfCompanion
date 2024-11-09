@@ -28,8 +28,8 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import org.jetbrains.annotations.Nullable;
 
-public class WolfInventoryEntity extends BlockEntity implements ExtendedScreenHandlerFactory<WolfInventoryPayload> {
-    public static final Text TITLE = Text.translatable("container." + WolfCompanion.MOD_ID + ".example_inventory");
+public class WolfInventoryEntity /*extends BlockEntity implements ExtendedScreenHandlerFactory<WolfInventoryPayload>*/ {
+    /*public static final Text TITLE = Text.translatable("container." + WolfCompanion.MOD_ID + ".example_inventory");
 
     private final SimpleInventory inventory = new SimpleInventory(36) {
         @Override
@@ -125,5 +125,5 @@ public class WolfInventoryEntity extends BlockEntity implements ExtendedScreenHa
 
     public int getNumPlayersOpen() {
         return this.numPlayersOpen;
-    }
+    }*/
 }

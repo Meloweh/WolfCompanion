@@ -1,17 +1,16 @@
 package github.meloweh.wolfcompanion.screenhandler;
 
-import github.meloweh.wolfcompanion.entity.AbstractInventoryWolf;
-import github.meloweh.wolfcompanion.mixin.WolfEntityMixin;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.passive.AbstractHorseEntity;
 import net.minecraft.entity.passive.WolfEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
+import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.screen.ScreenHandler;
-import net.minecraft.screen.slot.ArmorSlot;
+//import net.minecraft.screen.slot.ArmorSlot;
 import net.minecraft.screen.slot.Slot;
 
 public class WolfScreenHandler extends ScreenHandler {
@@ -20,27 +19,35 @@ public class WolfScreenHandler extends ScreenHandler {
     private final WolfEntity entity;
     private static final int field_48835 = 1;
     private static final int field_48836 = 2;
+    private final SimpleInventory itemsOfWolf;
 
-    public WolfScreenHandler(int syncId, PlayerInventory playerInventory, Inventory inventory, AbstractInventoryWolf entity, int slotColumnCount) {
+    public WolfScreenHandler(int syncId,
+                             PlayerInventory playerInventory,
+                             Inventory inventory,
+                             WolfEntity entity,
+                             Inventory inventoryOfWolf,
+                             int slotColumnCount,
+                             SimpleInventory itemsOfWolf) {
         super(null, syncId);
         this.inventory = inventory;
-        this.horseArmorInventory = ((WolfEntityMixin) entity).getInventory();
+        this.horseArmorInventory = inventoryOfWolf;
         this.entity = entity;
+        this.itemsOfWolf = itemsOfWolf;
         int i = 3;
         inventory.onOpen(playerInventory.player);
         int j = -18;
         this.addSlot(new Slot(inventory, 0, 8, 18) {
             @Override
             public boolean canInsert(ItemStack stack) {
-                return stack.isOf(Items.SADDLE) && !this.hasStack() && entity.canBeSaddled();
+                return stack.isOf(Items.SADDLE) && !this.hasStack();
             }
 
             @Override
             public boolean isEnabled() {
-                return entity.canBeSaddled();
+                return true;
             }
         });
-        this.addSlot(new ArmorSlot(this.horseArmorInventory, entity, EquipmentSlot.BODY, 0, 8, 36, null) {
+        /*this.addSlot(new ArmorSlot(this.horseArmorInventory, entity, EquipmentSlot.BODY, 0, 8, 36, null) {
             @Override
             public boolean canInsert(ItemStack stack) {
                 return entity.isHorseArmor(stack);
@@ -50,7 +57,7 @@ public class WolfScreenHandler extends ScreenHandler {
             public boolean isEnabled() {
                 return entity.canUseSlot(EquipmentSlot.BODY);
             }
-        });
+        });*/
         if (slotColumnCount > 0) {
             for (int k = 0; k < 3; k++) {
                 for (int l = 0; l < slotColumnCount; l++) {
@@ -72,7 +79,7 @@ public class WolfScreenHandler extends ScreenHandler {
 
     @Override
     public boolean canUse(PlayerEntity player) {
-        return !this.entity.areInventoriesDifferent(this.inventory)
+        return this.inventory == this.itemsOfWolf
                 && this.inventory.canPlayerUse(player)
                 && this.horseArmorInventory.canPlayerUse(player)
                 && this.entity.isAlive()
@@ -133,4 +140,3 @@ public class WolfScreenHandler extends ScreenHandler {
         this.inventory.onClose(player);
     }
 }
-

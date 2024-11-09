@@ -13,7 +13,7 @@ import net.minecraft.text.Text;
 
 import java.util.UUID;
 
-public class WolfInventoryHandler implements ExtendedScreenHandlerFactory {
+public class WolfInventoryHandler { /*implements ExtendedScreenHandlerFactory {
     private final SimpleInventory inventory = new SimpleInventory(36);
     private WolfEntity wolfEntity;
     public static final Text TITLE = Text.translatable("container.wolf_inventory");
@@ -60,6 +60,6 @@ public class WolfInventoryHandler implements ExtendedScreenHandlerFactory {
 
     public void writeNbt(NbtCompound nbt) {
         Inventories.writeNbt(nbt, this.inventory.getHeldStacks());
-    }
+    }*/
 }
 
