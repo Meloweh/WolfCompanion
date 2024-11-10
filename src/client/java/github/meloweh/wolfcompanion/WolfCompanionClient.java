@@ -4,14 +4,15 @@ import github.meloweh.wolfcompanion.handler.WolfInventoryHandler;
 import github.meloweh.wolfcompanion.init.BlockEntityTypeInit;
 import github.meloweh.wolfcompanion.init.ScreenHandlerTypeInit;
 import github.meloweh.wolfcompanion.model.ExampleChestModel;
+import github.meloweh.wolfcompanion.network.UuidPayload;
 import github.meloweh.wolfcompanion.screen.ExampleEnergyGeneratorScreen;
 import github.meloweh.wolfcompanion.screen.ExampleInventoryBlockScreen;
 import github.meloweh.wolfcompanion.screen.ExampleInventoryBlockScreen2;
 
-import github.meloweh.wolfcompanion.screen.WolfScreen;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.minecraft.client.gui.screen.ingame.HandledScreens;
 import net.minecraft.client.render.block.entity.BlockEntityRendererFactories;
 import net.minecraft.client.render.entity.EntityRendererFactory;
@@ -31,10 +32,9 @@ public class WolfCompanionClient implements ClientModInitializer {
 		HandledScreens.register(ScreenHandlerTypeInit.EXAMPLE_INVENTORY_SCREEN_HANDLER, ExampleInventoryBlockScreen::new);
 		HandledScreens.register(ScreenHandlerTypeInit.EXAMPLE_INVENTORY_SCREEN_HANDLER_2, ExampleInventoryBlockScreen2::new);
 
-
 		BlockEntityRendererFactories.register(BlockEntityTypeInit.EXAMPLE_INVENTORY_BLOCK_ENTITY, ExampleInventoryBER::new);
 		EntityRendererRegistry.register(EntityType.WOLF, CustomWolfEntityRenderer::new);
 
-
+		//PayloadTypeRegistry.playC2S().register(UuidPayload.ID, UuidPayload.PACKET_CODEC);
 	}
 }

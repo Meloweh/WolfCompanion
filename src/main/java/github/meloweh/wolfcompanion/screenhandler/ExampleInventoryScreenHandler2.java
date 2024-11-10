@@ -6,6 +6,8 @@ import github.meloweh.wolfcompanion.init.InitBlock;
 import github.meloweh.wolfcompanion.init.ScreenHandlerTypeInit;
 import github.meloweh.wolfcompanion.network.BlockPosPayload;
 import github.meloweh.wolfcompanion.network.UuidPayload;
+import github.meloweh.wolfcompanion.util.NBTHelper;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.passive.WolfEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -28,8 +30,10 @@ import java.util.stream.Collectors;
 public class ExampleInventoryScreenHandler2 extends ScreenHandler {
     private final WolfEntity wolf;
     private final ScreenHandlerContext context;
+    private final SimpleInventory wolfInventory;
 
     private static WolfEntity getWolfEntity(PlayerInventory playerInventory, UuidPayload payload) {
+
         final PlayerEntity player = playerInventory.player;
         //System.out.println("UUID UuidPayload: " + payload.uuid());
         final Box area = new Box(player.getX() + -20, player.getY() + -20, player.getZ() + -20, player.getX() + 20, player.getY() + 20,  player.getZ() + 20);
@@ -49,54 +53,62 @@ public class ExampleInventoryScreenHandler2 extends ScreenHandler {
 
     // Client Constructor
     public ExampleInventoryScreenHandler2(int syncId, PlayerInventory playerInventory, UuidPayload payload) {
-        this(syncId, playerInventory, ExampleInventoryScreenHandler2.getWolfEntity(playerInventory, payload));
+        this(syncId, playerInventory, ExampleInventoryScreenHandler2.getWolfEntity(playerInventory, payload), payload.nbt());
+    }
+
+    public WolfEntity getWolf() {
+        return wolf;
+    }
+
+    public SimpleInventory getWolfInventory() {
+        return wolfInventory;
     }
 
     // Main Constructor - (Directly called from server)
-    public ExampleInventoryScreenHandler2(int syncId, PlayerInventory playerInventory, WolfEntity wolf) {
+    public ExampleInventoryScreenHandler2(int syncId, PlayerInventory playerInventory, WolfEntity wolf, NbtCompound nbt) {
         super(ScreenHandlerTypeInit.EXAMPLE_INVENTORY_SCREEN_HANDLER_2, syncId);
 
         this.wolf = wolf;
         this.context = ScreenHandlerContext.create(this.wolf.getWorld(), null);
 
-        NbtCompound nbt = new NbtCompound();
-        this.wolf.saveNbt(nbt);
-        NbtList nbtList = nbt.getList("Items", NbtElement.COMPOUND_TYPE);
-        /*SimpleInventory items = new SimpleInventory();
+//        NbtCompound nbt = new NbtCompound();
+//        this.wolf.saveNbt(nbt);
+//        NbtList nbtList = nbt.getList("Items", NbtElement.COMPOUND_TYPE);
+//        SimpleInventory items = new SimpleInventory();
+//
+//        for (int i = 0; i < nbtList.size(); i++) {
+//            NbtCompound nbtCompound = nbtList.getCompound(i);
+//            int j = nbtCompound.getByte("Slot") & 255;
+//            if (j < items.size() - 1) {
+//                items.setStack(j + 1, ItemStack.fromNbt(wolf.getRegistryManager(), nbtCompound).orElse(ItemStack.EMPTY));
+//            }
+//        }
 
-        for (int i = 0; i < nbtList.size(); i++) {
-            NbtCompound nbtCompound = nbtList.getCompound(i);
-            int j = nbtCompound.getByte("Slot") & 255;
-            if (j < items.size() - 1) {
-                items.setStack(j + 1, ItemStack.fromNbt(wolf.getRegistryManager(), nbtCompound).orElse(ItemStack.EMPTY));
-            }
-        }
-        */
 
         //List<ItemStack> items = new ArrayList<>();
-        final SimpleInventory items = new SimpleInventory(5 * 3 + 1);
+//        final SimpleInventory items = new SimpleInventory(5 * 3 + 1);
+//
+//        for (int i = 0; i < nbtList.size(); i++) {
+//            NbtCompound nbtCompound = nbtList.getCompound(i);
+//            int j = nbtCompound.getByte("Slot") & 255;
+//            if (j < items.size() - 1) {
+//                items.setStack(j + 1, ItemStack.fromNbt(wolf.getRegistryManager(), nbtCompound).orElse(ItemStack.EMPTY));
+//            }
+//        }
 
-        for (int i = 0; i < nbtList.size(); i++) {
-            NbtCompound nbtCompound = nbtList.getCompound(i);
-            int j = nbtCompound.getByte("Slot") & 255;
-            if (j < items.size() - 1) {
-                items.setStack(j + 1, ItemStack.fromNbt(wolf.getRegistryManager(), nbtCompound).orElse(ItemStack.EMPTY));
-            }
-        }
-
-        SimpleInventory inventory = items;
-        checkSize(inventory, 16);
-        inventory.onOpen(playerInventory.player);
+        wolfInventory = NBTHelper.getInventory(nbt, wolf);
+        checkSize(wolfInventory, 16);
+        wolfInventory.onOpen(playerInventory.player);
 
         addPlayerInventory(playerInventory);
         addPlayerHotbar(playerInventory);
-        addBlockInventory(inventory);
+        addBlockInventory(wolfInventory);
     }
 
     private void addPlayerInventory(PlayerInventory playerInv) {
         for (int row = 0; row < 3; row++) {
             for (int column = 0; column < 9; column++) {
-                addSlot(new Slot(playerInv, 9 + (column + (row * 9)), 8 + (column * 18), 102 + (row * 18)));
+                addSlot(new Slot(playerInv, 9 + (column + (row * 9)), 8 + (column * 18), 112 + (row * 18)));
             }
         }
     }
@@ -124,6 +136,8 @@ public class ExampleInventoryScreenHandler2 extends ScreenHandler {
     public void onClosed(PlayerEntity player) {
         super.onClosed(player);
         //this.blockEntity.getInventory().onClose(player);
+        //ClientPlayNetworking.send(new UuidPayload(wolf.getUuid(), NBTHelper.getWolfNBT(wolf)));
+        //ServerPlayNetworking
     }
 
     @Override

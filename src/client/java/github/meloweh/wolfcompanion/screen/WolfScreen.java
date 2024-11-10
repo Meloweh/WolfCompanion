@@ -1,8 +1,11 @@
 package github.meloweh.wolfcompanion.screen;
 
+import github.meloweh.wolfcompanion.network.UuidPayload;
 import github.meloweh.wolfcompanion.screenhandler.WolfScreenHandler;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.gui.screen.ingame.InventoryScreen;
@@ -10,9 +13,16 @@ import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.passive.AbstractHorseEntity;
 import net.minecraft.entity.passive.LlamaEntity;
 import net.minecraft.entity.passive.WolfEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.item.ItemStack;
 import net.minecraft.screen.HorseScreenHandler;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.TypedActionResult;
+import net.minecraft.world.World;
 
 @Environment(EnvType.CLIENT)
 public class WolfScreen extends HandledScreen<WolfScreenHandler> {
@@ -55,6 +65,15 @@ public class WolfScreen extends HandledScreen<WolfScreenHandler> {
 
         InventoryScreen.drawEntity(context, i + 26, j + 18, i + 78, j + 70, 17, 0.25F, this.mouseX, this.mouseY, this.entity);
     }
+
+    /*public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
+        if (!world.isClient()) return super.use(world, user, hand);
+
+        ClientPlayNetworking.send(new UuidPayload(uuid, nbt));
+
+        return TypedActionResult.success(user.getHandStack(hand));
+    }*/
+
 
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         this.mouseX = (float)mouseX;

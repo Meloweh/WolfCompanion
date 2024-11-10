@@ -7,6 +7,7 @@ import github.meloweh.wolfcompanion.network.UuidPayload;
 import github.meloweh.wolfcompanion.screenhandler.ExampleInventoryScreenHandler;
 import github.meloweh.wolfcompanion.screenhandler.ExampleInventoryScreenHandler2;
 import github.meloweh.wolfcompanion.screenhandler.WolfScreenHandler;
+import github.meloweh.wolfcompanion.util.NBTHelper;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.block.Blocks;
@@ -25,11 +26,14 @@ import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
+import net.minecraft.network.packet.s2c.play.EntityS2CPacket;
+import net.minecraft.network.packet.s2c.play.NbtQueryResponseS2CPacket;
 import net.minecraft.network.packet.s2c.play.OpenHorseScreenS2CPacket;
 import net.minecraft.screen.NamedScreenHandlerFactory;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.server.ServerConfigHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
@@ -83,11 +87,24 @@ public abstract class WolfEntityMixin implements
             @Override
             public void setStack(ItemStack stack) {
                 //((MobEntityAccessor) WolfEntityMixin.this).invokeEquipBodyArmor(stack);
-                WolfEntityMixin.this.equipBodyArmor(stack);
+                items.setStack(10, stack);
             }
 
             @Override
             public void markDirty() {
+                System.out.println("wolf mark dirty");
+            }
+
+            @Override
+            public void onOpen(PlayerEntity player) {
+                System.out.println("wolf on open");
+                SingleStackInventory.super.onOpen(player);
+            }
+
+            @Override
+            public void onClose(PlayerEntity player) {
+                System.out.println("wolf on close");
+                SingleStackInventory.super.onClose(player);
             }
 
             @Override
@@ -104,6 +121,29 @@ public abstract class WolfEntityMixin implements
 
     @Unique
     private static final TrackedData<Boolean> CHEST = DataTracker.registerData(WolfEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
+    //private static final TrackedData<Boolean> INVENTORY = DataTracker.registerData(WolfEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
+
+    private boolean isDirty = false;
+
+    private void setDirty(boolean dirty) {
+        this.isDirty = dirty;
+    }
+
+    public boolean isDirty() {
+        return this.isDirty;
+    }
+
+    /*
+    private void updateDataToClients() {
+        if (this.isDirty() && !self.getWorld().isClient) {
+            ServerWorld serverWorld = (ServerWorld) self.getWorld();
+            EntityS2CPacket packet = new NbtQueryResponseS2CPacket(self.getUuid(), this.customData);
+            serverWorld.getPlayers().stream().forEach(player ->
+                    serverWorld.getServer().getPlayerManager().sendToAll(packet));
+            setDirty(false);  // Reset dirty after sending update
+        }
+    }*/
+
 
     @Unique
     protected boolean getHorseFlag(int bitmask) {
@@ -170,12 +210,12 @@ public abstract class WolfEntityMixin implements
     @Nullable
     @Override
     public ScreenHandler createMenu(int syncId, PlayerInventory playerInventory, PlayerEntity player) {
-        return new ExampleInventoryScreenHandler2(syncId, playerInventory, self);
+        return new ExampleInventoryScreenHandler2(syncId, playerInventory, self, NBTHelper.getWolfNBT(self));
     }
 
     @Override
     public UuidPayload getScreenOpeningData(ServerPlayerEntity player) {
-        return new UuidPayload(self.getUuid());
+        return new UuidPayload(self.getUuid(), NBTHelper.getWolfNBT(self));
     }
 
     @Unique
@@ -316,11 +356,13 @@ public abstract class WolfEntityMixin implements
         return mappedIndex == 499 ? new StackReference() {
             @Override
             public ItemStack get() {
+                System.out.println("wolfcompanion_template_1_21_1$getGetStackReference");
                 return WolfEntityMixin.this.hasChest() ? new ItemStack(Items.CHEST) : ItemStack.EMPTY;
             }
 
             @Override
             public boolean set(ItemStack stack) {
+                System.out.println("wolfcompanion_template_1_21_1$getGetStackReference");
                 if (stack.isEmpty()) {
                     if (WolfEntityMixin.this.hasChest()) {
                         WolfEntityMixin.this.setHasChest(false);
@@ -351,6 +393,7 @@ public abstract class WolfEntityMixin implements
     protected void injectInitDataTracker(DataTracker.Builder builder, CallbackInfo ci) {
         builder.add(HORSE_FLAGS, (byte)0);
         builder.add(CHEST, false);
+        //builder.add(INVENTORY, inventory);
     }
 
     /*@Override
@@ -414,6 +457,7 @@ public abstract class WolfEntityMixin implements
 
             for (int i = 1; i < this.items.size(); i++) {
                 ItemStack itemStack = this.items.getStack(i);
+                System.out.println("writing ItemStack: " + itemStack.toHoverableText().getString());
                 if (!itemStack.isEmpty()) {
                     NbtCompound nbtCompound = new NbtCompound();
                     nbtCompound.putByte("Slot", (byte)(i - 1));
@@ -422,6 +466,9 @@ public abstract class WolfEntityMixin implements
             }
 
             nbt.put("Items", nbtList);
+            System.out.println("write nbt HAS CHEST");
+        } else {
+            System.out.println("write nbt HAS NO CHEST");
         }
     }
 
@@ -486,9 +533,14 @@ public abstract class WolfEntityMixin implements
                 NbtCompound nbtCompound = nbtList.getCompound(i);
                 int j = nbtCompound.getByte("Slot") & 255;
                 if (j < this.items.size() - 1) {
-                    this.items.setStack(j + 1, (ItemStack)ItemStack.fromNbt(self.getRegistryManager(), nbtCompound).orElse(ItemStack.EMPTY));
+                    final ItemStack itemStack = ItemStack.fromNbt(self.getRegistryManager(), nbtCompound).orElse(ItemStack.EMPTY);
+                    System.out.println("reading ItemStack: " + itemStack.toHoverableText().getString());
+                    this.items.setStack(j + 1, itemStack);
                 }
             }
+            System.out.println("read nbt HAS CHEST");
+        } else {
+            System.out.println("read nbt HAS NO CHEST");
         }
 
         this.updateSaddledFlag();

@@ -65,6 +65,8 @@ public class ExampleInventoryBlockEntity extends BlockEntity implements Extended
         return new BlockPosPayload(this.pos);
     }
 
+
+
     @Override
     public Text getDisplayName() {
         return TITLE;
@@ -80,6 +82,7 @@ public class ExampleInventoryBlockEntity extends BlockEntity implements Extended
     protected void readNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
         super.readNbt(nbt, registryLookup);
         Inventories.readNbt(nbt, this.inventory.getHeldStacks(), registryLookup);
+        System.out.println("read nbt");
 
         if(nbt.contains("NumPlayersOpen", NbtElement.INT_TYPE)) {
             this.numPlayersOpen = nbt.getInt("NumPlayersOpen");
@@ -89,6 +92,7 @@ public class ExampleInventoryBlockEntity extends BlockEntity implements Extended
     @Override
     protected void writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
         Inventories.writeNbt(nbt, this.inventory.getHeldStacks(), registryLookup);
+        System.out.println("write nbt");
         super.writeNbt(nbt, registryLookup);
     }
 
