@@ -111,14 +111,14 @@ public class ExampleInventoryScreenHandler2 extends ScreenHandler {
     private void addPlayerInventory(PlayerInventory playerInv) {
         for (int row = 0; row < 3; row++) {
             for (int column = 0; column < 9; column++) {
-                addSlot(new Slot(playerInv, 9 + (column + (row * 9)), 8 + (column * 18), 92 + (row * 18)));
+                addSlot(new Slot(playerInv, 9 + (column + (row * 9)), 8 + (column * 18), 84 + (row * 18)));
             }
         }
     }
 
     private void addPlayerHotbar(PlayerInventory playerInv) {
         for (int column = 0; column < 9; column++) {
-            addSlot(new Slot(playerInv, column, 8 + (column * 18), 150));
+            addSlot(new Slot(playerInv, column, 8 + (column * 18), 142));
         }
     }
 
