@@ -3,9 +3,11 @@ package github.meloweh.wolfcompanion.init;
 import github.meloweh.wolfcompanion.WolfCompanion;
 import github.meloweh.wolfcompanion.network.BlockPosPayload;
 import github.meloweh.wolfcompanion.network.OpenWolfScreenS2CPacket;
+import github.meloweh.wolfcompanion.network.UuidPayload;
 import github.meloweh.wolfcompanion.network.WolfInventoryPayload;
 import github.meloweh.wolfcompanion.screenhandler.ExampleEnergyGeneratorScreenHandler;
 import github.meloweh.wolfcompanion.screenhandler.ExampleInventoryScreenHandler;
+import github.meloweh.wolfcompanion.screenhandler.ExampleInventoryScreenHandler2;
 import github.meloweh.wolfcompanion.screenhandler.WolfScreenHandler;
 import io.netty.buffer.ByteBuf;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
@@ -30,6 +32,9 @@ public class ScreenHandlerTypeInit {
 
     public static final ScreenHandlerType<ExampleInventoryScreenHandler> EXAMPLE_INVENTORY_SCREEN_HANDLER =
             register("example_inventory", ExampleInventoryScreenHandler::new, BlockPosPayload.PACKET_CODEC);
+
+    public static final ScreenHandlerType<ExampleInventoryScreenHandler2> EXAMPLE_INVENTORY_SCREEN_HANDLER_2 =
+            register("example_inventory2", ExampleInventoryScreenHandler2::new, UuidPayload.PACKET_CODEC);
 
     //public static final ScreenHandlerType<WolfScreenHandler> WOLF_INVENTORY_SCREEN_HANDLER =
     //        register("wolf_inventory", WolfScreenHandler::new, OpenWolfScreenS2CPacket.CODEC);

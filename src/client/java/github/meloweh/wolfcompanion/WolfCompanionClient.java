@@ -6,6 +6,8 @@ import github.meloweh.wolfcompanion.init.ScreenHandlerTypeInit;
 import github.meloweh.wolfcompanion.model.ExampleChestModel;
 import github.meloweh.wolfcompanion.screen.ExampleEnergyGeneratorScreen;
 import github.meloweh.wolfcompanion.screen.ExampleInventoryBlockScreen;
+import github.meloweh.wolfcompanion.screen.ExampleInventoryBlockScreen2;
+
 import github.meloweh.wolfcompanion.screen.WolfScreen;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
@@ -27,7 +29,8 @@ public class WolfCompanionClient implements ClientModInitializer {
 
 		HandledScreens.register(ScreenHandlerTypeInit.EXAMPLE_ENERGY_GENERATOR, ExampleEnergyGeneratorScreen::new);
 		HandledScreens.register(ScreenHandlerTypeInit.EXAMPLE_INVENTORY_SCREEN_HANDLER, ExampleInventoryBlockScreen::new);
-		//HandledScreens.register(ScreenHandlerTypeInit.WOLF_INVENTORY_SCREEN_HANDLER, WolfScreen::new);
+		HandledScreens.register(ScreenHandlerTypeInit.EXAMPLE_INVENTORY_SCREEN_HANDLER_2, ExampleInventoryBlockScreen2::new);
+
 
 		BlockEntityRendererFactories.register(BlockEntityTypeInit.EXAMPLE_INVENTORY_BLOCK_ENTITY, ExampleInventoryBER::new);
 		EntityRendererRegistry.register(EntityType.WOLF, CustomWolfEntityRenderer::new);

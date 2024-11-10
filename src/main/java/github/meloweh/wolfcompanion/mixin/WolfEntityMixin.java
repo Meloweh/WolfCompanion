@@ -2,8 +2,13 @@ package github.meloweh.wolfcompanion.mixin;
 
 import github.meloweh.wolfcompanion.accessor.*;
 import github.meloweh.wolfcompanion.entity.WolfInventoryEntity;
+import github.meloweh.wolfcompanion.network.BlockPosPayload;
+import github.meloweh.wolfcompanion.network.UuidPayload;
+import github.meloweh.wolfcompanion.screenhandler.ExampleInventoryScreenHandler;
+import github.meloweh.wolfcompanion.screenhandler.ExampleInventoryScreenHandler2;
 import github.meloweh.wolfcompanion.screenhandler.WolfScreenHandler;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
+import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.block.Blocks;
 import net.minecraft.component.EnchantmentEffectComponentTypes;
 import net.minecraft.enchantment.EnchantmentHelper;
@@ -13,6 +18,7 @@ import net.minecraft.entity.data.TrackedData;
 import net.minecraft.entity.data.TrackedDataHandlerRegistry;
 import net.minecraft.entity.passive.WolfEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.*;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -21,6 +27,7 @@ import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.network.packet.s2c.play.OpenHorseScreenS2CPacket;
 import net.minecraft.screen.NamedScreenHandlerFactory;
+import net.minecraft.screen.ScreenHandler;
 import net.minecraft.server.ServerConfigHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundEvents;
@@ -45,7 +52,8 @@ public abstract class WolfEntityMixin implements
         Saddleable,
         WolfEntityProvider,
         EntityAccessor,
-        MobEntityAccessor {
+        MobEntityAccessor,
+        ExtendedScreenHandlerFactory<UuidPayload> {
     @Unique
     private static final TrackedData<Byte> HORSE_FLAGS = DataTracker.registerData(WolfEntity.class, TrackedDataHandlerRegistry.BYTE);
     @Unique
@@ -59,10 +67,13 @@ public abstract class WolfEntityMixin implements
 
     @Inject(method = "<init>", at = @At("RETURN"))
     private void onConstructor(CallbackInfo info) {
+
         //WolfEntity wolf;
         //wolf.hasPassenger()
         self = (WolfEntity) (Object) this;
         inventory = new SingleStackInventory() {
+
+
             @Override
             public ItemStack getStack() {
                 //return ((MobEntityAccessor) WolfEntityMixin.this).getGetBodyArmor();
@@ -156,6 +167,17 @@ public abstract class WolfEntityMixin implements
         return this;
     }
 
+    @Nullable
+    @Override
+    public ScreenHandler createMenu(int syncId, PlayerInventory playerInventory, PlayerEntity player) {
+        return new ExampleInventoryScreenHandler2(syncId, playerInventory, self);
+    }
+
+    @Override
+    public UuidPayload getScreenOpeningData(ServerPlayerEntity player) {
+        return new UuidPayload(self.getUuid());
+    }
+
     @Unique
     public void openWolfInventory(final ServerPlayerEntity player, WolfEntityMixin wolfEntityMixin, Inventory inventory) {
         /*System.out.println(player!= null);
@@ -171,6 +193,11 @@ public abstract class WolfEntityMixin implements
                 player.getInventory(),
                 inventory, self, this.inventory, i, this.items);
         ((ServerPlayerAccessor) player).execOnScreenHandlerOpened(player.currentScreenHandler);*/
+        final int syncId = ((ServerPlayerAccessor) player).getScreenHandlerSyncId();
+        System.out.println("SyncId: " + syncId);
+        //new ExampleInventoryScreenHandler2(syncId, player.getInventory(), self)
+        player.openHandledScreen(this);
+        System.out.println("POST player.openHandledScreen(this);");
     }
 
     @Unique
@@ -335,7 +362,7 @@ public abstract class WolfEntityMixin implements
 
     @Unique
     private DataTracker getDataTracker(WolfEntity wolf) {
-        System.out.println("///////EEEEEEEEE////////////EEEEEEEEEEEEE//////////EEEEEEEEEE");
+        //System.out.println("///////EEEEEEEEE////////////EEEEEEEEEEEEE//////////EEEEEEEEEE");
         return self.getDataTracker();
     }
 
