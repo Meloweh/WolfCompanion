@@ -8,8 +8,11 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.gui.screen.ingame.InventoryScreen;
 import net.minecraft.entity.passive.WolfEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.SimpleInventory;
+import net.minecraft.item.ItemStack;
+import net.minecraft.screen.slot.Slot;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
@@ -25,6 +28,8 @@ public class ExampleInventoryBlockScreen2 extends HandledScreen<ExampleInventory
     private float mouseX;
     private float mouseY;
     private SimpleInventory wolfInventory;
+    private PlayerEntity player;
+    private ExampleInventoryScreenHandler2 handler;
 
     public ExampleInventoryBlockScreen2(ExampleInventoryScreenHandler2 handler, PlayerInventory inventory, Text title) {
         super(handler, inventory, title);
@@ -35,7 +40,11 @@ public class ExampleInventoryBlockScreen2 extends HandledScreen<ExampleInventory
         this.slotColumnCount = 5;
         this.wolf = handler.getWolf();
         this.wolfInventory = handler.getWolfInventory();
+        this.player = inventory.player;
+        this.handler = handler;
     }
+
+
 
     /*@Override
     protected void drawBackground(DrawContext context, float delta, int mouseX, int mouseY) {
@@ -51,6 +60,15 @@ public class ExampleInventoryBlockScreen2 extends HandledScreen<ExampleInventory
     @Override
     public void close() {
         super.close();
+        System.out.println("BlockScreen2 onClosed");
+        System.out.println("BlockScreen2: " + player.getWorld().isClient + "   " + handler.getWolf().getWorld().isClient);
+        for (int k = 0; k < handler.slots.size(); k++) {
+                Slot slot = getScreenHandler().getSlot(k);
+                ItemStack stack = slot.getStack();
+                if (stack.isEmpty()) continue;
+                System.out.println("BlockScreen2 has item: " + player.getWorld().isClient + "   " + handler.getWolf().getWorld().isClient + " " + stack.getItem().toString());
+                //System.out.println(stack.getItem().toString());
+        }
         ClientPlayNetworking.send(new UuidPayload(wolf.getUuid(), NBTHelper.getWolfNBT(wolf)));
     }
 

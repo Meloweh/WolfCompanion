@@ -1,5 +1,6 @@
 package github.meloweh.wolfcompanion.screenhandler;
 
+import github.meloweh.wolfcompanion.accessor.WolfEntityMixinProvider;
 import github.meloweh.wolfcompanion.block.entity.ExampleInventoryBlockEntity;
 import github.meloweh.wolfcompanion.block.entity.ExampleInventoryNonBlockEntity;
 import github.meloweh.wolfcompanion.init.InitBlock;
@@ -64,6 +65,8 @@ public class ExampleInventoryScreenHandler2 extends ScreenHandler {
         return wolfInventory;
     }
 
+
+
     // Main Constructor - (Directly called from server)
     public ExampleInventoryScreenHandler2(int syncId, PlayerInventory playerInventory, WolfEntity wolf, NbtCompound nbt) {
         super(ScreenHandlerTypeInit.EXAMPLE_INVENTORY_SCREEN_HANDLER_2, syncId);
@@ -96,7 +99,7 @@ public class ExampleInventoryScreenHandler2 extends ScreenHandler {
 //            }
 //        }
 
-        wolfInventory = NBTHelper.getInventory(nbt, wolf);
+        wolfInventory = ((WolfEntityMixinProvider)(wolf)).wolfcompanion_template_1_21_1$getItemsInventory(); //NBTHelper.getInventory(nbt, wolf);
         checkSize(wolfInventory, 16);
         wolfInventory.onOpen(playerInventory.player);
 
@@ -108,14 +111,14 @@ public class ExampleInventoryScreenHandler2 extends ScreenHandler {
     private void addPlayerInventory(PlayerInventory playerInv) {
         for (int row = 0; row < 3; row++) {
             for (int column = 0; column < 9; column++) {
-                addSlot(new Slot(playerInv, 9 + (column + (row * 9)), 8 + (column * 18), 112 + (row * 18)));
+                addSlot(new Slot(playerInv, 9 + (column + (row * 9)), 8 + (column * 18), 92 + (row * 18)));
             }
         }
     }
 
     private void addPlayerHotbar(PlayerInventory playerInv) {
         for (int column = 0; column < 9; column++) {
-            addSlot(new Slot(playerInv, column, 8 + (column * 18), 160));
+            addSlot(new Slot(playerInv, column, 8 + (column * 18), 150));
         }
     }
 
@@ -138,6 +141,14 @@ public class ExampleInventoryScreenHandler2 extends ScreenHandler {
         //this.blockEntity.getInventory().onClose(player);
         //ClientPlayNetworking.send(new UuidPayload(wolf.getUuid(), NBTHelper.getWolfNBT(wolf)));
         //ServerPlayNetworking
+        //System.out.println("ExampleInventoryScreenHandler2 onClosed");
+        //System.out.println("ExampleInventoryScreenHandler2: " + getWolf().getWorld().isClient);
+        for (int k = 0; k < slots.size(); k++) {
+                Slot slot = getSlot(k);
+                ItemStack stack = slot.getStack();
+                if (stack.isEmpty()) continue;
+                System.out.println("ExampleInventoryScreenHandler2 onClosed has item: " + stack.getItem().toString() + " " + getWolf().getWorld().isClient);
+        }
     }
 
     @Override

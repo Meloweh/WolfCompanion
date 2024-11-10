@@ -57,7 +57,8 @@ public abstract class WolfEntityMixin implements
         WolfEntityProvider,
         EntityAccessor,
         MobEntityAccessor,
-        ExtendedScreenHandlerFactory<UuidPayload> {
+        ExtendedScreenHandlerFactory<UuidPayload>,
+        WolfEntityMixinProvider {
     @Unique
     private static final TrackedData<Byte> HORSE_FLAGS = DataTracker.registerData(WolfEntity.class, TrackedDataHandlerRegistry.BYTE);
     @Unique
@@ -117,6 +118,11 @@ public abstract class WolfEntityMixin implements
             }*/
         };
         this.onChestedStatusChanged();
+    }
+
+    @Override
+    public SimpleInventory wolfcompanion_template_1_21_1$getItemsInventory() {
+        return this.items;
     }
 
     @Unique
@@ -218,6 +224,8 @@ public abstract class WolfEntityMixin implements
         return new UuidPayload(self.getUuid(), NBTHelper.getWolfNBT(self));
     }
 
+
+
     @Unique
     public void openWolfInventory(final ServerPlayerEntity player, WolfEntityMixin wolfEntityMixin, Inventory inventory) {
         /*System.out.println(player!= null);
@@ -233,8 +241,8 @@ public abstract class WolfEntityMixin implements
                 player.getInventory(),
                 inventory, self, this.inventory, i, this.items);
         ((ServerPlayerAccessor) player).execOnScreenHandlerOpened(player.currentScreenHandler);*/
-        final int syncId = ((ServerPlayerAccessor) player).getScreenHandlerSyncId();
-        System.out.println("SyncId: " + syncId);
+        //final int syncId = ((ServerPlayerAccessor) player).getScreenHandlerSyncId();
+        //System.out.println("SyncId: " + syncId);
         //new ExampleInventoryScreenHandler2(syncId, player.getInventory(), self)
         player.openHandledScreen(this);
         System.out.println("POST player.openHandledScreen(this);");
@@ -623,7 +631,7 @@ public abstract class WolfEntityMixin implements
 
     @Unique
     public int getInventoryColumns() {
-        return this.hasChest() ? 5 : 0;
+        return 5;
     }
 
     /*@Inject(method = "tick", at = @At("TAIL"))
