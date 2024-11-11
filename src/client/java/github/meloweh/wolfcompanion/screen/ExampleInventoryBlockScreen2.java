@@ -1,5 +1,6 @@
 package github.meloweh.wolfcompanion.screen;
 
+import github.meloweh.wolfcompanion.network.SampleC2SPayload;
 import github.meloweh.wolfcompanion.network.UuidPayload;
 import github.meloweh.wolfcompanion.screenhandler.ExampleInventoryScreenHandler2;
 import github.meloweh.wolfcompanion.util.NBTHelper;
@@ -60,7 +61,7 @@ public class ExampleInventoryBlockScreen2 extends HandledScreen<ExampleInventory
     @Override
     public void close() {
         super.close();
-        System.out.println("BlockScreen2 onClosed");
+        /*System.out.println("BlockScreen2 onClosed");
         System.out.println("BlockScreen2: " + player.getWorld().isClient + "   " + handler.getWolf().getWorld().isClient);
         for (int k = 0; k < handler.slots.size(); k++) {
                 Slot slot = getScreenHandler().getSlot(k);
@@ -68,8 +69,11 @@ public class ExampleInventoryBlockScreen2 extends HandledScreen<ExampleInventory
                 if (stack.isEmpty()) continue;
                 System.out.println("BlockScreen2 has item: " + player.getWorld().isClient + "   " + handler.getWolf().getWorld().isClient + " " + stack.getItem().toString());
                 //System.out.println(stack.getItem().toString());
-        }
-        ClientPlayNetworking.send(new UuidPayload(wolf.getUuid(), NBTHelper.getWolfNBT(wolf)));
+        }*/
+        //ClientPlayNetworking.send(new UuidPayload(wolf.getUuid(), NBTHelper.getWolfNBT(wolf)));
+        if (player.getWorld().isClient)
+            ClientPlayNetworking.send(new SampleC2SPayload("It says we are on " + player.getWorld().isClient, 69));
+
     }
 
     @Override

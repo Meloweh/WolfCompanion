@@ -62,11 +62,9 @@ public abstract class WolfEntityMixin implements
     @Unique
     private static final TrackedData<Byte> HORSE_FLAGS = DataTracker.registerData(WolfEntity.class, TrackedDataHandlerRegistry.BYTE);
     @Unique
-    private static final int SADDLED_FLAG = 4;
-    @Unique
     protected SimpleInventory items;
-    @Unique
-    private Inventory inventory;
+    //@Unique
+    //private Inventory inventory;
     @Unique
     private WolfEntity self;
 
@@ -76,47 +74,45 @@ public abstract class WolfEntityMixin implements
         //WolfEntity wolf;
         //wolf.hasPassenger()
         self = (WolfEntity) (Object) this;
-        inventory = new SingleStackInventory() {
-
-
-            @Override
-            public ItemStack getStack() {
-                //return ((MobEntityAccessor) WolfEntityMixin.this).getGetBodyArmor();
-                return WolfEntityMixin.this.getBodyArmor();
-            }
-
-            @Override
-            public void setStack(ItemStack stack) {
-                //((MobEntityAccessor) WolfEntityMixin.this).invokeEquipBodyArmor(stack);
-                items.setStack(10, stack);
-            }
-
-            @Override
-            public void markDirty() {
-                System.out.println("wolf mark dirty");
-            }
-
-            @Override
-            public void onOpen(PlayerEntity player) {
-                System.out.println("wolf on open");
-                SingleStackInventory.super.onOpen(player);
-            }
-
-            @Override
-            public void onClose(PlayerEntity player) {
-                System.out.println("wolf on close");
-                SingleStackInventory.super.onClose(player);
-            }
-
-            @Override
-            public boolean canPlayerUse(PlayerEntity player) {
-                return player.canInteractWithEntity(self, 4.0);
-            }
-            /*@Override
-            public boolean canPlayerUse(PlayerEntity player) {
-                return player.getVehicle() == WolfEntityMixin.this || player.canInteractWithEntity(WolfEntityMixin.this, 4.0);
-            }*/
-        };
+//        inventory = new SingleStackInventory() {
+//            @Override
+//            public ItemStack getStack() {
+//                //return ((MobEntityAccessor) WolfEntityMixin.this).getGetBodyArmor();
+//                return WolfEntityMixin.this.getBodyArmor();
+//            }
+//
+//            @Override
+//            public void setStack(ItemStack stack) {
+//                //((MobEntityAccessor) WolfEntityMixin.this).invokeEquipBodyArmor(stack);
+//                items.setStack(10, stack);
+//            }
+//
+//            @Override
+//            public void markDirty() {
+//                System.out.println("wolf mark dirty");
+//            }
+//
+//            @Override
+//            public void onOpen(PlayerEntity player) {
+//                System.out.println("wolf on open");
+//                SingleStackInventory.super.onOpen(player);
+//            }
+//
+//            @Override
+//            public void onClose(PlayerEntity player) {
+//                System.out.println("wolf on close");
+//                SingleStackInventory.super.onClose(player);
+//            }
+//
+//            @Override
+//            public boolean canPlayerUse(PlayerEntity player) {
+//                return player.canInteractWithEntity(self, 4.0);
+//            }
+//            /*@Override
+//            public boolean canPlayerUse(PlayerEntity player) {
+//                return player.getVehicle() == WolfEntityMixin.this || player.canInteractWithEntity(WolfEntityMixin.this, 4.0);
+//            }*/
+//        };
         this.onChestedStatusChanged();
     }
 
@@ -150,22 +146,6 @@ public abstract class WolfEntityMixin implements
         }
     }*/
 
-
-    @Unique
-    protected boolean getHorseFlag(int bitmask) {
-        return (getDataTracker(self).get(HORSE_FLAGS) & bitmask) != 0;
-    }
-
-    @Unique
-    protected void setHorseFlag(int bitmask, boolean flag) {
-        byte b = getDataTracker(self).get(HORSE_FLAGS);
-        if (flag) {
-            getDataTracker(self).set(HORSE_FLAGS, (byte)(b | bitmask));
-        } else {
-            getDataTracker(self).set(HORSE_FLAGS, (byte)(b & ~bitmask));
-        }
-    }
-
     @Unique
     public final int getInventorySize() {
         return getInventorySize(this.getInventoryColumns());
@@ -193,19 +173,11 @@ public abstract class WolfEntityMixin implements
         }
 
         this.items.addListener(this);
-        this.updateSaddledFlag();
-    }
-
-    @Unique
-    protected void updateSaddledFlag() {
-        /*if (!self.getWorld().isClient) {
-            this.setHorseFlag(SADDLED_FLAG, !this.items.getStack(0).isEmpty());
-        }*/
     }
 
     @Override
     public void onInventoryChanged(Inventory sender) {
-        this.updateSaddledFlag();
+
     }
 
     @Unique
@@ -348,7 +320,6 @@ public abstract class WolfEntityMixin implements
                         return false;
                     } else {
                         WolfEntityMixin.this.items.setStack(0, stack);
-                        WolfEntityMixin.this.updateSaddledFlag();
                         return true;
                     }
                 }
@@ -392,10 +363,10 @@ public abstract class WolfEntityMixin implements
         } : getOtherStackReference(mappedIndex);
     }
 
-    @Unique
+    /*@Unique
     public final Inventory getInventory() {
         return this.inventory;
-    }
+    }*/
 
     @Inject(method = "initDataTracker", at = @At("TAIL"))
     protected void injectInitDataTracker(DataTracker.Builder builder, CallbackInfo ci) {
@@ -420,6 +391,11 @@ public abstract class WolfEntityMixin implements
     @Unique
     public boolean hasChest() {
         return getDataTracker(self).get(CHEST);
+    }
+
+    @Override
+    public boolean hasChestEquipped() {
+        return hasChest();
     }
 
     @Unique
@@ -451,15 +427,7 @@ public abstract class WolfEntityMixin implements
 
     @Inject(method = "writeCustomDataToNbt", at = @At("TAIL"))
     private void injectWriteCustomDataToNbt(NbtCompound nbt, CallbackInfo ci) {
-        if (this.getOwnerUuid() != null) {
-            nbt.putUuid("Owner", this.getOwnerUuid());
-        }
-
-        if (!this.items.getStack(0).isEmpty()) {
-            nbt.put("SaddleItem", this.items.getStack(0).encode(self.getRegistryManager()));
-        }
-
-        nbt.putBoolean("ChestedHorse", this.hasChest());
+        nbt.putBoolean("ChestedWolf", this.hasChest());
         if (this.hasChest()) {
             NbtList nbtList = new NbtList();
 
@@ -474,65 +442,20 @@ public abstract class WolfEntityMixin implements
             }
 
             nbt.put("Items", nbtList);
-            System.out.println("write nbt HAS CHEST");
-        } else {
-            System.out.println("write nbt HAS NO CHEST");
         }
     }
 
-    /*
-    @Override
-    public void writeCustomDataToNbt(NbtCompound nbt) {
-        super.writeCustomDataToNbt(nbt);
-        if (this.getOwnerUuid() != null) {
-            nbt.putUuid("Owner", this.getOwnerUuid());
-        }
-
-        if (!this.items.getStack(0).isEmpty()) {
-            nbt.put("SaddleItem", this.items.getStack(0).encode(self.getRegistryManager()));
-        }
-
-        nbt.putBoolean("ChestedHorse", this.hasChest());
-        if (this.hasChest()) {
-            NbtList nbtList = new NbtList();
-
-            for (int i = 1; i < this.items.size(); i++) {
-                ItemStack itemStack = this.items.getStack(i);
-                if (!itemStack.isEmpty()) {
-                    NbtCompound nbtCompound = new NbtCompound();
-                    nbtCompound.putByte("Slot", (byte)(i - 1));
-                    nbtList.add(itemStack.encode(self.getRegistryManager(), nbtCompound));
-                }
-            }
-
-            nbt.put("Items", nbtList);
-        }
-    }*/
-
     @Inject(method = "readCustomDataFromNbt", at = @At("TAIL"))
     private void readCustomDataFromNbt(NbtCompound nbt, CallbackInfo ci) {
-        UUID uUID;
-        if (nbt.containsUuid("Owner")) {
-            uUID = nbt.getUuid("Owner");
-        } else {
-            String string = nbt.getString("Owner");
-            uUID = ServerConfigHandler.getPlayerUuidByName(self.getServer(), string);
-        }
-
-        if (uUID != null) {
-            self.setOwnerUuid(uUID);
-        }
-
-        if (nbt.contains("SaddleItem", NbtElement.COMPOUND_TYPE)) {
+        /*if (nbt.contains("SaddleItem", NbtElement.COMPOUND_TYPE)) {
             ItemStack itemStack = (ItemStack)ItemStack.fromNbt(self.getRegistryManager(), nbt.getCompound("SaddleItem")).orElse(ItemStack.EMPTY);
             if (itemStack.isOf(Items.SADDLE)) {
                 this.items.setStack(0, itemStack);
             }
-        }
+        }*/
 
-        this.updateSaddledFlag();
         ////////
-        this.setHasChest(nbt.getBoolean("ChestedHorse"));
+        this.setHasChest(nbt.getBoolean("ChestedWolf"));
         this.onChestedStatusChanged();
         if (this.hasChest()) {
             NbtList nbtList = nbt.getList("Items", NbtElement.COMPOUND_TYPE);
@@ -546,60 +469,18 @@ public abstract class WolfEntityMixin implements
                     this.items.setStack(j + 1, itemStack);
                 }
             }
-            System.out.println("read nbt HAS CHEST");
-        } else {
-            System.out.println("read nbt HAS NO CHEST");
         }
-
-        this.updateSaddledFlag();
     }
-
-    /*
-    @Override
-    public void readCustomDataFromNbt(NbtCompound nbt) {
-        super.readCustomDataFromNbt(nbt);
-        UUID uUID;
-        if (nbt.containsUuid("Owner")) {
-            uUID = nbt.getUuid("Owner");
-        } else {
-            String string = nbt.getString("Owner");
-            uUID = ServerConfigHandler.getPlayerUuidByName(self.getServer(), string);
-        }
-
-        if (uUID != null) {
-            self.setOwnerUuid(uUID);
-        }
-
-        if (nbt.contains("SaddleItem", NbtElement.COMPOUND_TYPE)) {
-            ItemStack itemStack = (ItemStack)ItemStack.fromNbt(self.getRegistryManager(), nbt.getCompound("SaddleItem")).orElse(ItemStack.EMPTY);
-            if (itemStack.isOf(Items.SADDLE)) {
-                this.items.setStack(0, itemStack);
-            }
-        }
-
-        this.updateSaddledFlag();
-        ////////
-        this.setHasChest(nbt.getBoolean("ChestedHorse"));
-        this.onChestedStatusChanged();
-        if (this.hasChest()) {
-            NbtList nbtList = nbt.getList("Items", NbtElement.COMPOUND_TYPE);
-
-            for (int i = 0; i < nbtList.size(); i++) {
-                NbtCompound nbtCompound = nbtList.getCompound(i);
-                int j = nbtCompound.getByte("Slot") & 255;
-                if (j < this.items.size() - 1) {
-                    this.items.setStack(j + 1, (ItemStack)ItemStack.fromNbt(self.getRegistryManager(), nbtCompound).orElse(ItemStack.EMPTY));
-                }
-            }
-        }
-
-        this.updateSaddledFlag();
-    }*/
 
     @Unique
     public ActionResult interactCompanionV2(PlayerEntity player, Hand hand) {
-        boolean bl = !self.isBaby() && player.shouldCancelInteraction();
-        System.out.println("TESTING interactCompanionV2");
+        final ItemStack itemStack = player.getStackInHand(hand);
+        if (!self.isBaby() && !this.hasChest() && itemStack.isOf(Items.CHEST) && !player.shouldCancelInteraction()) {
+            this.addChest(player, itemStack);
+            return ActionResult.success(self.getWorld().isClient);
+        }
+
+        /*boolean bl = !self.isBaby() && player.shouldCancelInteraction();
         if (!self.hasPassengers() && !bl) {
             ItemStack itemStack = player.getStackInHand(hand);
             if (!itemStack.isEmpty()) {
@@ -608,12 +489,8 @@ public abstract class WolfEntityMixin implements
                     return ActionResult.success(self.getWorld().isClient);
                 }
             }
-            System.out.println("TESTING interactCompanionV2 chest + next interact");
-            return interactCompanion(player, hand);
-        } else {
-            System.out.println("TESTING interactCompanionV2 interact");
-            return interactCompanion(player, hand);
-        }
+        }*/
+        return interactCompanion(player, hand);
     }
 
     @Unique
@@ -640,12 +517,13 @@ public abstract class WolfEntityMixin implements
 
     @Inject(method = "interactMob", at = @At("HEAD"), cancellable = true)
     private void onRightClick(PlayerEntity player, Hand hand, CallbackInfoReturnable<ActionResult> cir) {
-        if (!player.getWorld().isClient() && hand == Hand.MAIN_HAND) {
-            System.out.println("TESTING interactMob on right click");
+        if (!player.getWorld().isClient() &&
+                hand == Hand.MAIN_HAND &&
+                self.isTamed() &&
+                self.isOwner(player)
+        ) {
             final ActionResult result = interactCompanionV2(player, hand);
             cir.setReturnValue(result);
-            /*player.openHandledScreen(new WolfInventoryEntity(player, this));
-            cir.setReturnValue(ActionResult.SUCCESS);*/
         }
     }
 

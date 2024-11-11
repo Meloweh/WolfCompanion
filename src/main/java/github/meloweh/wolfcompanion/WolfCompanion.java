@@ -6,6 +6,8 @@ import github.meloweh.wolfcompanion.init.BlockEntityTypeInit;
 import github.meloweh.wolfcompanion.init.InitBlock;
 import github.meloweh.wolfcompanion.init.InitItem;
 import github.meloweh.wolfcompanion.init.ScreenHandlerTypeInit;
+import github.meloweh.wolfcompanion.network.SampleC2SPayload;
+import github.meloweh.wolfcompanion.network.SampleS2CPayload;
 import github.meloweh.wolfcompanion.network.UuidPayload;
 import github.meloweh.wolfcompanion.util.NBTHelper;
 import net.fabricmc.api.ModInitializer;
@@ -40,8 +42,8 @@ public class WolfCompanion implements ModInitializer {
 		EnergyStorage.SIDED.registerForBlockEntity(ExampleEnergyGeneratorBlockEntity::getEnergyProvider, BlockEntityTypeInit.EXAMPLE_ENERGY_GENERATOR);
 		EnergyStorage.SIDED.registerForBlockEntity(ExampleEnergyStorageBlockEntity::getEnergyProvider, BlockEntityTypeInit.EXAMPLE_ENERGY_STORAGE);
 
-		System.out.println("AA");
 
+		/*
 		PayloadTypeRegistry.playC2S().register(UuidPayload.ID, UuidPayload.PACKET_CODEC);
 
 		ServerPlayNetworking.registerGlobalReceiver(UuidPayload.ID, (payload, context) -> {
@@ -57,7 +59,19 @@ public class WolfCompanion implements ModInitializer {
 				});
 			});
 		});
-		System.out.println("BB");
+		System.out.println("BB");*/
+
+		PayloadTypeRegistry.playC2S().register(SampleC2SPayload.ID, SampleC2SPayload.PACKET_CODEC);
+
+		ServerPlayNetworking.registerGlobalReceiver(SampleC2SPayload.ID, (payload, context) -> {
+			context.server().execute(() -> {
+				final int myint = payload.myint();
+				final String mystring = payload.mystring();
+				System.out.println("Server: From Client: string: " + mystring + " int: " + myint);
+			});
+		});
+
+		PayloadTypeRegistry.playS2C().register(SampleS2CPayload.ID, SampleS2CPayload.PACKET_CODEC);
 
 	}
 

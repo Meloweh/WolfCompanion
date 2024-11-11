@@ -3,6 +3,7 @@ package renderer;
 //import github.meloweh.wolfcompanion.model.ExampleChestModel;
 import accessor.WolfEntityModelAccessor;
 import github.meloweh.wolfcompanion.WolfCompanion;
+import github.meloweh.wolfcompanion.accessor.WolfEntityProvider;
 import github.meloweh.wolfcompanion.model.WolfBagModel;
 import github.meloweh.wolfcompanion.model.WolfBagModelV2;
 import github.meloweh.wolfcompanion.model.WolfChestModel;
@@ -60,7 +61,7 @@ public class CustomWolfEntityRenderer extends WolfEntityRenderer {
 
         @Override
         public void render(MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, WolfEntity entity, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
-            if (!entity.isTamed()) return;
+            if (!entity.isTamed() || !((WolfEntityProvider)entity).hasChestEquipped()) return;
             /*matrices.push();
 
             bagModel.animateModel(entity, this.wolfTorso, limbSwing, limbSwingAmount, partialTicks);

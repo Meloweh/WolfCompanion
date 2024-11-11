@@ -6,6 +6,7 @@ import github.meloweh.wolfcompanion.block.entity.ExampleInventoryNonBlockEntity;
 import github.meloweh.wolfcompanion.init.InitBlock;
 import github.meloweh.wolfcompanion.init.ScreenHandlerTypeInit;
 import github.meloweh.wolfcompanion.network.BlockPosPayload;
+import github.meloweh.wolfcompanion.network.SampleS2CPayload;
 import github.meloweh.wolfcompanion.network.UuidPayload;
 import github.meloweh.wolfcompanion.util.NBTHelper;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -21,6 +22,7 @@ import net.minecraft.nbt.NbtList;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.ScreenHandlerContext;
 import net.minecraft.screen.slot.Slot;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.Box;
 
 import java.util.ArrayList;
@@ -73,6 +75,10 @@ public class ExampleInventoryScreenHandler2 extends ScreenHandler {
 
         this.wolf = wolf;
         this.context = ScreenHandlerContext.create(this.wolf.getWorld(), null);
+
+        if (!playerInventory.player.getWorld().isClient)
+            ServerPlayNetworking.send((ServerPlayerEntity) playerInventory.player,
+                    new SampleS2CPayload("badabub from server with " + playerInventory.player.getWorld().isClient, 123));
 
 //        NbtCompound nbt = new NbtCompound();
 //        this.wolf.saveNbt(nbt);
