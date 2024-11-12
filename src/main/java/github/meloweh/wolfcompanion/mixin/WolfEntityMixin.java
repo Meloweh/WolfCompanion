@@ -520,10 +520,21 @@ public abstract class WolfEntityMixin implements
         if (!player.getWorld().isClient() &&
                 hand == Hand.MAIN_HAND &&
                 self.isTamed() &&
-                self.isOwner(player)
+                self.isOwner(player) &&
+                !self.isBaby()
         ) {
-            final ActionResult result = interactCompanionV2(player, hand);
-            cir.setReturnValue(result);
+            final ItemStack itemStack = player.getStackInHand(hand);
+            if (!this.hasChest() && itemStack.isOf(Items.CHEST)) {
+                this.addChest(player, itemStack);
+                final ActionResult result = ActionResult.success(self.getWorld().isClient);
+                cir.setReturnValue(result);
+                cir.cancel();
+            } else if (this.hasChest() && player.isSneaking()) {
+                this.openInventory(player);
+                final ActionResult result =  ActionResult.success(self.getWorld().isClient);
+                cir.setReturnValue(result);
+                cir.cancel();
+            }
         }
     }
 

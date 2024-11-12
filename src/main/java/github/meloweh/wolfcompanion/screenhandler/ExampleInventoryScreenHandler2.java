@@ -1,14 +1,9 @@
 package github.meloweh.wolfcompanion.screenhandler;
 
 import github.meloweh.wolfcompanion.accessor.WolfEntityMixinProvider;
-import github.meloweh.wolfcompanion.block.entity.ExampleInventoryBlockEntity;
-import github.meloweh.wolfcompanion.block.entity.ExampleInventoryNonBlockEntity;
-import github.meloweh.wolfcompanion.init.InitBlock;
 import github.meloweh.wolfcompanion.init.ScreenHandlerTypeInit;
-import github.meloweh.wolfcompanion.network.BlockPosPayload;
 import github.meloweh.wolfcompanion.network.SampleS2CPayload;
 import github.meloweh.wolfcompanion.network.UuidPayload;
-import github.meloweh.wolfcompanion.util.NBTHelper;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.passive.WolfEntity;
@@ -17,18 +12,14 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtList;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.ScreenHandlerContext;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.Box;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 public class ExampleInventoryScreenHandler2 extends ScreenHandler {
     private final WolfEntity wolf;
@@ -38,13 +29,9 @@ public class ExampleInventoryScreenHandler2 extends ScreenHandler {
     private static WolfEntity getWolfEntity(PlayerInventory playerInventory, UuidPayload payload) {
 
         final PlayerEntity player = playerInventory.player;
-        //System.out.println("UUID UuidPayload: " + payload.uuid());
         final Box area = new Box(player.getX() + -20, player.getY() + -20, player.getZ() + -20, player.getX() + 20, player.getY() + 20,  player.getZ() + 20);
         final List<Entity> entities = playerInventory.player.getWorld().getOtherEntities(playerInventory.player, area);
         final List<WolfEntity> wolfes = entities.stream().filter(e -> e instanceof WolfEntity).map(e -> (WolfEntity)e).toList();
-//        for(Entity wolf : entities) {
-//            System.out.println("UUID wolf: " + wolf.getUuid());
-//        }
         final Optional<WolfEntity> optWolf = wolfes.stream().filter(e -> e.getUuid().equals(payload.uuid())).findFirst();
 
         if (optWolf.isEmpty()) {
@@ -66,8 +53,6 @@ public class ExampleInventoryScreenHandler2 extends ScreenHandler {
     public SimpleInventory getWolfInventory() {
         return wolfInventory;
     }
-
-
 
     // Main Constructor - (Directly called from server)
     public ExampleInventoryScreenHandler2(int syncId, PlayerInventory playerInventory, WolfEntity wolf, NbtCompound nbt) {
