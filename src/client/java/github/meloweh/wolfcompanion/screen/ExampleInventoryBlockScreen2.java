@@ -98,7 +98,7 @@ public class ExampleInventoryBlockScreen2 extends HandledScreen<ExampleInventory
             }
         }*/
 
-        InventoryScreen.drawEntity(context, i + 26, j + 18, i + 78, j + 70, 17, 0.25F, this.mouseX, this.mouseY, this.wolf);
+        InventoryScreen.drawEntity(context, i + 26, j + 18, i + 78, j + 70, 33, 0.25F, this.mouseX, this.mouseY, this.wolf);
     }
 
     @Override

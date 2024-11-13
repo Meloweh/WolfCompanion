@@ -69,7 +69,8 @@ public class CustomWolfEntityRenderer extends WolfEntityRenderer {
 
             matrices.translate(wolfHead.pivotX / 16.0F, wolfHead.pivotY / 16.0F, wolfHead.pivotZ / 16.0F);
             //m = wolfHead.getHeadRoll(h);
-            //matrices.multiply(RotationAxis.POSITIVE_Z.rotation(m));
+            //m = foxEntity.getHeadRoll(h);
+            //matrices.multiply(RotationAxis.POSITIVE_Z.rotation(wolfHead.roll));
             matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(netHeadYaw));
             matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(headPitch));
             if (entity.isBaby()) {

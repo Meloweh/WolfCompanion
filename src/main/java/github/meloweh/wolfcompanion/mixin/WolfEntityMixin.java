@@ -1,19 +1,13 @@
 package github.meloweh.wolfcompanion.mixin;
 
 import github.meloweh.wolfcompanion.accessor.*;
-import github.meloweh.wolfcompanion.entity.WolfInventoryEntity;
 import github.meloweh.wolfcompanion.goals.EatFoodGoal;
-import github.meloweh.wolfcompanion.network.BlockPosPayload;
 import github.meloweh.wolfcompanion.network.UuidPayload;
-import github.meloweh.wolfcompanion.screenhandler.ExampleInventoryScreenHandler;
 import github.meloweh.wolfcompanion.screenhandler.ExampleInventoryScreenHandler2;
-import github.meloweh.wolfcompanion.screenhandler.WolfScreenHandler;
 import github.meloweh.wolfcompanion.util.NBTHelper;
-import net.fabricmc.fabric.api.event.player.UseEntityCallback;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
-import net.minecraft.block.Blocks;
-import net.minecraft.component.EnchantmentEffectComponentTypes;
-import net.minecraft.enchantment.EnchantmentHelper;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.FoodComponent;
 import net.minecraft.entity.*;
 import net.minecraft.entity.data.DataTracker;
 import net.minecraft.entity.data.TrackedData;
@@ -27,30 +21,26 @@ import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
-import net.minecraft.network.packet.s2c.play.EntityS2CPacket;
-import net.minecraft.network.packet.s2c.play.NbtQueryResponseS2CPacket;
-import net.minecraft.network.packet.s2c.play.OpenHorseScreenS2CPacket;
 import net.minecraft.particle.ItemStackParticleEffect;
 import net.minecraft.particle.ParticleTypes;
-import net.minecraft.screen.NamedScreenHandlerFactory;
 import net.minecraft.screen.ScreenHandler;
-import net.minecraft.server.ServerConfigHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
+import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import java.util.UUID;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 
 @Mixin(WolfEntity.class)
 public abstract class WolfEntityMixin implements
@@ -67,10 +57,21 @@ public abstract class WolfEntityMixin implements
     private static final TrackedData<Byte> HORSE_FLAGS = DataTracker.registerData(WolfEntity.class, TrackedDataHandlerRegistry.BYTE);
     @Unique
     protected SimpleInventory items;
-    //@Unique
-    //private Inventory inventory;
     @Unique
     private WolfEntity self;
+
+    @Unique
+    private static final int EATING_DURATION = 600;
+    @Unique
+    private float headRollProgress;
+    @Unique
+    private float lastHeadRollProgress;
+    @Unique
+    float extraRollingHeight;
+    @Unique
+    float lastExtraRollingHeight;
+    @Unique
+    private int eatingTime;
 
     @Inject(method = "<init>", at = @At("RETURN"))
     private void onConstructor(CallbackInfo info) {
@@ -79,6 +80,12 @@ public abstract class WolfEntityMixin implements
         self = (WolfEntity) (Object) this;
         this.onChestedStatusChanged();
     }
+
+//    @Unique
+//    public SoundEvent getEatSound(ItemStack stack) {
+//        return SoundEvents.ENTITY_FOX_EAT;
+//    }
+
 
     @Inject(method = "initGoals", at = @At("TAIL"))
     private void onInitGoals(CallbackInfo info) {
@@ -521,7 +528,71 @@ public abstract class WolfEntityMixin implements
 
     /*@Inject(method = "tick", at = @At("TAIL"))
     private void onTickEnd(CallbackInfo ci) {
+        this.self.playSound(this.self.getEatSound(Items.PORKCHOP.getDefaultStack()), 1.0F, 1.0F);
+        this.self.getWorld().sendEntityStatus(this.self, EntityStatuses.CREATE_EATING_PARTICLES);
     }*/
+
+//    @Unique
+//    private boolean canEat(ItemStack stack) {
+//        return stack.contains(DataComponentTypes.FOOD) && this.self.getTarget() == null;
+//    }
+
+//    @Unique
+//    private final List<ItemStack> inventoryContents = new ArrayList<>();
+//
+//    private void refreshInventoryContents(Inventory invBasic) {
+//        this.inventoryContents.clear();
+//        for(int slotIndex = 1;
+//            slotIndex < 16;
+//            ++slotIndex) {
+//            this.inventoryContents.add(invBasic.getStack(slotIndex));
+//        }
+//    }
+
+//    @Inject(method = "tickMovement", at = @At("TAIL"))
+//    private void onTickMovement(CallbackInfo ci) {
+//        if (!this.self.getWorld().isClient && this.self.isAlive() && this.self.canMoveVoluntarily()) {
+//            this.eatingTime++;
+//            ItemStack itemStack = this.self.getEquippedStack(EquipmentSlot.MAINHAND);
+//            if (canEat(itemStack)) { // TODO: no cookies for doggo
+//                if (this.eatingTime > 600) {
+//                    ItemStack itemStack2 = itemStack.finishUsing(this.self.getWorld(), this.self);
+//                    if (!itemStack2.isEmpty()) {
+//                        this.self.equipStack(EquipmentSlot.MAINHAND, itemStack2);
+//                    }
+//
+//                    this.eatingTime = 0;
+//                } else if (this.eatingTime > 560 && this.self.getRandom().nextFloat() < 0.1F) {
+//                    this.self.playSound(this.getEatSound(itemStack), 1.0F, 1.0F);
+//                    this.self.getWorld().sendEntityStatus(this.self, EntityStatuses.CREATE_EATING_PARTICLES);
+//                }
+//            }
+//        }
+//    }
+
+    @Inject(method = "handleStatus", at = @At("HEAD"), cancellable = true)
+    private void onHandleStatus(byte status, CallbackInfo ci) {
+        if (status == EntityStatuses.CREATE_EATING_PARTICLES) {
+            ItemStack itemStack = this.self.getEquippedStack(EquipmentSlot.MAINHAND);
+            if (!itemStack.isEmpty()) {
+                for (int i = 0; i < 8; i++) {
+                    Vec3d vec3d = new Vec3d(((double)this.self.getRandom().nextFloat() - 0.5) * 0.1, Math.random() * 0.1 + 0.1, 0.0)
+                            .rotateX(-this.self.getPitch() * (float) (Math.PI / 180.0))
+                            .rotateY(-this.self.getYaw() * (float) (Math.PI / 180.0));
+                    this.self.getWorld().addParticle(
+                                    new ItemStackParticleEffect(ParticleTypes.ITEM, itemStack),
+                            this.self.getX() + this.self.getRotationVector().x / 2.0,
+                            this.self.getY(),
+                            this.self.getZ() + this.self.getRotationVector().z / 2.0,
+                                    vec3d.x,
+                                    vec3d.y + 0.05,
+                                    vec3d.z
+                            );
+                }
+            }
+            ci.cancel();
+        }
+    }
 
     @Inject(method = "interactMob", at = @At("HEAD"), cancellable = true)
     private void onRightClick(PlayerEntity player, Hand hand, CallbackInfoReturnable<ActionResult> cir) {

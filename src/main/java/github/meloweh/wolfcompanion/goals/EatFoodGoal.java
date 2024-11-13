@@ -6,6 +6,7 @@ import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.FoodComponent;
+import net.minecraft.component.type.FoodComponents;
 import net.minecraft.entity.EntityStatuses;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.ai.goal.Goal;
@@ -16,8 +17,10 @@ import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.*;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
 import org.jetbrains.annotations.NotNull;
+import org.spongepowered.asm.mixin.Unique;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -69,7 +72,7 @@ public class EatFoodGoal extends Goal implements InventoryChangedListener {
 
     @Override
     public void start() {
-        if(eatCooldown <= 0) {
+        if(eatingTime <= 0) {
             @NotNull ItemStack mostEfficientFood = getMostEfficientFood();
             if (!mostEfficientFood.isEmpty()) {
                 final FoodComponent foodComponent = mostEfficientFood.get(DataComponentTypes.FOOD);
@@ -85,7 +88,7 @@ public class EatFoodGoal extends Goal implements InventoryChangedListener {
                 if (healedAmount <= damageAmount) {
                     this.eatingFood = mostEfficientFood;
                     foodEatTime = foodComponent.getEatTicks();
-                    eatCooldown = foodEatTime + entity.getRandom().nextInt(foodEatTime);
+                    eatingTime = foodEatTime + entity.getRandom().nextInt(foodEatTime);
                 }
             }
         }
@@ -93,27 +96,56 @@ public class EatFoodGoal extends Goal implements InventoryChangedListener {
 
     @Override
     public boolean shouldContinue() {
-        return eatCooldown > 0;
+        return eatingTime > 0;
+    }
+
+    public SoundEvent getEatSound(ItemStack stack) {
+        return SoundEvents.ENTITY_FOX_EAT;
+    }
+
+    private boolean canEat(ItemStack stack) {
+        return stack.contains(DataComponentTypes.FOOD) && this.entity.getTarget() == null;
     }
 
     @Override
     public void tick() {
-        this.eatCooldown--;
-        this.eatingTime++;
-        ItemStack itemStack = this.entity.getEquippedStack(EquipmentSlot.MAINHAND);
-        if (itemStack.contains(DataComponentTypes.FOOD)) {
-            if (this.eatingTime > 600) {
-                ItemStack itemStack2 = itemStack.finishUsing(this.entity.getWorld(), this.entity);
-                if (!itemStack2.isEmpty()) {
-                    this.entity.equipStack(EquipmentSlot.MAINHAND, itemStack2);
-                }
+        if (!this.entity.getWorld().isClient && this.entity.isAlive() && this.entity.canMoveVoluntarily()) {
+            this.eatingTime--;
+            ItemStack itemStack = this.entity.getEquippedStack(EquipmentSlot.MAINHAND);
+            if (canEat(itemStack)) { // TODO: no cookies for doggo
+                if (this.eatingTime <= 0) {
+                    final FoodComponent foodComponent = itemStack.get(DataComponentTypes.FOOD);
+                    this.entity.heal(foodComponent.nutrition());
+                    itemStack.decrement(1);
+                    ItemStack itemStack2 = itemStack.finishUsing(this.entity.getWorld(), this.entity);
+                    if (!itemStack2.isEmpty()) {
+                        this.entity.equipStack(EquipmentSlot.MAINHAND, itemStack2);
+                    }
 
-                this.eatingTime = 0;
-            } else if (this.eatingTime > 560 && this.entity.getRandom().nextFloat() < 0.1F) {
-                this.entity.playSound(this.entity.getEatSound(itemStack), 1.0F, 1.0F);
-                this.entity.getWorld().sendEntityStatus(this.entity, EntityStatuses.CREATE_EATING_PARTICLES);
+                    this.eatingTime = 0;
+                } else if (this.eatingTime > 0) {
+                    this.entity.playSound(this.getEatSound(itemStack), 1.0F, 1.0F);
+                    this.entity.getWorld().sendEntityStatus(this.entity, EntityStatuses.CREATE_EATING_PARTICLES);
+                }
             }
         }
+//        this.eatCooldown--;
+//        this.eatingTime++;
+//        ItemStack itemStack = this.entity.getEquippedStack(EquipmentSlot.MAINHAND);
+//        if (itemStack.contains(DataComponentTypes.FOOD)) {
+//            if (this.eatingTime > 600) {
+//                ItemStack itemStack2 = itemStack.finishUsing(this.entity.getWorld(), this.entity);
+//                if (!itemStack2.isEmpty()) {
+//                    this.entity.equipStack(EquipmentSlot.MAINHAND, itemStack2);
+//                }
+//
+//                this.eatingTime = 0;
+//            } else if (this.eatingTime > 560 && this.entity.getRandom().nextFloat() < 0.1F) {
+//                this.entity.playSound(this.entity.getEatSound(itemStack), 1.0F, 1.0F);
+//                this.entity.getWorld().sendEntityStatus(this.entity, EntityStatuses.CREATE_EATING_PARTICLES);
+//            }
+//        }
+        
         /*--eatCooldown;
         if (!eatingFood.isEmpty() && eatingFood.getComponents().contains(DataComponentTypes.FOOD)) {
             if (foodEatTime > 0) {
@@ -164,6 +196,10 @@ public class EatFoodGoal extends Goal implements InventoryChangedListener {
             ++slotIndex) {
             this.inventoryContents.add(invBasic.getStack(slotIndex));
         }
+    }
+
+    private float getMissingHealth() {
+        return this.entity.getMaxHealth() - this.entity.getHealth();
     }
 
     @NotNull
