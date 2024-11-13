@@ -71,9 +71,10 @@ public class EatFoodGoal extends Goal implements InventoryChangedListener {
     public void start() {
         if(eatCooldown <= 0) {
             @NotNull ItemStack mostEfficientFood = getMostEfficientFood();
-            if (!mostEfficientFood.isEmpty() && mostEfficientFood.getComponents().contains(DataComponentTypes.FOOD)) {
+            if (!mostEfficientFood.isEmpty()) {
                 final FoodComponent foodComponent = mostEfficientFood.get(DataComponentTypes.FOOD);
-                final Item foodItem = mostEfficientFood.getItem();
+                //final Item foodItem = mostEfficientFood.getItem();
+                this.entity.equipStack(EquipmentSlot.MAINHAND, mostEfficientFood);
 
                 float damageAmount = (this.entity.getMaxHealth() - this.entity.getHealth());
                 assert foodComponent != null;
@@ -81,9 +82,7 @@ public class EatFoodGoal extends Goal implements InventoryChangedListener {
                 //CreatureFoodStats foodStats = this.config.getFoodStatsLevel() != WolfFoodStatsLevel.DISABLED ? this.armoredWolf.getFoodStats() : null;
 
                 //boolean isHurtOrHungry = damageAmount >= 1.0F || (foodStats != null && foodStats.needFood());
-                boolean wasteNotWantNot = healedAmount <= damageAmount;
-
-                if (wasteNotWantNot) {
+                if (healedAmount <= damageAmount) {
                     this.eatingFood = mostEfficientFood;
                     foodEatTime = foodComponent.getEatTicks();
                     eatCooldown = foodEatTime + entity.getRandom().nextInt(foodEatTime);
@@ -99,13 +98,14 @@ public class EatFoodGoal extends Goal implements InventoryChangedListener {
 
     @Override
     public void tick() {
+        this.eatCooldown--;
         this.eatingTime++;
         ItemStack itemStack = this.entity.getEquippedStack(EquipmentSlot.MAINHAND);
         if (itemStack.contains(DataComponentTypes.FOOD)) {
             if (this.eatingTime > 600) {
                 ItemStack itemStack2 = itemStack.finishUsing(this.entity.getWorld(), this.entity);
                 if (!itemStack2.isEmpty()) {
-                    this.equipStack(EquipmentSlot.MAINHAND, itemStack2);
+                    this.entity.equipStack(EquipmentSlot.MAINHAND, itemStack2);
                 }
 
                 this.eatingTime = 0;
@@ -142,10 +142,10 @@ public class EatFoodGoal extends Goal implements InventoryChangedListener {
     }
 
 
-
     @Override
-    public void resetTask() {
+    public void stop() {
         foodEatTime = 0;
+        this.eatingTime = 0;
         hasHealedSinceLastReset = false;
         eatingFood = ItemStack.EMPTY;
 
@@ -153,14 +153,14 @@ public class EatFoodGoal extends Goal implements InventoryChangedListener {
     }
 
     @Override
-    public void onInventoryChanged(@NotNull SimpleInventory invBasic) {
-        this.refreshInventoryContents(invBasic);
+    public void onInventoryChanged(Inventory sender) {
+        this.refreshInventoryContents(sender);
     }
 
     private void refreshInventoryContents(Inventory invBasic) {
         this.inventoryContents.clear();
-        for(int slotIndex = ContainerWolfInventory.INVENTORY_SLOT_CHEST_START;
-            slotIndex < ContainerWolfInventory.INVENTORY_SLOT_CHEST_START + this.armoredWolf.getMaxSizeInventory() - 1;
+        for(int slotIndex = 1;
+            slotIndex < 16;
             ++slotIndex) {
             this.inventoryContents.add(invBasic.getStack(slotIndex));
         }
@@ -171,18 +171,11 @@ public class EatFoodGoal extends Goal implements InventoryChangedListener {
         final float healthDiff = this.entity.getMaxHealth() - this.entity.getHealth();
 
         return this.inventoryContents.stream()
-                .filter(itemStack -> !itemStack.isEmpty() &&
-                        entity.isBreedingItem(itemStack) &&
-                        itemStack.getItem() instanceof ItemFood)
+                .filter(itemStack -> !itemStack.isEmpty() && entity.isBreedingItem(itemStack) && itemStack.contains(DataComponentTypes.FOOD))
                 .min(Comparator.comparing(itemStack -> {
-                    ItemFood food = (ItemFood) itemStack.getItem();
-                    return Math.abs(healthDiff - food.getHealAmount(itemStack));
+                    FoodComponent food = itemStack.get(DataComponentTypes.FOOD);
+                    return Math.abs(healthDiff - food.nutrition());
                 }))
                 .orElse(ItemStack.EMPTY);
-    }
-
-    @Override
-    public void onInventoryChanged(Inventory sender) {
-        this.refreshInventoryContents(sender);
     }
 }

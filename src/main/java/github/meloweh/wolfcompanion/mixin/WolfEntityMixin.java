@@ -82,6 +82,11 @@ public abstract class WolfEntityMixin implements
 
     @Inject(method = "initGoals", at = @At("TAIL"))
     private void onInitGoals(CallbackInfo info) {
+        System.out.println("Is self present?: " + this.self);
+        if (this.self == null) {
+            self = (WolfEntity) (Object) this;
+        }
+
         ((MobEntityAccessor) self).getGoalSelector().add(1, new EatFoodGoal(self));
     }
 

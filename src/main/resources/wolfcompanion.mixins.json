@@ -3,7 +3,6 @@
   "package": "github.meloweh.wolfcompanion.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "ExampleMixin",
     "LivingEntityMixin",
     "MobEntityMixin",
     "ServerPlayerEntityMixin",

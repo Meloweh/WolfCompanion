@@ -22,6 +22,7 @@ import net.minecraft.entity.EntityType;
 import net.minecraft.entity.passive.WolfEntity;
 import renderer.CustomWolfEntityRenderer;
 import renderer.ExampleInventoryBER;
+import renderer.WolfHeldItemFeatureRenderer;
 
 public class WolfCompanionClient implements ClientModInitializer {
 	@Override
@@ -36,6 +37,7 @@ public class WolfCompanionClient implements ClientModInitializer {
 
 		BlockEntityRendererFactories.register(BlockEntityTypeInit.EXAMPLE_INVENTORY_BLOCK_ENTITY, ExampleInventoryBER::new);
 		EntityRendererRegistry.register(EntityType.WOLF, CustomWolfEntityRenderer::new);
+		//EntityRendererRegistry.register(EntityType.WOLF, WolfHeldItemFeatureRenderer::new);
 
 		ClientPlayNetworking.registerGlobalReceiver(SampleS2CPayload.ID, (payload, context) -> {
 			context.client().execute(() -> {
