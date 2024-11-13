@@ -1,6 +1,7 @@
 package github.meloweh.wolfcompanion.mixin;
 
 import github.meloweh.wolfcompanion.accessor.MobEntityAccessor;
+import net.minecraft.entity.ai.goal.GoalSelector;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
@@ -15,6 +16,9 @@ public abstract class MobEntityMixin implements MobEntityAccessor {
 
     @Invoker("equipBodyArmor")
     public abstract void equipBodyArmor(ItemStack stack);
+
+    @Accessor("goalSelector")
+    public abstract GoalSelector getGoalSelector();
 
     /*
     @Invoker("hasPassenger")

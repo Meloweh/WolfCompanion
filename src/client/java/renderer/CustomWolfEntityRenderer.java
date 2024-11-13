@@ -24,15 +24,10 @@ import org.joml.Quaternionf;
 import org.lwjgl.opengl.GL11;
 
 public class CustomWolfEntityRenderer extends WolfEntityRenderer {
-    //static float degree = 45;
     public CustomWolfEntityRenderer(EntityRendererFactory.Context context) {
         super(context);
-        // Add your custom feature renderer
-        System.out.println("CustomWolfEntityRenderer initialized!");
         this.addFeature(new CustomFeatureRenderer(this));
     }
-
-    static float f = 0;
 
     // Custom feature renderer class
     private static class CustomFeatureRenderer extends FeatureRenderer<WolfEntity, WolfEntityModel<WolfEntity>> {

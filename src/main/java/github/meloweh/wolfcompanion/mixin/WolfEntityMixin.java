@@ -2,6 +2,7 @@ package github.meloweh.wolfcompanion.mixin;
 
 import github.meloweh.wolfcompanion.accessor.*;
 import github.meloweh.wolfcompanion.entity.WolfInventoryEntity;
+import github.meloweh.wolfcompanion.goals.EatFoodGoal;
 import github.meloweh.wolfcompanion.network.BlockPosPayload;
 import github.meloweh.wolfcompanion.network.UuidPayload;
 import github.meloweh.wolfcompanion.screenhandler.ExampleInventoryScreenHandler;
@@ -29,6 +30,8 @@ import net.minecraft.nbt.NbtList;
 import net.minecraft.network.packet.s2c.play.EntityS2CPacket;
 import net.minecraft.network.packet.s2c.play.NbtQueryResponseS2CPacket;
 import net.minecraft.network.packet.s2c.play.OpenHorseScreenS2CPacket;
+import net.minecraft.particle.ItemStackParticleEffect;
+import net.minecraft.particle.ParticleTypes;
 import net.minecraft.screen.NamedScreenHandlerFactory;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.server.ServerConfigHandler;
@@ -37,6 +40,7 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
+import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -70,50 +74,15 @@ public abstract class WolfEntityMixin implements
 
     @Inject(method = "<init>", at = @At("RETURN"))
     private void onConstructor(CallbackInfo info) {
-
-        //WolfEntity wolf;
-        //wolf.hasPassenger()
+        //items.addListener(this);
+        //items.markDirty();
         self = (WolfEntity) (Object) this;
-//        inventory = new SingleStackInventory() {
-//            @Override
-//            public ItemStack getStack() {
-//                //return ((MobEntityAccessor) WolfEntityMixin.this).getGetBodyArmor();
-//                return WolfEntityMixin.this.getBodyArmor();
-//            }
-//
-//            @Override
-//            public void setStack(ItemStack stack) {
-//                //((MobEntityAccessor) WolfEntityMixin.this).invokeEquipBodyArmor(stack);
-//                items.setStack(10, stack);
-//            }
-//
-//            @Override
-//            public void markDirty() {
-//                System.out.println("wolf mark dirty");
-//            }
-//
-//            @Override
-//            public void onOpen(PlayerEntity player) {
-//                System.out.println("wolf on open");
-//                SingleStackInventory.super.onOpen(player);
-//            }
-//
-//            @Override
-//            public void onClose(PlayerEntity player) {
-//                System.out.println("wolf on close");
-//                SingleStackInventory.super.onClose(player);
-//            }
-//
-//            @Override
-//            public boolean canPlayerUse(PlayerEntity player) {
-//                return player.canInteractWithEntity(self, 4.0);
-//            }
-//            /*@Override
-//            public boolean canPlayerUse(PlayerEntity player) {
-//                return player.getVehicle() == WolfEntityMixin.this || player.canInteractWithEntity(WolfEntityMixin.this, 4.0);
-//            }*/
-//        };
         this.onChestedStatusChanged();
+    }
+
+    @Inject(method = "initGoals", at = @At("TAIL"))
+    private void onInitGoals(CallbackInfo info) {
+        ((MobEntityAccessor) self).getGoalSelector().add(1, new EatFoodGoal(self));
     }
 
     @Override
@@ -134,6 +103,34 @@ public abstract class WolfEntityMixin implements
     public boolean isDirty() {
         return this.isDirty;
     }
+
+    /*
+    @Override
+    public void handleStatus(byte status) {
+        self.getWorld().sendEntityStatus(self, EntityStatuses.ADD_POSITIVE_PLAYER_REACTION_PARTICLES);
+        if (status == EntityStatuses.CREATE_EATING_PARTICLES) {
+            ItemStack itemStack = this.getEquippedStack(EquipmentSlot.MAINHAND);
+            if (!itemStack.isEmpty()) {
+                for (int i = 0; i < 8; i++) {
+                    Vec3d vec3d = new Vec3d(((double)this.random.nextFloat() - 0.5) * 0.1, Math.random() * 0.1 + 0.1, 0.0)
+                            .rotateX(-this.getPitch() * (float) (Math.PI / 180.0))
+                            .rotateY(-this.getYaw() * (float) (Math.PI / 180.0));
+                    this.getWorld()
+                            .addParticle(
+                                    new ItemStackParticleEffect(ParticleTypes.ITEM, itemStack),
+                                    this.getX() + this.getRotationVector().x / 2.0,
+                                    this.getY(),
+                                    this.getZ() + this.getRotationVector().z / 2.0,
+                                    vec3d.x,
+                                    vec3d.y + 0.05,
+                                    vec3d.z
+                            );
+                }
+            }
+        } else {
+            super.handleStatus(status);
+        }
+    }*/
 
     /*
     private void updateDataToClients() {
@@ -173,6 +170,12 @@ public abstract class WolfEntityMixin implements
         }
 
         this.items.addListener(this);
+        this.items.markDirty();
+    }
+
+    @Override
+    public SimpleInventory getInventory() {
+        return this.items;
     }
 
     @Override
