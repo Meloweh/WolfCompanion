@@ -1,11 +1,10 @@
 package github.meloweh.wolfcompanion.screenhandler;
 
 import github.meloweh.wolfcompanion.accessor.WolfEntityMixinProvider;
+import github.meloweh.wolfcompanion.accessor.WolfEntityProvider;
 import github.meloweh.wolfcompanion.init.ScreenHandlerTypeInit;
-import github.meloweh.wolfcompanion.network.SampleS2CPayload;
 import github.meloweh.wolfcompanion.network.UuidPayload;
 import github.meloweh.wolfcompanion.shadow.ShadowArmorSlot;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.passive.WolfEntity;
@@ -18,7 +17,6 @@ import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.ScreenHandlerContext;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.screen.slot.SlotActionType;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.Box;
 
 import java.util.List;
@@ -29,6 +27,7 @@ public class ExampleInventoryScreenHandler2 extends ScreenHandler {
     private final ScreenHandlerContext context;
     private final SimpleInventory wolfInventory;
     private Slot armorSlot;
+    private final static int WOLF_SLOTS = 16;
 
     private static WolfEntity getWolfEntity(PlayerInventory playerInventory, UuidPayload payload) {
         final PlayerEntity player = playerInventory.player;
@@ -69,12 +68,12 @@ public class ExampleInventoryScreenHandler2 extends ScreenHandler {
 //                    new SampleS2CPayload("badabub from server with " + playerInventory.player.getWorld().isClient, 123));
 
         wolfInventory = ((WolfEntityMixinProvider)(wolf)).wolfcompanion_template_1_21_1$getItemsInventory(); //NBTHelper.getInventory(nbt, wolf);
-        checkSize(wolfInventory, 16);
+        checkSize(wolfInventory, WOLF_SLOTS);
         wolfInventory.onOpen(playerInventory.player);
 
         addPlayerInventory(playerInventory);
         addPlayerHotbar(playerInventory);
-        addBlockInventory(wolfInventory);
+        addWolfInventory(wolfInventory);
     }
 
     private void addPlayerInventory(PlayerInventory playerInv) {
@@ -91,16 +90,19 @@ public class ExampleInventoryScreenHandler2 extends ScreenHandler {
         }
     }
 
-    private void addBlockInventory(SimpleInventory inventory) {
+    private void addWolfInventory(SimpleInventory inventory) {
         armorSlot = addSlot(new ShadowArmorSlot(inventory, wolf, EquipmentSlot.BODY, 0, 8, 18, null));
         final ItemStack armorStack = wolf.getEquippedStack(EquipmentSlot.BODY);
         armorSlot.setStack(armorStack);
 
-        for (int k = 0; k < 3; k++) {
-            for (int l = 0; l < 5; l++) {
-                addSlot(new Slot(inventory, 1 + l + k * 5, 80 + l * 18, 18 + k * 18));
+        if (((WolfEntityProvider)wolf).hasChestEquipped()) {
+            for (int k = 0; k < WOLF_SLOTS / 5; k++) {
+                for (int l = 0; l < WOLF_SLOTS / 3; l++) {
+                    addSlot(new Slot(inventory, 1 + l + k * 5, 80 + l * 18, 18 + k * 18));
+                }
             }
         }
+
     }
 
     @Override
@@ -123,10 +125,10 @@ public class ExampleInventoryScreenHandler2 extends ScreenHandler {
             ItemStack inSlot = slot.getStack();
             newStack = inSlot.copy();
 
-            if(slotIndex < 16) {
-                if(!insertItem(inSlot, 16, this.slots.size(), true))
+            if(slotIndex < WOLF_SLOTS) {
+                if(!insertItem(inSlot, WOLF_SLOTS, this.slots.size(), true))
                     return ItemStack.EMPTY;
-            } else if (!insertItem(inSlot, 0, 16, false))
+            } else if (!insertItem(inSlot, 0, WOLF_SLOTS, false))
                 return ItemStack.EMPTY;
 
             if(inSlot.isEmpty())

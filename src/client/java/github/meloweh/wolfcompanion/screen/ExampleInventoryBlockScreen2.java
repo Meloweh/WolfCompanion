@@ -41,7 +41,7 @@ public class ExampleInventoryBlockScreen2 extends HandledScreen<ExampleInventory
         super(handler, inventory, title);
         this.backgroundWidth = 176;
         this.backgroundHeight = 184;
-        this.playerInventoryTitleY = this.backgroundHeight - 94;
+        this.playerInventoryTitleY = this.backgroundHeight - 111;
         //this.entity = inventory.player;
         this.slotColumnCount = 5;
         this.wolf = handler.getWolf();
@@ -58,13 +58,38 @@ public class ExampleInventoryBlockScreen2 extends HandledScreen<ExampleInventory
         //    ClientPlayNetworking.send(new SampleC2SPayload("It says we are on " + player.getWorld().isClient, 69));
     }
 
+    private boolean clickedDropChest(double mouseX, double mouseY) {
+        int i = (this.width - this.backgroundWidth) / 2;
+        int j = (this.height - this.backgroundHeight) / 2;
+        return mouseX >= i + 7 &&
+                mouseX < i + 7 + 18 &&
+                mouseY >= j + 35 &&
+                mouseY < j + 35 + 18;
+    }
+
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (clickedDropChest(mouseX, mouseY)) {
+            //wolf.
+        }
+        return super.mouseClicked(mouseX, mouseY, button);
+    }
+
+    /*@Override
+    public void setTooltip(Text tooltip) {
+        super.setTooltip(tooltip);
+    }*/
+
     @Override
     protected void drawBackground(DrawContext context, float delta, int mouseX, int mouseY) {
         int i = (this.width - this.backgroundWidth) / 2;
         int j = (this.height - this.backgroundHeight) / 2;
         context.drawTexture(TEXTURE, i, j, 0, 0, this.backgroundWidth, this.backgroundHeight);
-        if (this.slotColumnCount > 0) {
-            context.drawGuiTexture(CHEST_SLOTS_TEXTURE, 90, 54, 0, 0, i + 79, j + 17, this.slotColumnCount * 18, 54);
+
+        if (((WolfEntityProvider)wolf).hasChestEquipped()) {
+            if (this.slotColumnCount > 0) {
+                context.drawGuiTexture(CHEST_SLOTS_TEXTURE, 90, 54, 0, 0, i + 79, j + 17, this.slotColumnCount * 18, 54);
+            }
         }
 
         if (this.wolf.hasArmor()) {
@@ -79,11 +104,12 @@ public class ExampleInventoryBlockScreen2 extends HandledScreen<ExampleInventory
                     this.mouseY >= j + 35 &&
                     this.mouseY < j + 35 + 18) {
                 context.drawTexture(BUTTON_CHEST_HIGHLIGHTED, i + 7, j + 35, 0, 0, 18, 18, 18, 18);
+                this.setTooltip(Text.of("Drop chest and items"));
             } else {
                 context.drawTexture(BUTTON_CHEST_AVAILABLE, i + 7, j + 35, 0, 0, 18, 18, 18, 18);
             }
         } else {
-            context.drawTexture(BUTTON_CHEST_DISABLED, i + 7, j + 35, 0, 0, 18, 18, 18, 18);
+            //context.drawTexture(BUTTON_CHEST_DISABLED, i + 7, j + 35, 0, 0, 18, 18, 18, 18);
         }
 
         InventoryScreen.drawEntity(context, i + 26, j + 18, i + 78, j + 70, 33, 0.25F, this.mouseX, this.mouseY, this.wolf);

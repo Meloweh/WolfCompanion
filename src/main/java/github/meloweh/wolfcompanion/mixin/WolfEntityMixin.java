@@ -463,7 +463,7 @@ public abstract class WolfEntityMixin implements
                 final ActionResult result = ActionResult.success(self.getWorld().isClient);
                 cir.setReturnValue(result);
                 cir.cancel();
-            } else if (this.hasChest() && player.isSneaking()) {
+            } else if (player.isSneaking()) {
                 this.openInventory(player);
                 final ActionResult result =  ActionResult.success(self.getWorld().isClient);
                 cir.setReturnValue(result);
