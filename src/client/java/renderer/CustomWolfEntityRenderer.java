@@ -2,9 +2,7 @@ package renderer;
 
 import accessor.WolfEntityModelAccessor;
 import github.meloweh.wolfcompanion.accessor.WolfEntityProvider;
-import github.meloweh.wolfcompanion.model.WolfBagModel;
 import github.meloweh.wolfcompanion.model.WolfBagModelV2;
-import github.meloweh.wolfcompanion.model.WolfChestModel;
 import net.minecraft.client.model.ModelPart;
 import net.minecraft.client.render.OverlayTexture;
 import net.minecraft.client.render.RenderLayer;
@@ -20,6 +18,7 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.passive.WolfEntity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.util.math.RotationAxis;
 
 public class CustomWolfEntityRenderer extends WolfEntityRenderer {
@@ -40,6 +39,7 @@ public class CustomWolfEntityRenderer extends WolfEntityRenderer {
             WolfEntityModel<WolfEntity> model = context.getModel();
 
             this.wolfTorso = ((WolfEntityModelAccessor) model).getTorso();
+            //this.wolfHead = ((WolfEntityModelAccessor) model).getRealHead();
             this.wolfHead = ((WolfEntityModelAccessor) model).getHead();
 
             final ModelPart bagRootV2 = WolfBagModelV2.getTexturedModelData().createModel();
@@ -70,9 +70,13 @@ public class CustomWolfEntityRenderer extends WolfEntityRenderer {
             matrices.translate(wolfHead.pivotX / 16.0F, wolfHead.pivotY / 16.0F, wolfHead.pivotZ / 16.0F);
             //m = wolfHead.getHeadRoll(h);
             //m = foxEntity.getHeadRoll(h);
-            //matrices.multiply(RotationAxis.POSITIVE_Z.rotation(wolfHead.roll));
+            m = entity.getBegAnimationProgress(partialTicks);
+
             matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(netHeadYaw));
             matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(headPitch));
+            matrices.multiply(RotationAxis.POSITIVE_Z.rotation(m));
+            //matrices.multiply(RotationAxis.POSITIVE_Y.rotation(m));
+            //matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(m));
             if (entity.isBaby()) {
                 if (bl) {
                     matrices.translate(0.4F, 0.26F, 0.15F);
@@ -82,15 +86,19 @@ public class CustomWolfEntityRenderer extends WolfEntityRenderer {
             } else if (bl) {
                 matrices.translate(0.46F, 0.26F, 0.22F);
             } else {
-                matrices.translate(0.06F, 0.27F, -0.5F);
+                //matrices.translate(0.06F, 0.83F, -0.4F);
+                matrices.translate(0.06F, 0.13F, -0.4F);
             }
 
+            //if (!entity.isSitting())
             matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(90.0F));
             if (bl) {
                 matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(90.0F));
             }
 
-            ItemStack itemStack = entity.getEquippedStack(EquipmentSlot.MAINHAND);
+            //ItemStack itemStack = entity.getEquippedStack(EquipmentSlot.MAINHAND);
+            ItemStack itemStack = Items.COOKED_BEEF.getDefaultStack();
+
             this.heldItemRenderer.renderItem(entity, itemStack, ModelTransformationMode.GROUND, false, matrices, vertexConsumers, light);
             matrices.pop();
 

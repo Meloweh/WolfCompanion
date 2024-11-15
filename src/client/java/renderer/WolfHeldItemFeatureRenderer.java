@@ -33,7 +33,7 @@ public class WolfHeldItemFeatureRenderer extends WolfEntityRenderer {
 
             WolfEntityModel<WolfEntity> model = context.getModel();
 
-            this.wolfHead = ((WolfEntityModelAccessor) model).getHead();
+            this.wolfHead = ((WolfEntityModelAccessor) model).getRealHead();
             this.heldItemRenderer = heldItemRenderer;
         }
 
@@ -68,6 +68,7 @@ public class WolfHeldItemFeatureRenderer extends WolfEntityRenderer {
             } else {
                 matrices.translate(0.06F, 0.27F, -0.5F);
             }
+            matrices.translate(0f, -500f, 0f);
 
             matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(90.0F));
             if (bl) {

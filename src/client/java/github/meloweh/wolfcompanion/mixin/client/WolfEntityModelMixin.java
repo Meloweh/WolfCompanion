@@ -14,6 +14,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class WolfEntityModelMixin implements WolfEntityModelAccessor {
     @Accessor("torso")
     public abstract ModelPart getTorso();
+    @Accessor("realHead")
+    public abstract ModelPart getRealHead();
     @Accessor("head")
     public abstract ModelPart getHead();
 /*
