@@ -64,34 +64,9 @@ public class ExampleInventoryScreenHandler2 extends ScreenHandler {
         this.wolf = wolf;
         this.context = ScreenHandlerContext.create(this.wolf.getWorld(), null);
 
-        if (!playerInventory.player.getWorld().isClient)
-            ServerPlayNetworking.send((ServerPlayerEntity) playerInventory.player,
-                    new SampleS2CPayload("badabub from server with " + playerInventory.player.getWorld().isClient, 123));
-
-//        NbtCompound nbt = new NbtCompound();
-//        this.wolf.saveNbt(nbt);
-//        NbtList nbtList = nbt.getList("Items", NbtElement.COMPOUND_TYPE);
-//        SimpleInventory items = new SimpleInventory();
-//
-//        for (int i = 0; i < nbtList.size(); i++) {
-//            NbtCompound nbtCompound = nbtList.getCompound(i);
-//            int j = nbtCompound.getByte("Slot") & 255;
-//            if (j < items.size() - 1) {
-//                items.setStack(j + 1, ItemStack.fromNbt(wolf.getRegistryManager(), nbtCompound).orElse(ItemStack.EMPTY));
-//            }
-//        }
-
-
-        //List<ItemStack> items = new ArrayList<>();
-//        final SimpleInventory items = new SimpleInventory(5 * 3 + 1);
-//
-//        for (int i = 0; i < nbtList.size(); i++) {
-//            NbtCompound nbtCompound = nbtList.getCompound(i);
-//            int j = nbtCompound.getByte("Slot") & 255;
-//            if (j < items.size() - 1) {
-//                items.setStack(j + 1, ItemStack.fromNbt(wolf.getRegistryManager(), nbtCompound).orElse(ItemStack.EMPTY));
-//            }
-//        }
+//        if (!playerInventory.player.getWorld().isClient)
+//            ServerPlayNetworking.send((ServerPlayerEntity) playerInventory.player,
+//                    new SampleS2CPayload("badabub from server with " + playerInventory.player.getWorld().isClient, 123));
 
         wolfInventory = ((WolfEntityMixinProvider)(wolf)).wolfcompanion_template_1_21_1$getItemsInventory(); //NBTHelper.getInventory(nbt, wolf);
         checkSize(wolfInventory, 16);
@@ -117,12 +92,6 @@ public class ExampleInventoryScreenHandler2 extends ScreenHandler {
     }
 
     private void addBlockInventory(SimpleInventory inventory) {
-        /*for (int row = 0; row < 3; row++) {
-            for (int column = 0; column < 5; column++) {
-                addSlot(new Slot(inventory, column + (row * 9), 8 + (column * 18), 18 + (row * 18)));
-            }
-        }*/
-
         armorSlot = addSlot(new ShadowArmorSlot(inventory, wolf, EquipmentSlot.BODY, 0, 8, 18, null));
         final ItemStack armorStack = wolf.getEquippedStack(EquipmentSlot.BODY);
         armorSlot.setStack(armorStack);
@@ -142,7 +111,7 @@ public class ExampleInventoryScreenHandler2 extends ScreenHandler {
             Slot slot = getSlot(k);
             ItemStack stack = slot.getStack();
             if (stack.isEmpty()) continue;
-            System.out.println("ExampleInventoryScreenHandler2 onClosed has item: " + stack.getItem().toString() + " " + getWolf().getWorld().isClient);
+            //System.out.println("ExampleInventoryScreenHandler2 onClosed has item: " + stack.getItem().toString() + " " + getWolf().getWorld().isClient);
         }
     }
 
