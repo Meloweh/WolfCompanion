@@ -53,8 +53,8 @@ public abstract class WolfEntityMixin implements
         MobEntityAccessor,
         ExtendedScreenHandlerFactory<UuidPayload>,
         WolfEntityMixinProvider {
-    @Unique
-    private static final TrackedData<Byte> HORSE_FLAGS = DataTracker.registerData(WolfEntity.class, TrackedDataHandlerRegistry.BYTE);
+    //@Unique
+    //private static final TrackedData<Byte> HORSE_FLAGS = DataTracker.registerData(WolfEntity.class, TrackedDataHandlerRegistry.BYTE);
     @Unique
     protected SimpleInventory items;
     @Unique
@@ -257,137 +257,15 @@ public abstract class WolfEntityMixin implements
     }
 
     @Unique
-    public ActionResult interactCompanion(PlayerEntity player, Hand hand) {
-        System.out.println("TESTING interactCompanion");
-
-        if (player.shouldCancelInteraction()) {
-            System.out.println("TESTING interactCompanionV2 openInventory");
-            this.openInventory(player);
-            return ActionResult.success(self.getWorld().isClient);
-        } /*else {
-            ItemStack itemStack = player.getStackInHand(hand);
-            if (!itemStack.isEmpty()) {
-                ActionResult actionResult = itemStack.useOnEntity(player, self, hand);
-                if (actionResult.isAccepted()) {
-                    return actionResult;
-                }
-
-                //if (self.canUseSlot(EquipmentSlot.BODY) && self.isHorseArmor(itemStack) && !this.isWearingBodyArmor()) {
-                //    this.equipBodyArmor(itemStack.copyWithCount(1));
-                //    itemStack.decrementUnlessCreative(1, player);
-                //    return ActionResult.success(this.getWorld().isClient);
-                //}
-            }
-
-            return ActionResult.success(self.getWorld().isClient);
-        }*/
-        System.out.println("TESTING interactCompanionV2 skipping");
-        return ActionResult.success(self.getWorld().isClient);
-    }
-
-    @Unique
     private StackReference staticGetStackReference(LivingEntity entity, EquipmentSlot slot) {
         return slot != EquipmentSlot.HEAD && slot != EquipmentSlot.MAINHAND && slot != EquipmentSlot.OFFHAND
                 ? StackReference.of(entity, slot, stack -> stack.isEmpty() || self.getPreferredEquipmentSlot(stack) == slot)
                 : StackReference.of(entity, slot);
     }
 
-    @Unique
-    @Nullable
-    private EquipmentSlot getEquipmentSlot(int slotId) {
-        if (slotId == 100 + EquipmentSlot.HEAD.getEntitySlotId()) {
-            return EquipmentSlot.HEAD;
-        } else if (slotId == 100 + EquipmentSlot.CHEST.getEntitySlotId()) {
-            return EquipmentSlot.CHEST;
-        } else if (slotId == 100 + EquipmentSlot.LEGS.getEntitySlotId()) {
-            return EquipmentSlot.LEGS;
-        } else if (slotId == 100 + EquipmentSlot.FEET.getEntitySlotId()) {
-            return EquipmentSlot.FEET;
-        } else if (slotId == 98) {
-            return EquipmentSlot.MAINHAND;
-        } else if (slotId == 99) {
-            return EquipmentSlot.OFFHAND;
-        } else {
-            return slotId == 105 ? EquipmentSlot.BODY : null;
-        }
-    }
-
-    @Unique
-    public StackReference entityLivingGetStackReference(int mappedIndex) {
-        EquipmentSlot equipmentSlot = getEquipmentSlot(mappedIndex);
-        return equipmentSlot != null ? staticGetStackReference(self, equipmentSlot) : StackReference.EMPTY;
-    }
-
-
-    @Unique
-    private StackReference getOtherStackReference(int mappedIndex) {
-        int i = mappedIndex - 400;
-        if (i == 0) {
-            return new StackReference() {
-                @Override
-                public ItemStack get() {
-                    return WolfEntityMixin.this.items.getStack(0);
-                }
-
-                @Override
-                public boolean set(ItemStack stack) {
-                    if (!stack.isEmpty() && !stack.isOf(Items.SADDLE)) {
-                        return false;
-                    } else {
-                        WolfEntityMixin.this.items.setStack(0, stack);
-                        return true;
-                    }
-                }
-            };
-        } else {
-            int j = mappedIndex - 500 + 1;
-            return j >= 1 && j < this.items.size() ? StackReference.of(this.items, j) : entityLivingGetStackReference(mappedIndex);
-        }
-    }
-
-    @Override
-    public StackReference wolfcompanion_template_1_21_1$getGetStackReference(int mappedIndex) {
-        return mappedIndex == 499 ? new StackReference() {
-            @Override
-            public ItemStack get() {
-                System.out.println("wolfcompanion_template_1_21_1$getGetStackReference");
-                return WolfEntityMixin.this.hasChest() ? new ItemStack(Items.CHEST) : ItemStack.EMPTY;
-            }
-
-            @Override
-            public boolean set(ItemStack stack) {
-                System.out.println("wolfcompanion_template_1_21_1$getGetStackReference");
-                if (stack.isEmpty()) {
-                    if (WolfEntityMixin.this.hasChest()) {
-                        WolfEntityMixin.this.setHasChest(false);
-                        WolfEntityMixin.this.onChestedStatusChanged();
-                    }
-
-                    return true;
-                } else if (stack.isOf(Items.CHEST)) {
-                    if (!WolfEntityMixin.this.hasChest()) {
-                        WolfEntityMixin.this.setHasChest(true);
-                        WolfEntityMixin.this.onChestedStatusChanged();
-                    }
-
-                    return true;
-                } else {
-                    return false;
-                }
-            }
-        } : getOtherStackReference(mappedIndex);
-    }
-
-    /*@Unique
-    public final Inventory getInventory() {
-        return this.inventory;
-    }*/
-
     @Inject(method = "initDataTracker", at = @At("TAIL"))
     protected void injectInitDataTracker(DataTracker.Builder builder, CallbackInfo ci) {
-        builder.add(HORSE_FLAGS, (byte)0);
         builder.add(CHEST, false);
-        //builder.add(INVENTORY, inventory);
     }
 
     /*@Override
@@ -399,7 +277,6 @@ public abstract class WolfEntityMixin implements
 
     @Unique
     private DataTracker getDataTracker(WolfEntity wolf) {
-        //System.out.println("///////EEEEEEEEE////////////EEEEEEEEEEEEE//////////EEEEEEEEEE");
         return self.getDataTracker();
     }
 
@@ -485,27 +362,6 @@ public abstract class WolfEntityMixin implements
                 }
             }
         }
-    }
-
-    @Unique
-    public ActionResult interactCompanionV2(PlayerEntity player, Hand hand) {
-        final ItemStack itemStack = player.getStackInHand(hand);
-        if (!self.isBaby() && !this.hasChest() && itemStack.isOf(Items.CHEST) && !player.shouldCancelInteraction()) {
-            this.addChest(player, itemStack);
-            return ActionResult.success(self.getWorld().isClient);
-        }
-
-        /*boolean bl = !self.isBaby() && player.shouldCancelInteraction();
-        if (!self.hasPassengers() && !bl) {
-            ItemStack itemStack = player.getStackInHand(hand);
-            if (!itemStack.isEmpty()) {
-                if (!this.hasChest() && itemStack.isOf(Items.CHEST)) {
-                    this.addChest(player, itemStack);
-                    return ActionResult.success(self.getWorld().isClient);
-                }
-            }
-        }*/
-        return interactCompanion(player, hand);
     }
 
     @Unique

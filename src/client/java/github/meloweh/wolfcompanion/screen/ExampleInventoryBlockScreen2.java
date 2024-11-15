@@ -1,9 +1,8 @@
 package github.meloweh.wolfcompanion.screen;
 
+import github.meloweh.wolfcompanion.WolfCompanion;
 import github.meloweh.wolfcompanion.network.SampleC2SPayload;
-import github.meloweh.wolfcompanion.network.UuidPayload;
 import github.meloweh.wolfcompanion.screenhandler.ExampleInventoryScreenHandler2;
-import github.meloweh.wolfcompanion.util.NBTHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
@@ -12,18 +11,18 @@ import net.minecraft.entity.passive.WolfEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.SimpleInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.screen.slot.Slot;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
 public class ExampleInventoryBlockScreen2 extends HandledScreen<ExampleInventoryScreenHandler2> {
     //private static final Identifier TEXTURE = WolfCompanion.id("textures/gui/container/example_inventory_block.png");
     private static final Identifier CHEST_SLOTS_TEXTURE = Identifier.ofVanilla("container/horse/chest_slots");
-    private static final Identifier SADDLE_SLOT_TEXTURE = Identifier.ofVanilla("container/horse/saddle_slot");
+    //private static final Identifier SADDLE_SLOT_TEXTURE = Identifier.ofVanilla("container/horse/saddle_slot");
+
     private static final Identifier LLAMA_ARMOR_SLOT_TEXTURE = Identifier.ofVanilla("container/horse/llama_armor_slot");
     private static final Identifier ARMOR_SLOT_TEXTURE = Identifier.ofVanilla("container/horse/armor_slot");
-    private static final Identifier TEXTURE = Identifier.ofVanilla("textures/gui/container/horse.png");
+    private static final Identifier TEXTURE = WolfCompanion.id("textures/gui/container/horse.png"); //Identifier.ofVanilla("textures/gui/container/horse.png");
+    //private static final Identifier SADDLE_SLOT_TEXTURE = WolfCompanion.id("textures/gui/container/armor_slot.png");
     private final WolfEntity wolf;
     private final int slotColumnCount;
     private float mouseX;
@@ -86,7 +85,7 @@ public class ExampleInventoryBlockScreen2 extends HandledScreen<ExampleInventory
         }
 
         //if (this.entity.canBeSaddled()) {
-        context.drawGuiTexture(SADDLE_SLOT_TEXTURE, i + 7, j + 35 - 18, 18, 18);
+        //context.drawGuiTexture(SADDLE_SLOT_TEXTURE, i + 7, j + 35 - 18, 18, 18);
         //}
 
         /*

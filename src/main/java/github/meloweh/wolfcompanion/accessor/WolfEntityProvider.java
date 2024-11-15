@@ -4,7 +4,7 @@ import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.inventory.StackReference;
 
 public interface WolfEntityProvider {
-    StackReference wolfcompanion_template_1_21_1$getGetStackReference(int mappedIndex);
+    //StackReference wolfcompanion_template_1_21_1$getGetStackReference(int mappedIndex);
     boolean hasChestEquipped();
     SimpleInventory getInventory();
 }

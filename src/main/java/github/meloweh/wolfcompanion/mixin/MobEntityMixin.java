@@ -14,8 +14,8 @@ public abstract class MobEntityMixin implements MobEntityAccessor {
     @Accessor("bodyArmor")
     public abstract ItemStack getBodyArmor();
 
-    @Invoker("equipBodyArmor")
-    public abstract void equipBodyArmor(ItemStack stack);
+    //@Invoker("equipBodyArmor")
+    //public abstract void equipBodyArmor(ItemStack stack);
 
     @Accessor("goalSelector")
     public abstract GoalSelector getGoalSelector();

@@ -37,7 +37,6 @@ public class WolfCompanionClient implements ClientModInitializer {
 
 		BlockEntityRendererFactories.register(BlockEntityTypeInit.EXAMPLE_INVENTORY_BLOCK_ENTITY, ExampleInventoryBER::new);
 		EntityRendererRegistry.register(EntityType.WOLF, CustomWolfEntityRenderer::new);
-		//EntityRendererRegistry.register(EntityType.WOLF, WolfHeldItemFeatureRenderer::new);
 
 		ClientPlayNetworking.registerGlobalReceiver(SampleS2CPayload.ID, (payload, context) -> {
 			context.client().execute(() -> {

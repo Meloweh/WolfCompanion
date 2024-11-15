@@ -23,7 +23,7 @@ public abstract class EntityMixin implements EntityAccessor, WolfEntityProvider 
     //@Accessor("get")
     //public abstract ItemStack getGetBodyArmor();
 
-    @Inject(method = "getStackReference", at = @At("RETURN"), cancellable = true)
+    /*@Inject(method = "getStackReference", at = @At("RETURN"), cancellable = true)
     private void injectedGetStackReference(int mappedIndex, CallbackInfoReturnable<StackReference> cir) {
         if (((Object)this) instanceof Entity) {
             System.out.println("getStackReference yes");
@@ -32,7 +32,7 @@ public abstract class EntityMixin implements EntityAccessor, WolfEntityProvider 
         } else {
             System.out.println("getStackReference no");
         }
-    }
+    }*/
 
 
 }
