@@ -93,7 +93,6 @@ public abstract class WolfEntityMixin implements
         if (this.self == null) {
             self = (WolfEntity) (Object) this;
         }
-
         ((MobEntityAccessor) self).getGoalSelector().add(1, new EatFoodGoal(self));
     }
 

@@ -22,6 +22,7 @@ public class ExampleInventoryBlockScreen2 extends HandledScreen<ExampleInventory
     private static final Identifier LLAMA_ARMOR_SLOT_TEXTURE = Identifier.ofVanilla("container/horse/llama_armor_slot");
     private static final Identifier ARMOR_SLOT_TEXTURE = Identifier.ofVanilla("container/horse/armor_slot");
     private static final Identifier TEXTURE = WolfCompanion.id("textures/gui/container/horse.png"); //Identifier.ofVanilla("textures/gui/container/horse.png");
+    private static final Identifier SLOT = Identifier.ofVanilla("container/slot");
     //private static final Identifier SADDLE_SLOT_TEXTURE = WolfCompanion.id("textures/gui/container/armor_slot.png");
     private final WolfEntity wolf;
     private final int slotColumnCount;
@@ -82,6 +83,10 @@ public class ExampleInventoryBlockScreen2 extends HandledScreen<ExampleInventory
         context.drawTexture(TEXTURE, i, j, 0, 0, this.backgroundWidth, this.backgroundHeight);
         if (this.slotColumnCount > 0) {
             context.drawGuiTexture(CHEST_SLOTS_TEXTURE, 90, 54, 0, 0, i + 79, j + 17, this.slotColumnCount * 18, 54);
+        }
+
+        if (this.wolf.hasArmor()) {
+            context.drawGuiTexture(SLOT, i + 7, j + 35 - 18, 18, 18);
         }
 
         //if (this.entity.canBeSaddled()) {
