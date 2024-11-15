@@ -96,8 +96,8 @@ public class CustomWolfEntityRenderer extends WolfEntityRenderer {
                 matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(90.0F));
             }
 
-            //ItemStack itemStack = entity.getEquippedStack(EquipmentSlot.MAINHAND);
-            ItemStack itemStack = Items.COOKED_BEEF.getDefaultStack();
+            ItemStack itemStack = entity.getEquippedStack(EquipmentSlot.MAINHAND);
+            //ItemStack itemStack = Items.COOKED_BEEF.getDefaultStack();
 
             this.heldItemRenderer.renderItem(entity, itemStack, ModelTransformationMode.GROUND, false, matrices, vertexConsumers, light);
             matrices.pop();
