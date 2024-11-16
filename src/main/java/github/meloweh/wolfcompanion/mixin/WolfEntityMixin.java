@@ -294,11 +294,6 @@ public abstract class WolfEntityMixin implements
             this.items.clearToList().forEach(itemStack -> {
                 self.dropStack(itemStack);
             });
-//            for (int i = 0; i < this.items.size(); i++) {
-//                ItemStack itemStack = this.items.getStack(i);
-//                self.dropStack(itemStack);
-//            }
-//            items.clear();
         }
 
         if (this.hasChest()) {

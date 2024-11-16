@@ -27,16 +27,6 @@ public class InitBlock {
                     .requiresTool()
     ));
 
-    public static final ExampleEnergyGeneratorBlock EXAMPLE_ENERGY_GENERATOR_BLOCK = registerWithItem("example_energy_generator_block",
-            new ExampleEnergyGeneratorBlock(AbstractBlock.Settings.create()
-                    .strength(1.5F, 6.0F)
-                    .requiresTool()));
-
-    public static final ExampleEnergyStorageBlock EXAMPLE_ENERGY_STORAGE_BLOCK = registerWithItem("example_energy_storage_block",
-            new ExampleEnergyStorageBlock(AbstractBlock.Settings.create()
-                    .strength(1.5F, 6.0F)
-                    .requiresTool()));
-
     public static final ExampleInventoryBlock EXAMPLE_INVENTORY_BLOCK = registerWithItem("example_inventory_block",
             new ExampleInventoryBlock(AbstractBlock.Settings.create()
                     .strength(1.5F, 6.0F)

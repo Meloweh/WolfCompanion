@@ -16,14 +16,6 @@ public class BlockEntityTypeInit {
             BlockEntityType.Builder.create(ExampleTickingBlockEntity::new, InitBlock.EXAMPLE_TICKING_BE_BLOCK)
                     .build());
 
-    public static final BlockEntityType<ExampleEnergyGeneratorBlockEntity> EXAMPLE_ENERGY_GENERATOR = register("example_energy_generator",
-            BlockEntityType.Builder.create(ExampleEnergyGeneratorBlockEntity::new, InitBlock.EXAMPLE_ENERGY_GENERATOR_BLOCK)
-                    .build());
-
-    public static final BlockEntityType<ExampleEnergyStorageBlockEntity> EXAMPLE_ENERGY_STORAGE = register("example_energy_storage",
-            BlockEntityType.Builder.create(ExampleEnergyStorageBlockEntity::new, InitBlock.EXAMPLE_ENERGY_STORAGE_BLOCK)
-                    .build());
-
     public static final BlockEntityType<ExampleInventoryBlockEntity> EXAMPLE_INVENTORY_BLOCK_ENTITY = register("example_inventory_block_entity",
             BlockEntityType.Builder.create(ExampleInventoryBlockEntity::new, InitBlock.EXAMPLE_INVENTORY_BLOCK)
                     .build());

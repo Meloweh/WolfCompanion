@@ -1,8 +1,6 @@
 package github.meloweh.wolfcompanion;
 
 import github.meloweh.wolfcompanion.accessor.WolfEntityProvider;
-import github.meloweh.wolfcompanion.block.entity.ExampleEnergyGeneratorBlockEntity;
-import github.meloweh.wolfcompanion.block.entity.ExampleEnergyStorageBlockEntity;
 import github.meloweh.wolfcompanion.init.BlockEntityTypeInit;
 import github.meloweh.wolfcompanion.init.InitBlock;
 import github.meloweh.wolfcompanion.init.InitItem;
@@ -18,7 +16,6 @@ import net.minecraft.entity.passive.WolfEntity;
 import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import team.reborn.energy.api.EnergyStorage;
 
 public class WolfCompanion implements ModInitializer {
 	public static final String MOD_ID = "wolfcompanion";
@@ -34,8 +31,8 @@ public class WolfCompanion implements ModInitializer {
 		BlockEntityTypeInit.load();
 		ScreenHandlerTypeInit.load();
 
-		EnergyStorage.SIDED.registerForBlockEntity(ExampleEnergyGeneratorBlockEntity::getEnergyProvider, BlockEntityTypeInit.EXAMPLE_ENERGY_GENERATOR);
-		EnergyStorage.SIDED.registerForBlockEntity(ExampleEnergyStorageBlockEntity::getEnergyProvider, BlockEntityTypeInit.EXAMPLE_ENERGY_STORAGE);
+//		EnergyStorage.SIDED.registerForBlockEntity(ExampleEnergyGeneratorBlockEntity::getEnergyProvider, BlockEntityTypeInit.EXAMPLE_ENERGY_GENERATOR);
+//		EnergyStorage.SIDED.registerForBlockEntity(ExampleEnergyStorageBlockEntity::getEnergyProvider, BlockEntityTypeInit.EXAMPLE_ENERGY_STORAGE);
 
 
 		/*
