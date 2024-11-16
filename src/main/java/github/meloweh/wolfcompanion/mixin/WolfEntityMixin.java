@@ -291,9 +291,15 @@ public abstract class WolfEntityMixin implements
     @Override
     public void dropInventory() {
         if (this.items != null) {
-            this.items.clearToList().forEach(itemStack -> {
-                self.dropStack(itemStack);
-            });
+            for (int i = this.items.size(); i >= 0; i--) {
+                final ItemStack itemStack = this.items.getStack(i);
+                if (!itemStack.isEmpty()) {
+                    if (self.getEquippedStack(EquipmentSlot.BODY) != itemStack) {
+                        this.items.removeStack(i);
+                        self.dropStack(itemStack);
+                    }
+                }
+            }
         }
 
         if (this.hasChest()) {
