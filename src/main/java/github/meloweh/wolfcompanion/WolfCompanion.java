@@ -12,7 +12,10 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.passive.WolfEntity;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,6 +69,10 @@ public class WolfCompanion implements ModInitializer {
 						final WolfEntity wolf = (WolfEntity) entity;
 						final WolfEntityProvider provider = (WolfEntityProvider) wolf;
 						provider.setShouldDropChest(true);
+						final LivingEntity owner = wolf.getOwner();
+						if (owner instanceof ServerPlayerEntity) {
+							((ServerPlayerEntity) owner).closeHandledScreen();
+						}
 						provider.dropInventory();
 						System.out.println("Dropping chest.");
 					}

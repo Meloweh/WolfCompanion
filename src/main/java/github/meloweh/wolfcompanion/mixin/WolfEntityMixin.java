@@ -206,24 +206,7 @@ public abstract class WolfEntityMixin implements
 
     @Unique
     public void openWolfInventory(final ServerPlayerEntity player, WolfEntityMixin wolfEntityMixin, Inventory inventory) {
-        /*System.out.println(player!= null);
-        assert player != null;
-        if (player.currentScreenHandler != player.playerScreenHandler) {
-            player.closeHandledScreen();
-        }
-        ((ServerPlayerAccessor) player).execIncrementScreenHandlerSyncId();
-
-        int i = wolfEntityMixin.getInventoryColumns();
-        player.networkHandler.sendPacket(new OpenHorseScreenS2CPacket(((ServerPlayerAccessor) player).getScreenHandlerSyncId(), i, wolfEntityMixin.getId()));
-        player.currentScreenHandler = new WolfScreenHandler(((ServerPlayerAccessor) player).getScreenHandlerSyncId(),
-                player.getInventory(),
-                inventory, self, this.inventory, i, this.items);
-        ((ServerPlayerAccessor) player).execOnScreenHandlerOpened(player.currentScreenHandler);*/
-        //final int syncId = ((ServerPlayerAccessor) player).getScreenHandlerSyncId();
-        //System.out.println("SyncId: " + syncId);
-        //new ExampleInventoryScreenHandler2(syncId, player.getInventory(), self)
         player.openHandledScreen(this);
-        System.out.println("POST player.openHandledScreen(this);");
     }
 
 //    @Unique
@@ -239,9 +222,7 @@ public abstract class WolfEntityMixin implements
     @Override
     public void openInventory(PlayerEntity player) {
         if (!self.getWorld().isClient) {
-            System.out.println("TESTING openInventory openWolfInventory");
             openWolfInventory((ServerPlayerEntity) player, this, player.getInventory());
-            //player.openHorseInventory();
         }
     }
 
