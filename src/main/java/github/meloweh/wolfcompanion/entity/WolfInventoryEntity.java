@@ -1,33 +1,5 @@
 package github.meloweh.wolfcompanion.entity;
 
-import github.meloweh.wolfcompanion.WolfCompanion;
-import github.meloweh.wolfcompanion.init.BlockEntityTypeInit;
-import github.meloweh.wolfcompanion.network.BlockPosPayload;
-import github.meloweh.wolfcompanion.network.WolfInventoryPayload;
-import github.meloweh.wolfcompanion.screenhandler.ExampleInventoryScreenHandler;
-import github.meloweh.wolfcompanion.screenhandler.WolfInventoryScreenHandler;
-import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
-import net.fabricmc.fabric.api.transfer.v1.item.InventoryStorage;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.Inventories;
-import net.minecraft.inventory.SimpleInventory;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.network.listener.ClientPlayPacketListener;
-import net.minecraft.network.packet.Packet;
-import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import org.jetbrains.annotations.Nullable;
-
 public class WolfInventoryEntity /*extends BlockEntity implements ExtendedScreenHandlerFactory<WolfInventoryPayload>*/ {
     /*public static final Text TITLE = Text.translatable("container." + WolfCompanion.MOD_ID + ".example_inventory");
 

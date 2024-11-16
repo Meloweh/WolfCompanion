@@ -3,7 +3,7 @@ package github.meloweh.wolfcompanion.screen;
 import github.meloweh.wolfcompanion.WolfCompanion;
 import github.meloweh.wolfcompanion.accessor.WolfEntityProvider;
 import github.meloweh.wolfcompanion.network.DropWolfChestC2SPayload;
-import github.meloweh.wolfcompanion.screenhandler.ExampleInventoryScreenHandler2;
+import github.meloweh.wolfcompanion.screenhandler.WolfInventoryScreenHandler;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
@@ -15,9 +15,9 @@ import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
-public class ExampleInventoryBlockScreen2 extends HandledScreen<ExampleInventoryScreenHandler2> {
+public class WolfInventoryScreen extends HandledScreen<WolfInventoryScreenHandler> {
     private static final Identifier CHEST_SLOTS_TEXTURE = Identifier.ofVanilla("container/horse/chest_slots");
-    private static final Identifier TEXTURE = Identifier.ofVanilla("textures/gui/container/horse.png"); //WolfCompanion.id("textures/gui/container/horse.png"); //Identifier.ofVanilla("textures/gui/container/horse.png");
+    private static final Identifier TEXTURE = Identifier.ofVanilla("textures/gui/container/horse.png"); //WolfCompanion.id("textures/gui/container/horse .png"); //Identifier.ofVanilla("textures/gui/container/horse.png");
     private static final Identifier SLOT = Identifier.ofVanilla("container/slot");
     private final WolfEntity wolf;
     private final int slotColumnCount;
@@ -25,14 +25,14 @@ public class ExampleInventoryBlockScreen2 extends HandledScreen<ExampleInventory
     private float mouseY;
     private SimpleInventory wolfInventory;
     private PlayerEntity player;
-    private ExampleInventoryScreenHandler2 handler;
+    private WolfInventoryScreenHandler handler;
 
     private static final Identifier BUTTON_CHEST_AVAILABLE = WolfCompanion.id("textures/gui/container/button_available.png");
     private static final Identifier BUTTON_CHEST_HIGHLIGHTED = WolfCompanion.id("textures/gui/container/button_highlighted.png");
     private static final Identifier BUTTON_CHEST_DISABLED = WolfCompanion.id("textures/gui/container/button_disabled.png");
     private static final Identifier WOLF_ARMOR_SLOT = WolfCompanion.id("textures/gui/container/icon_wolf_armor.png");
 
-    public ExampleInventoryBlockScreen2(ExampleInventoryScreenHandler2 handler, PlayerInventory inventory, Text title) {
+    public WolfInventoryScreen(WolfInventoryScreenHandler handler, PlayerInventory inventory, Text title) {
         super(handler, inventory, title);
         this.backgroundWidth = 176;
         this.backgroundHeight = 184;

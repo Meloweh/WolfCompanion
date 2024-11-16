@@ -3,7 +3,7 @@ package github.meloweh.wolfcompanion.mixin;
 import github.meloweh.wolfcompanion.accessor.*;
 import github.meloweh.wolfcompanion.goals.EatFoodGoal;
 import github.meloweh.wolfcompanion.network.UuidPayload;
-import github.meloweh.wolfcompanion.screenhandler.ExampleInventoryScreenHandler2;
+import github.meloweh.wolfcompanion.screenhandler.WolfInventoryScreenHandler;
 import github.meloweh.wolfcompanion.util.NBTHelper;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.block.Blocks;
@@ -194,7 +194,7 @@ public abstract class WolfEntityMixin implements
     @Nullable
     @Override
     public ScreenHandler createMenu(int syncId, PlayerInventory playerInventory, PlayerEntity player) {
-        return new ExampleInventoryScreenHandler2(syncId, playerInventory, self, NBTHelper.getWolfNBT(self));
+        return new WolfInventoryScreenHandler(syncId, playerInventory, self, NBTHelper.getWolfNBT(self));
     }
 
     @Override
