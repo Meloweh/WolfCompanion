@@ -1,29 +1,24 @@
 package github.meloweh.wolfcompanion;
 
+import github.meloweh.wolfcompanion.accessor.WolfEntityProvider;
 import github.meloweh.wolfcompanion.block.entity.ExampleEnergyGeneratorBlockEntity;
 import github.meloweh.wolfcompanion.block.entity.ExampleEnergyStorageBlockEntity;
 import github.meloweh.wolfcompanion.init.BlockEntityTypeInit;
 import github.meloweh.wolfcompanion.init.InitBlock;
 import github.meloweh.wolfcompanion.init.InitItem;
 import github.meloweh.wolfcompanion.init.ScreenHandlerTypeInit;
-import github.meloweh.wolfcompanion.network.SampleC2SPayload;
+import github.meloweh.wolfcompanion.network.DropWolfChestC2SPayload;
 import github.meloweh.wolfcompanion.network.SampleS2CPayload;
-import github.meloweh.wolfcompanion.network.UuidPayload;
-import github.meloweh.wolfcompanion.util.NBTHelper;
 import net.fabricmc.api.ModInitializer;
 
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.passive.WolfEntity;
-import net.minecraft.inventory.SimpleInventory;
-import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import team.reborn.energy.api.EnergyStorage;
-
-import java.util.UUID;
 
 public class WolfCompanion implements ModInitializer {
 	public static final String MOD_ID = "wolfcompanion";
@@ -61,13 +56,23 @@ public class WolfCompanion implements ModInitializer {
 		});
 		System.out.println("BB");*/
 
-		PayloadTypeRegistry.playC2S().register(SampleC2SPayload.ID, SampleC2SPayload.PACKET_CODEC);
+		PayloadTypeRegistry.playC2S().register(DropWolfChestC2SPayload.ID, DropWolfChestC2SPayload.PACKET_CODEC);
 
-		ServerPlayNetworking.registerGlobalReceiver(SampleC2SPayload.ID, (payload, context) -> {
+		ServerPlayNetworking.registerGlobalReceiver(DropWolfChestC2SPayload.ID, (payload, context) -> {
 			context.server().execute(() -> {
-				final int myint = payload.myint();
-				final String mystring = payload.mystring();
-				System.out.println("Server: From Client: string: " + mystring + " int: " + myint);
+//				final int myint = payload.myint();
+//				final String mystring = payload.mystring();
+//				System.out.println("Server: From Client: string: " + mystring + " int: " + myint);
+				context.server().getWorlds().forEach(serverWorld -> {
+					final Entity entity = serverWorld.getEntity(payload.wolfUUID());
+					if (entity != null) {
+						final WolfEntity wolf = (WolfEntity) entity;
+						final WolfEntityProvider provider = (WolfEntityProvider) wolf;
+						provider.setShouldDropChest(true);
+						provider.dropInventory();
+						System.out.println("Dropping chest.");
+					}
+				});
 			});
 		});
 

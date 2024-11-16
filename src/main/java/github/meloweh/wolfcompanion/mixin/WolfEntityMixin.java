@@ -6,8 +6,7 @@ import github.meloweh.wolfcompanion.network.UuidPayload;
 import github.meloweh.wolfcompanion.screenhandler.ExampleInventoryScreenHandler2;
 import github.meloweh.wolfcompanion.util.NBTHelper;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.FoodComponent;
+import net.minecraft.block.Blocks;
 import net.minecraft.entity.*;
 import net.minecraft.entity.data.DataTracker;
 import net.minecraft.entity.data.TrackedData;
@@ -25,7 +24,6 @@ import net.minecraft.particle.ItemStackParticleEffect;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
@@ -38,10 +36,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-
 @Mixin(WolfEntity.class)
 public abstract class WolfEntityMixin implements
         InventoryChangedListener,
@@ -53,25 +47,23 @@ public abstract class WolfEntityMixin implements
         MobEntityAccessor,
         ExtendedScreenHandlerFactory<UuidPayload>,
         WolfEntityMixinProvider {
-    //@Unique
-    //private static final TrackedData<Byte> HORSE_FLAGS = DataTracker.registerData(WolfEntity.class, TrackedDataHandlerRegistry.BYTE);
     @Unique
     protected SimpleInventory items;
     @Unique
     private WolfEntity self;
 
-    @Unique
-    private static final int EATING_DURATION = 600;
-    @Unique
-    private float headRollProgress;
-    @Unique
-    private float lastHeadRollProgress;
-    @Unique
-    float extraRollingHeight;
-    @Unique
-    float lastExtraRollingHeight;
-    @Unique
-    private int eatingTime;
+//    @Unique
+//    private static final int EATING_DURATION = 600;
+//    @Unique
+//    private float headRollProgress;
+//    @Unique
+//    private float lastHeadRollProgress;
+//    @Unique
+//    float extraRollingHeight;
+//    @Unique
+//    float lastExtraRollingHeight;
+//    @Unique
+//    private int eatingTime;
 
     @Inject(method = "<init>", at = @At("RETURN"))
     private void onConstructor(CallbackInfo info) {
@@ -103,17 +95,17 @@ public abstract class WolfEntityMixin implements
 
     @Unique
     private static final TrackedData<Boolean> CHEST = DataTracker.registerData(WolfEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
-    //private static final TrackedData<Boolean> INVENTORY = DataTracker.registerData(WolfEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
+    private static final TrackedData<Boolean> DROP_CHEST = DataTracker.registerData(WolfEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
 
-    private boolean isDirty = false;
-
-    private void setDirty(boolean dirty) {
-        this.isDirty = dirty;
-    }
-
-    public boolean isDirty() {
-        return this.isDirty;
-    }
+//    private boolean isDirty = false;
+//
+//    private void setDirty(boolean dirty) {
+//        this.isDirty = dirty;
+//    }
+//
+//    public boolean isDirty() {
+//        return this.isDirty;
+//    }
 
     /*
     @Override
@@ -234,17 +226,15 @@ public abstract class WolfEntityMixin implements
         System.out.println("POST player.openHandledScreen(this);");
     }
 
-    @Unique
-    public boolean areInventoriesDifferent(Inventory inventory) {
-        return this.items != inventory;
-    }
+//    @Unique
+//    public boolean areInventoriesDifferent(Inventory inventory) {
+//        return this.items != inventory;
+//    }
 
-    @Unique
-    private int getId() {
-        System.out.println("getId");
-        System.out.println("getId: " + ((self == null) ? "self is null" : "self is not null"));
-        return self.getId();
-    }
+//    @Unique
+//    private int getId() {
+//        return self.getId();
+//    }
 
     @Override
     public void openInventory(PlayerEntity player) {
@@ -255,24 +245,18 @@ public abstract class WolfEntityMixin implements
         }
     }
 
-    @Unique
-    private StackReference staticGetStackReference(LivingEntity entity, EquipmentSlot slot) {
-        return slot != EquipmentSlot.HEAD && slot != EquipmentSlot.MAINHAND && slot != EquipmentSlot.OFFHAND
-                ? StackReference.of(entity, slot, stack -> stack.isEmpty() || self.getPreferredEquipmentSlot(stack) == slot)
-                : StackReference.of(entity, slot);
-    }
+//    @Unique
+//    private StackReference staticGetStackReference(LivingEntity entity, EquipmentSlot slot) {
+//        return slot != EquipmentSlot.HEAD && slot != EquipmentSlot.MAINHAND && slot != EquipmentSlot.OFFHAND
+//                ? StackReference.of(entity, slot, stack -> stack.isEmpty() || self.getPreferredEquipmentSlot(stack) == slot)
+//                : StackReference.of(entity, slot);
+//    }
 
     @Inject(method = "initDataTracker", at = @At("TAIL"))
     protected void injectInitDataTracker(DataTracker.Builder builder, CallbackInfo ci) {
         builder.add(CHEST, false);
+        builder.add(DROP_CHEST, false);
     }
-
-    /*@Override
-    protected void initDataTracker(DataTracker.Builder builder) {
-        super.initDataTracker(builder);
-        builder.add(HORSE_FLAGS, (byte)0);
-        builder.add(CHEST, false);
-    }*/
 
     @Unique
     private DataTracker getDataTracker(WolfEntity wolf) {
@@ -285,26 +269,36 @@ public abstract class WolfEntityMixin implements
     }
 
     @Override
+    public boolean shouldDropChest() {
+        return getDataTracker(self).get(DROP_CHEST);
+    }
+
+    @Override
     public boolean hasChestEquipped() {
         return hasChest();
     }
 
     @Unique
     public void setHasChest(boolean hasChest) {
-        //((ServerPlayerEntity)self).openHorseInventory();
         getDataTracker(self).set(CHEST, hasChest);
     }
-    /*
+
     @Override
-    protected void dropInventory() {
-        super.dropInventory();
+    public void setShouldDropChest(final boolean yes) {
+        getDataTracker(self).set(DROP_CHEST, yes);
+    }
+
+    @Override
+    public void dropInventory() {
         if (this.items != null) {
-            for (int i = 0; i < this.items.size(); i++) {
-                ItemStack itemStack = this.items.getStack(i);
-                if (!itemStack.isEmpty() && !EnchantmentHelper.hasAnyEnchantmentsWith(itemStack, EnchantmentEffectComponentTypes.PREVENT_EQUIPMENT_DROP)) {
-                    self.dropStack(itemStack);
-                }
-            }
+            this.items.clearToList().forEach(itemStack -> {
+                self.dropStack(itemStack);
+            });
+//            for (int i = 0; i < this.items.size(); i++) {
+//                ItemStack itemStack = this.items.getStack(i);
+//                self.dropStack(itemStack);
+//            }
+//            items.clear();
         }
 
         if (this.hasChest()) {
@@ -314,7 +308,8 @@ public abstract class WolfEntityMixin implements
 
             this.setHasChest(false);
         }
-    }*/
+        setShouldDropChest(false);
+    }
 
     @Inject(method = "writeCustomDataToNbt", at = @At("TAIL"))
     private void injectWriteCustomDataToNbt(NbtCompound nbt, CallbackInfo ci) {

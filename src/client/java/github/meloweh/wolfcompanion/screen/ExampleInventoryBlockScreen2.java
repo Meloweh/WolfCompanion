@@ -1,14 +1,11 @@
 package github.meloweh.wolfcompanion.screen;
 
 import github.meloweh.wolfcompanion.WolfCompanion;
-import github.meloweh.wolfcompanion.accessor.WolfEntityMixinProvider;
 import github.meloweh.wolfcompanion.accessor.WolfEntityProvider;
-import github.meloweh.wolfcompanion.network.SampleC2SPayload;
+import github.meloweh.wolfcompanion.network.DropWolfChestC2SPayload;
 import github.meloweh.wolfcompanion.screenhandler.ExampleInventoryScreenHandler2;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.Element;
-import net.minecraft.client.gui.screen.ButtonTextures;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.gui.screen.ingame.InventoryScreen;
 import net.minecraft.entity.passive.WolfEntity;
@@ -17,8 +14,6 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
-
-import java.util.Optional;
 
 public class ExampleInventoryBlockScreen2 extends HandledScreen<ExampleInventoryScreenHandler2> {
     private static final Identifier CHEST_SLOTS_TEXTURE = Identifier.ofVanilla("container/horse/chest_slots");
@@ -70,7 +65,7 @@ public class ExampleInventoryBlockScreen2 extends HandledScreen<ExampleInventory
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (clickedDropChest(mouseX, mouseY)) {
-            //wolf.
+            ClientPlayNetworking.send(new DropWolfChestC2SPayload(wolf.getUuid()));
         }
         return super.mouseClicked(mouseX, mouseY, button);
     }
