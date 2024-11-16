@@ -12,6 +12,7 @@ import net.minecraft.entity.passive.WolfEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.SimpleInventory;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
@@ -66,6 +67,7 @@ public class WolfInventoryScreen extends HandledScreen<WolfInventoryScreenHandle
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (clickedDropChest(mouseX, mouseY)) {
             ClientPlayNetworking.send(new DropWolfChestC2SPayload(wolf.getUuid()));
+            player.playSound(SoundEvents.UI_BUTTON_CLICK.value(), 0.3f, 0.8f);
         }
         return super.mouseClicked(mouseX, mouseY, button);
     }
@@ -99,7 +101,7 @@ public class WolfInventoryScreen extends HandledScreen<WolfInventoryScreenHandle
                     this.mouseY >= j + 35 &&
                     this.mouseY < j + 35 + 18) {
                 context.drawTexture(BUTTON_CHEST_HIGHLIGHTED, i + 7, j + 35, 0, 0, 18, 18, 18, 18);
-                this.setTooltip(Text.of("Drop chest and items"));
+                this.setTooltip(Text.of("Drop bag and items"));
             } else {
                 context.drawTexture(BUTTON_CHEST_AVAILABLE, i + 7, j + 35, 0, 0, 18, 18, 18, 18);
             }
