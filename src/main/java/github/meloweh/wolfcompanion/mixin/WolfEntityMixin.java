@@ -9,6 +9,7 @@ import github.meloweh.wolfcompanion.util.NBTHelper;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.*;
+import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.data.DataTracker;
 import net.minecraft.entity.data.TrackedData;
 import net.minecraft.entity.data.TrackedDataHandlerRegistry;
@@ -292,6 +293,14 @@ public abstract class WolfEntityMixin implements
             this.setHasChest(false);
         }
         setShouldDropChest(false);
+    }
+
+    @Inject(method = "damage", at = @At("HEAD"), cancellable = true)
+    private void cancelPlayerDamage(DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
+        if (source.getAttacker() instanceof PlayerEntity) {
+            cir.setReturnValue(false);
+            cir.cancel();
+        }
     }
 
     @Inject(method = "writeCustomDataToNbt", at = @At("TAIL"))
