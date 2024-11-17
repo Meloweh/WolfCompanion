@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "wolfcompanion:item/toy_item"
+    "layer0": "wolfcompanion:item/wolf_single_bag"
   }
 }

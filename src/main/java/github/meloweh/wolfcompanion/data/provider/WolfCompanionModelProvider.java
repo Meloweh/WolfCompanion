@@ -16,17 +16,19 @@ public class WolfCompanionModelProvider extends FabricModelProvider {
 
     @Override
     public void generateBlockStateModels(BlockStateModelGenerator blockStateModelGenerator) {
-        blockStateModelGenerator.registerSimpleCubeAll(InitBlock.EXAMPLE_BLOCK);
-        blockStateModelGenerator.registerSimpleCubeAll(InitBlock.EXAMPLE_BE_BLOCK);
-        blockStateModelGenerator.registerSimpleCubeAll(InitBlock.EXAMPLE_TICKING_BE_BLOCK);
-        blockStateModelGenerator.registerSimpleCubeAll(InitBlock.EXAMPLE_INVENTORY_BLOCK);
+        //blockStateModelGenerator.registerSimpleCubeAll(InitBlock.EXAMPLE_BLOCK);
+        //blockStateModelGenerator.registerSimpleCubeAll(InitBlock.EXAMPLE_BE_BLOCK);
+        //blockStateModelGenerator.registerSimpleCubeAll(InitBlock.EXAMPLE_TICKING_BE_BLOCK);
+        //blockStateModelGenerator.registerSimpleCubeAll(InitBlock.EXAMPLE_INVENTORY_BLOCK);
     }
 
     @Override
     public void generateItemModels(ItemModelGenerator itemModelGenerator) {
-        itemModelGenerator.register(InitItem.FOOD_ITEM, Models.GENERATED);
-        itemModelGenerator.register(InitItem.TOY_ITEM, Models.GENERATED);
+        //itemModelGenerator.register(InitItem.FOOD_ITEM, Models.GENERATED);
+        //itemModelGenerator.register(InitItem.TOY_ITEM, Models.GENERATED);
         //itemModelGenerator.register(InitItem.EXAMPLE_BLOCK, Models.GENERATED);
-
+//        itemModelGenerator.register(InitItem.TOY_ITEM, Models.GENERATED);
+        itemModelGenerator.register(InitItem.ITEM_SINGLE_WOLF_BAG, Models.GENERATED);
+        itemModelGenerator.register(InitItem.ITEM_WOLF_BAG, Models.GENERATED);
     }
 }

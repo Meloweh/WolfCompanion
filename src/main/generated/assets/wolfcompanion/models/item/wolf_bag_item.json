@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "wolfcompanion:item/food_item"
+    "layer0": "wolfcompanion:item/wolf_bag_item"
   }
 }

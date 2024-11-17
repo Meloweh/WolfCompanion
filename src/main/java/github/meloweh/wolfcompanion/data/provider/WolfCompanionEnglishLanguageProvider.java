@@ -16,12 +16,14 @@ public class WolfCompanionEnglishLanguageProvider extends FabricLanguageProvider
 
     @Override
     public void generateTranslations(RegistryWrapper.WrapperLookup wrapperLookup, TranslationBuilder translationBuilder) {
-        translationBuilder.add(InitItem.FOOD_ITEM, "Food Item");
-        translationBuilder.add(InitItem.TOY_ITEM, "Toy Item");
-        translationBuilder.add(InitBlock.EXAMPLE_BLOCK, "Example Block");
-        translationBuilder.add(InitBlock.EXAMPLE_BE_BLOCK, "Example BE Block");
-        translationBuilder.add(InitBlock.EXAMPLE_TICKING_BE_BLOCK, "Example Ticking Block");
-        translationBuilder.add(InitBlock.EXAMPLE_INVENTORY_BLOCK, "Example Inventory Block");
+//        translationBuilder.add(InitItem.FOOD_ITEM, "Food Item");
+//        translationBuilder.add(InitItem.TOY_ITEM, "Toy Item");
+//        translationBuilder.add(InitBlock.EXAMPLE_BLOCK, "Example Block");
+//        translationBuilder.add(InitBlock.EXAMPLE_BE_BLOCK, "Example BE Block");
+//        translationBuilder.add(InitBlock.EXAMPLE_TICKING_BE_BLOCK, "Example Ticking Block");
+//        translationBuilder.add(InitBlock.EXAMPLE_INVENTORY_BLOCK, "Example Inventory Block");
+        translationBuilder.add(InitItem.ITEM_SINGLE_WOLF_BAG, "Single Wolf Bag");
+        translationBuilder.add(InitItem.ITEM_WOLF_BAG, "Wolf Bag");
 
     }
 }

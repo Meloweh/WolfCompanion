@@ -1,16 +1,20 @@
 package renderer;
 
 import accessor.WolfEntityModelAccessor;
+import github.meloweh.wolfcompanion.WolfCompanion;
 import github.meloweh.wolfcompanion.accessor.WolfEntityProvider;
 import github.meloweh.wolfcompanion.model.WolfBagModelV2;
+import github.meloweh.wolfcompanion.model.WolfBagStraps;
 import net.minecraft.client.model.ModelPart;
 import net.minecraft.client.render.OverlayTexture;
 import net.minecraft.client.render.RenderLayer;
+import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.entity.EntityRendererFactory;
 import net.minecraft.client.render.entity.WolfEntityRenderer;
 import net.minecraft.client.render.entity.feature.FeatureRenderer;
 import net.minecraft.client.render.entity.feature.FeatureRendererContext;
+import net.minecraft.client.render.entity.model.EntityModelLayer;
 import net.minecraft.client.render.entity.model.WolfEntityModel;
 import net.minecraft.client.render.item.HeldItemRenderer;
 import net.minecraft.client.render.model.json.ModelTransformationMode;
@@ -19,6 +23,7 @@ import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.passive.WolfEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.RotationAxis;
 
 public class CustomWolfEntityRenderer extends WolfEntityRenderer {
@@ -33,6 +38,7 @@ public class CustomWolfEntityRenderer extends WolfEntityRenderer {
         final private WolfBagModelV2 bagModelV2;
         private final HeldItemRenderer heldItemRenderer;
 
+
         public CustomFeatureRenderer(FeatureRendererContext<WolfEntity, WolfEntityModel<WolfEntity>> context, HeldItemRenderer heldItemRenderer) {
             super(context);
 
@@ -44,8 +50,8 @@ public class CustomWolfEntityRenderer extends WolfEntityRenderer {
 
             final ModelPart bagRootV2 = WolfBagModelV2.getTexturedModelData().createModel();
             this.bagModelV2 = new WolfBagModelV2(bagRootV2);
-            this.heldItemRenderer = heldItemRenderer;
 
+            this.heldItemRenderer = heldItemRenderer;
         }
 
         @Override
@@ -55,6 +61,12 @@ public class CustomWolfEntityRenderer extends WolfEntityRenderer {
             matrices.push();
             bagModelV2.copyTransform(wolfTorso);
             bagModelV2.render(matrices, vertexConsumers.getBuffer(RenderLayer.getEntitySolid(WolfBagModelV2.TEXTURE_LOCATION)), light, OverlayTexture.DEFAULT_UV);
+
+            if (!entity.hasArmor()) {
+                VertexConsumer vertexConsumer = vertexConsumers.getBuffer(RenderLayer.getEntityCutoutNoCull(WolfBagModelV2.STRAP_LAYER_TEXTURE));
+                this.getContextModel().render(matrices, vertexConsumer, light, OverlayTexture.DEFAULT_UV);
+            }
+
             matrices.pop();
 
             boolean bl = entity.isSleeping();

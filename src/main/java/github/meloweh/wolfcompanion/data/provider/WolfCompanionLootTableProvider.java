@@ -31,6 +31,6 @@ public class WolfCompanionLootTableProvider extends FabricBlockLootTableProvider
 
     @Override
     public void generate() {
-        addDrop(InitBlock.EXAMPLE_BLOCK);
+        //addDrop(InitBlock.EXAMPLE_BLOCK);
     }
 }

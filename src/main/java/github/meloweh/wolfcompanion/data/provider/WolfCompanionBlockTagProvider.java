@@ -23,10 +23,10 @@ public class WolfCompanionBlockTagProvider extends FabricTagProvider.BlockTagPro
 
     @Override
     protected void configure(RegistryWrapper.WrapperLookup wrapperLookup) {
-        getOrCreateTagBuilder(BlockTags.NEEDS_IRON_TOOL)
-                .add(InitBlock.EXAMPLE_BLOCK);
-        getOrCreateTagBuilder(BlockTags.PICKAXE_MINEABLE)
-                .add(InitBlock.EXAMPLE_BLOCK)
-                .add(Blocks.BLUE_ORCHID);
+//        getOrCreateTagBuilder(BlockTags.NEEDS_IRON_TOOL)
+//                .add(InitBlock.EXAMPLE_BLOCK);
+//        getOrCreateTagBuilder(BlockTags.PICKAXE_MINEABLE)
+//                .add(InitBlock.EXAMPLE_BLOCK)
+//                .add(Blocks.BLUE_ORCHID);
     }
 }

@@ -2,6 +2,7 @@ package github.meloweh.wolfcompanion.mixin;
 
 import github.meloweh.wolfcompanion.accessor.*;
 import github.meloweh.wolfcompanion.goals.EatFoodGoal;
+import github.meloweh.wolfcompanion.init.InitItem;
 import github.meloweh.wolfcompanion.network.UuidPayload;
 import github.meloweh.wolfcompanion.screenhandler.WolfInventoryScreenHandler;
 import github.meloweh.wolfcompanion.util.NBTHelper;
@@ -285,7 +286,7 @@ public abstract class WolfEntityMixin implements
 
         if (this.hasChest()) {
             if (!self.getWorld().isClient) {
-                self.dropItem(Blocks.CHEST);
+                self.dropItem(InitItem.ITEM_WOLF_BAG);
             }
 
             this.setHasChest(false);
@@ -435,7 +436,7 @@ public abstract class WolfEntityMixin implements
                 !self.isBaby()
         ) {
             final ItemStack itemStack = player.getStackInHand(hand);
-            if (!this.hasChest() && itemStack.isOf(Items.CHEST)) {
+            if (!this.hasChest() && itemStack.isOf(InitItem.ITEM_WOLF_BAG)) {
                 this.addChest(player, itemStack);
                 final ActionResult result = ActionResult.success(self.getWorld().isClient);
                 cir.setReturnValue(result);
