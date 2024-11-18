@@ -1,6 +1,7 @@
 package github.meloweh.wolfcompanion;
 
 import github.meloweh.wolfcompanion.accessor.WolfEntityProvider;
+import github.meloweh.wolfcompanion.events.WolfEventHandler;
 import github.meloweh.wolfcompanion.init.BlockEntityTypeInit;
 import github.meloweh.wolfcompanion.init.InitBlock;
 import github.meloweh.wolfcompanion.init.InitItem;
@@ -35,6 +36,7 @@ public class WolfCompanion implements ModInitializer {
 		InitBlock.load();
 		BlockEntityTypeInit.load();
 		ScreenHandlerTypeInit.load();
+//		WolfEventHandler.registerEvents();
 
 //		EnergyStorage.SIDED.registerForBlockEntity(ExampleEnergyGeneratorBlockEntity::getEnergyProvider, BlockEntityTypeInit.EXAMPLE_ENERGY_GENERATOR);
 //		EnergyStorage.SIDED.registerForBlockEntity(ExampleEnergyStorageBlockEntity::getEnergyProvider, BlockEntityTypeInit.EXAMPLE_ENERGY_STORAGE);

@@ -7,7 +7,6 @@ import github.meloweh.wolfcompanion.network.UuidPayload;
 import github.meloweh.wolfcompanion.screenhandler.WolfInventoryScreenHandler;
 import github.meloweh.wolfcompanion.util.NBTHelper;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
-import net.minecraft.block.Blocks;
 import net.minecraft.entity.*;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.data.DataTracker;
@@ -18,7 +17,6 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.*;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
@@ -88,6 +86,33 @@ public abstract class WolfEntityMixin implements
             self = (WolfEntity) (Object) this;
         }
         ((MobEntityAccessor) self).getGoalSelector().add(1, new EatFoodGoal(self));
+    }
+
+    @Inject(method = "onDeath", at = @At("HEAD"))
+    private void cancelDeath(DamageSource damageSource, CallbackInfo ci) {
+        if (this.self.isTamed() && !this.self.getWorld().isClient && this.self.getOwner() != null) {
+            //ServerPlayer
+            //saveWolfNbtToPlayer(wolf, (PlayerEntity) wolf.getOwner());
+            final PlayerEntity player = (PlayerEntity) this.self.getOwner();
+            final ServerPlayerAccessor playerAccessor = (ServerPlayerAccessor) (this.self.getOwner());
+            final NbtCompound wolfNbt = new NbtCompound();
+            this.self.writeCustomDataToNbt(wolfNbt);
+            wolfNbt.putFloat("Health", this.self.getMaxHealth());
+            wolfNbt.remove("HurtTime");
+            wolfNbt.remove("HurtByTimestamp");
+            wolfNbt.remove("DeathTime");
+
+            playerAccessor.queueWolfNbt(wolfNbt);
+
+            // Respawn wolf
+            /*ServerWorld world = (ServerWorld) this.self.getWorld();
+            final WolfEntity newWolf = EntityType.WOLF.create(world);
+            newWolf.readNbt(wolfNbt);
+            newWolf.refreshPositionAndAngles(player.getX(), player.getY(), player.getZ(), player.getYaw(), player.getPitch());
+            world.spawnEntity(newWolf);*/
+        }
+
+        //ci.cancel();
     }
 
     @Override
