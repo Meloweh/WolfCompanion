@@ -70,57 +70,6 @@ public abstract class ServerPlayerEntityMixin implements ServerPlayerAccessor {
         }
     }
 
-    @Unique
-    public void modifyPlayerData(File playerDataFolder, UUID playerUUID) {
-        File playerFile = new File(playerDataFolder, playerUUID.toString() + ".dat");
-        if (playerFile.exists()) {
-            FileInputStream fileInputStream = null;
-            FileOutputStream fileOutputStream = null;
-            try {
-                // Open file input stream
-                fileInputStream = new FileInputStream(playerFile);
-
-                // Read the existing NBT data
-                NbtCompound nbt = NbtIo.readCompressed(fileInputStream, NbtSizeTracker.ofUnlimitedBytes());
-
-                if (nbt.contains("Health", 99)) {
-                    System.out.println("Pleayer health: " + nbt.getFloat("Health"));
-                }
-
-                // Modify the data
-                // Example: Set the player's health to full
-                /*if (nbt.contains("Health", 99)) { // 99 is the NBT tag type for float
-                    nbt.putFloat("Health", 20.0f);
-                }
-
-                // Open file output stream and write the modified data back
-                fileOutputStream = new FileOutputStream(playerFile);
-                NbtIo.writeCompressed(nbt, fileOutputStream);*/
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            } finally {
-                // Close streams to prevent memory leaks
-                if (fileInputStream != null) {
-                    try {
-                        fileInputStream.close();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-                if (fileOutputStream != null) {
-                    try {
-                        fileOutputStream.close();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        } else {
-            System.out.println("File does not exist");
-        }
-    }
-
 
     @Inject(method = "<init>", at = @At("RETURN"))
     private void onConstructor(CallbackInfo info) {
@@ -131,7 +80,7 @@ public abstract class ServerPlayerEntityMixin implements ServerPlayerAccessor {
         if (!self.getWorld().isClient) {
             System.out.println("player print");
             final File worldDirectory = self.getServer().getSavePath(WorldSavePath.ROOT).toFile();
-            modifyPlayerData(new File(worldDirectory, "playerdata"),self.getUuid());
+            //modifyPlayerData(new File(worldDirectory, "playerdata"),self.getUuid());
         }
     }
 

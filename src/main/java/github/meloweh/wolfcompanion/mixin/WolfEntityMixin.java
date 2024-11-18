@@ -2,6 +2,7 @@ package github.meloweh.wolfcompanion.mixin;
 
 import github.meloweh.wolfcompanion.WolfCompanion;
 import github.meloweh.wolfcompanion.accessor.*;
+import github.meloweh.wolfcompanion.events.WolfEventHandler;
 import github.meloweh.wolfcompanion.goals.EatFoodGoal;
 import github.meloweh.wolfcompanion.init.InitItem;
 import github.meloweh.wolfcompanion.network.UuidPayload;
@@ -18,10 +19,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.*;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtIo;
-import net.minecraft.nbt.NbtList;
+import net.minecraft.nbt.*;
 import net.minecraft.particle.ItemStackParticleEffect;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.screen.ScreenHandler;
@@ -30,6 +28,7 @@ import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
+import net.minecraft.util.WorldSavePath;
 import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
@@ -97,53 +96,73 @@ public abstract class WolfEntityMixin implements
     }
 
     @Unique
-    public void modifyPlayerData(File playerDataFolder, UUID playerUUID) {
+    public void writeToPlayerSaveFile(File playerDataFolder, UUID playerUUID, final NbtCompound wolfNbt) {
         File playerFile = new File(playerDataFolder, playerUUID.toString() + ".dat");
         if (playerFile.exists()) {
+            FileInputStream fileInputStream = null;
+            FileOutputStream fileOutputStream = null;
             try {
-                // Read the existing data
-                NbtCompound nbt = NbtIo.read(playerFile.toPath());
+                // Open file input stream
+                fileInputStream = new FileInputStream(playerFile);
 
-                // Modify the data
-                // For example, set the player's health to full
-                if (nbt.contains("Health")) {
-                    nbt.putFloat("Health", 20.0f);
-                }
+                // Read the existing NBT data
+                final NbtCompound nbt = NbtIo.readCompressed(fileInputStream, NbtSizeTracker.ofUnlimitedBytes());
 
-                // Write the data back
-                NbtIo.writeCompressed(nbt, new FileOutputStream(playerFile));
+                int i = 0;
+                for (; nbt.contains(WolfEventHandler.Wolf_NBT_KEY + i); i++);
+                nbt.put(WolfEventHandler.Wolf_NBT_KEY + i, wolfNbt);
+
+                // Open file output stream and write the modified data back
+                fileOutputStream = new FileOutputStream(playerFile);
+                NbtIo.writeCompressed(nbt, fileOutputStream);
+
             } catch (Exception e) {
                 e.printStackTrace();
+            } finally {
+                // Close streams to prevent memory leaks
+                if (fileInputStream != null) {
+                    try {
+                        fileInputStream.close();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+                if (fileOutputStream != null) {
+                    try {
+                        fileOutputStream.close();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
             }
+        } else {
+            System.out.println("File does not exist");
         }
     }
 
     @Inject(method = "onDeath", at = @At("HEAD"))
     private void cancelDeath(DamageSource damageSource, CallbackInfo ci) {
-        if (this.self.isTamed() && !this.self.getWorld().isClient && this.self.getOwner() != null) {
-            dropEverything();
-            //ServerPlayer
-            //saveWolfNbtToPlayer(wolf, (PlayerEntity) wolf.getOwner());
-            final PlayerEntity player = (PlayerEntity) this.self.getOwner();
-            final ServerPlayerAccessor playerAccessor = (ServerPlayerAccessor) (this.self.getOwner());
+        if (this.self.isTamed() && !this.self.getWorld().isClient) {
             final NbtCompound wolfNbt = new NbtCompound();
             this.self.writeCustomDataToNbt(wolfNbt);
-//            wolfNbt.putFloat("Health", this.self.getMaxHealth());
-//            wolfNbt.remove("HurtTime");
-//            wolfNbt.remove("HurtByTimestamp");
-//            wolfNbt.remove("DeathTime");
 
-            playerAccessor.queueWolfNbt(wolfNbt);
+            if (this.self.getOwner() != null) {
+                dropEverything();
 
-            // Respawn wolf
-            /*ServerWorld world = (ServerWorld) this.self.getWorld();
-            final WolfEntity newWolf = EntityType.WOLF.create(world);
-            newWolf.readNbt(wolfNbt);
-            newWolf.refreshPositionAndAngles(player.getX(), player.getY(), player.getZ(), player.getYaw(), player.getPitch());
-            world.spawnEntity(newWolf);*/
+                final ServerPlayerAccessor playerAccessor = (ServerPlayerAccessor) (this.self.getOwner());
+
+                playerAccessor.queueWolfNbt(wolfNbt);
+            } else {
+                if (wolfNbt.contains("Owner")) {
+                    final UUID ownerUUID = wolfNbt.getUuid("Owner");
+                    final File worldDirectory = self.getServer().getSavePath(WorldSavePath.ROOT).toFile();
+                    final File playerDatFolder = new File(worldDirectory, "playerdata");
+
+                    writeToPlayerSaveFile(playerDatFolder, ownerUUID, wolfNbt);
+                }
+            }
+
         }
-
-        //ci.cancel();
     }
 
     @Override
