@@ -60,6 +60,7 @@ public class WolfCompanion implements ModInitializer {
 		});
 		System.out.println("BB");*/
 
+
 		PayloadTypeRegistry.playC2S().register(DropWolfChestC2SPayload.ID, DropWolfChestC2SPayload.PACKET_CODEC);
 
 		ServerPlayNetworking.registerGlobalReceiver(DropWolfChestC2SPayload.ID, (payload, context) -> {

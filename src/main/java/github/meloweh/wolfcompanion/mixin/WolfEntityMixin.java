@@ -20,6 +20,7 @@ import net.minecraft.inventory.*;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
+import net.minecraft.nbt.NbtIo;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.particle.ItemStackParticleEffect;
 import net.minecraft.particle.ParticleTypes;
@@ -37,6 +38,11 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.util.UUID;
 
 @Mixin(WolfEntity.class)
 public abstract class WolfEntityMixin implements
@@ -88,6 +94,28 @@ public abstract class WolfEntityMixin implements
             self = (WolfEntity) (Object) this;
         }
         ((MobEntityAccessor) self).getGoalSelector().add(1, new EatFoodGoal(self));
+    }
+
+    @Unique
+    public void modifyPlayerData(File playerDataFolder, UUID playerUUID) {
+        File playerFile = new File(playerDataFolder, playerUUID.toString() + ".dat");
+        if (playerFile.exists()) {
+            try {
+                // Read the existing data
+                NbtCompound nbt = NbtIo.read(playerFile.toPath());
+
+                // Modify the data
+                // For example, set the player's health to full
+                if (nbt.contains("Health")) {
+                    nbt.putFloat("Health", 20.0f);
+                }
+
+                // Write the data back
+                NbtIo.writeCompressed(nbt, new FileOutputStream(playerFile));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     @Inject(method = "onDeath", at = @At("HEAD"))

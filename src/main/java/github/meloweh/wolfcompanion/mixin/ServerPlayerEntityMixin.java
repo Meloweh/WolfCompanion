@@ -6,9 +6,13 @@ import net.minecraft.entity.EntityType;
 import net.minecraft.entity.passive.WolfEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
+import net.minecraft.nbt.NbtIo;
+import net.minecraft.nbt.NbtSizeTracker;
 import net.minecraft.screen.ScreenHandler;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.WorldSavePath;
 import net.minecraft.util.math.BlockPos;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -18,8 +22,12 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Mixin(ServerPlayerEntity.class)
 public abstract class ServerPlayerEntityMixin implements ServerPlayerAccessor {
@@ -62,9 +70,69 @@ public abstract class ServerPlayerEntityMixin implements ServerPlayerAccessor {
         }
     }
 
+    @Unique
+    public void modifyPlayerData(File playerDataFolder, UUID playerUUID) {
+        File playerFile = new File(playerDataFolder, playerUUID.toString() + ".dat");
+        if (playerFile.exists()) {
+            FileInputStream fileInputStream = null;
+            FileOutputStream fileOutputStream = null;
+            try {
+                // Open file input stream
+                fileInputStream = new FileInputStream(playerFile);
+
+                // Read the existing NBT data
+                NbtCompound nbt = NbtIo.readCompressed(fileInputStream, NbtSizeTracker.ofUnlimitedBytes());
+
+                if (nbt.contains("Health", 99)) {
+                    System.out.println("Pleayer health: " + nbt.getFloat("Health"));
+                }
+
+                // Modify the data
+                // Example: Set the player's health to full
+                /*if (nbt.contains("Health", 99)) { // 99 is the NBT tag type for float
+                    nbt.putFloat("Health", 20.0f);
+                }
+
+                // Open file output stream and write the modified data back
+                fileOutputStream = new FileOutputStream(playerFile);
+                NbtIo.writeCompressed(nbt, fileOutputStream);*/
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                // Close streams to prevent memory leaks
+                if (fileInputStream != null) {
+                    try {
+                        fileInputStream.close();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+                if (fileOutputStream != null) {
+                    try {
+                        fileOutputStream.close();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        } else {
+            System.out.println("File does not exist");
+        }
+    }
+
+
     @Inject(method = "<init>", at = @At("RETURN"))
     private void onConstructor(CallbackInfo info) {
         this.self = (ServerPlayerEntity) (Object) this;
+        //System.out.println("Player uuid: ");
+        //System.out.println(this.self.getUuid());
+        System.out.println("player init");
+        if (!self.getWorld().isClient) {
+            System.out.println("player print");
+            final File worldDirectory = self.getServer().getSavePath(WorldSavePath.ROOT).toFile();
+            modifyPlayerData(new File(worldDirectory, "playerdata"),self.getUuid());
+        }
     }
 
     @Inject(method = "sleep", at = @At("HEAD"))
