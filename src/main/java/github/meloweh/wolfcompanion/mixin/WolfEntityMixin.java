@@ -1,5 +1,6 @@
 package github.meloweh.wolfcompanion.mixin;
 
+import github.meloweh.wolfcompanion.WolfCompanion;
 import github.meloweh.wolfcompanion.accessor.*;
 import github.meloweh.wolfcompanion.goals.EatFoodGoal;
 import github.meloweh.wolfcompanion.init.InitItem;
@@ -25,6 +26,7 @@ import net.minecraft.particle.ParticleTypes;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundEvents;
+import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.Vec3d;
@@ -91,16 +93,17 @@ public abstract class WolfEntityMixin implements
     @Inject(method = "onDeath", at = @At("HEAD"))
     private void cancelDeath(DamageSource damageSource, CallbackInfo ci) {
         if (this.self.isTamed() && !this.self.getWorld().isClient && this.self.getOwner() != null) {
+            dropEverything();
             //ServerPlayer
             //saveWolfNbtToPlayer(wolf, (PlayerEntity) wolf.getOwner());
             final PlayerEntity player = (PlayerEntity) this.self.getOwner();
             final ServerPlayerAccessor playerAccessor = (ServerPlayerAccessor) (this.self.getOwner());
             final NbtCompound wolfNbt = new NbtCompound();
             this.self.writeCustomDataToNbt(wolfNbt);
-            wolfNbt.putFloat("Health", this.self.getMaxHealth());
-            wolfNbt.remove("HurtTime");
-            wolfNbt.remove("HurtByTimestamp");
-            wolfNbt.remove("DeathTime");
+//            wolfNbt.putFloat("Health", this.self.getMaxHealth());
+//            wolfNbt.remove("HurtTime");
+//            wolfNbt.remove("HurtByTimestamp");
+//            wolfNbt.remove("DeathTime");
 
             playerAccessor.queueWolfNbt(wolfNbt);
 
@@ -320,6 +323,28 @@ public abstract class WolfEntityMixin implements
         setShouldDropChest(false);
     }
 
+    @Unique
+    private void dropEverything() {
+        if (this.items != null) {
+            this.items.clearToList().forEach(itemStack -> {
+                if (!itemStack.isEmpty()) {
+                    if (self.getEquippedStack(EquipmentSlot.BODY) != itemStack) {
+                        self.dropStack(itemStack);
+                    }
+                }
+            });
+        }
+
+        if (this.hasChest()) {
+            if (!self.getWorld().isClient) {
+                self.dropItem(InitItem.ITEM_WOLF_BAG);
+            }
+
+            this.setHasChest(false);
+        }
+        setShouldDropChest(false);
+    }
+
     @Inject(method = "damage", at = @At("HEAD"), cancellable = true)
     private void cancelPlayerDamage(DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
         if (source.getAttacker() instanceof PlayerEntity) {
@@ -346,6 +371,10 @@ public abstract class WolfEntityMixin implements
 
             nbt.put("Items", nbtList);
         }
+        Text text = this.self.getCustomName();
+        if (text != null) {
+            nbt.putString("CustomName", Text.Serialization.toJsonString(text, this.self.getRegistryManager()));
+        }
     }
 
     @Inject(method = "readCustomDataFromNbt", at = @At("TAIL"))
@@ -371,6 +400,15 @@ public abstract class WolfEntityMixin implements
                     System.out.println("reading ItemStack: " + itemStack.toHoverableText().getString());
                     this.items.setStack(j + 1, itemStack);
                 }
+            }
+        }
+        if (nbt.contains("CustomName", 8)) {
+            String string = nbt.getString("CustomName");
+
+            try {
+                this.self.setCustomName(Text.Serialization.fromJson(string, this.self.getRegistryManager()));
+            } catch (Exception var16) {
+                WolfCompanion.LOGGER.warn("Failed to parse entity custom name {}", string, var16);
             }
         }
     }

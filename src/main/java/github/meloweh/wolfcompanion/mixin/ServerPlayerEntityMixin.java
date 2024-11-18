@@ -18,13 +18,19 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Mixin(ServerPlayerEntity.class)
 public abstract class ServerPlayerEntityMixin implements ServerPlayerAccessor {
-    @Unique
-    NbtCompound wolfNbt;
+    //@Unique
+    //NbtCompound wolfNbt;
 
     @Unique
     ServerPlayerEntity self;
+
+    @Unique
+    List<NbtCompound> wolfNbts = new ArrayList<>();
 
     @Accessor("screenHandlerSyncId")
     public abstract int getScreenHandlerSyncId();
@@ -37,19 +43,22 @@ public abstract class ServerPlayerEntityMixin implements ServerPlayerAccessor {
 
     @Inject(method = "writeCustomDataToNbt", at = @At("TAIL"))
     public void writeWolfDataToNbt(NbtCompound nbt, CallbackInfo ci) {
-        if (wolfNbt != null) {
-            nbt.put(WolfEventHandler.Wolf_NBT_KEY, wolfNbt);
+        if (!wolfNbts.isEmpty()) {
+            for (int i = 0; i < wolfNbts.size(); i++) {
+                final NbtCompound wolfNbt = wolfNbts.get(i);
+                nbt.put(WolfEventHandler.Wolf_NBT_KEY + i, wolfNbt);
+            }
         }
     }
 
     @Inject(method = "readCustomDataFromNbt", at = @At("TAIL"))
     public void readWolfDataToNbt(NbtCompound nbt, CallbackInfo ci) {
-        if (nbt.contains(WolfEventHandler.Wolf_NBT_KEY)) {
-            final NbtElement wolfElement = nbt.get(WolfEventHandler.Wolf_NBT_KEY);
+        for (int i = 0; nbt.contains(WolfEventHandler.Wolf_NBT_KEY + i); i++) {
+            final NbtElement wolfElement = nbt.get(WolfEventHandler.Wolf_NBT_KEY + i);
             if (!(wolfElement instanceof NbtCompound)) {
                 throw new IllegalStateException("nbt should be compound");
             }
-            wolfNbt = (NbtCompound) nbt.get(WolfEventHandler.Wolf_NBT_KEY);
+            wolfNbts.add((NbtCompound) nbt.get(WolfEventHandler.Wolf_NBT_KEY));
         }
     }
 
@@ -60,21 +69,24 @@ public abstract class ServerPlayerEntityMixin implements ServerPlayerAccessor {
 
     @Inject(method = "sleep", at = @At("HEAD"))
     private void respawnDoggo(BlockPos pos, CallbackInfo ci) {
-        if (hasWolfNbt()) {
+        wolfNbts.forEach(wolfNbt -> {
             wolfNbt.putFloat("Health", this.self.getMaxHealth());
             wolfNbt.remove("HurtTime");
             wolfNbt.remove("HurtByTimestamp");
             wolfNbt.remove("DeathTime");
+            wolfNbt.remove("ArmorItems");
+            wolfNbt.remove("body_armor_item");
+            wolfNbt.remove("body_armor_drop_chance");
+            wolfNbt.remove("ArmorDropChances");
 
             ServerWorld world = (ServerWorld) this.self.getWorld();
             final WolfEntity newWolf = EntityType.WOLF.create(world);
             newWolf.readNbt(wolfNbt);
-            newWolf.refreshPositionAndAngles(self.getX() + 3, self.getY(), self.getZ(), self.getYaw(), self.getPitch());
+            newWolf.refreshPositionAndAngles(self.getX(), self.getY(), self.getZ(), self.getYaw(), self.getPitch());
+            newWolf.playSpawnEffects();
             final boolean result = world.spawnEntity(newWolf);
-            System.out.println("can respawn wolf: " + result + " " + newWolf.getHealth() + " " + newWolf.isAlive());
-        } else {
-            System.out.println("had no wolf respawn nbt");
-        }
+        });
+        wolfNbts.clear();
     }
 
     private void loadWolfNbt() {
@@ -83,18 +95,19 @@ public abstract class ServerPlayerEntityMixin implements ServerPlayerAccessor {
 
     @Override
     public void queueWolfNbt(NbtCompound nbt) {
-        this.wolfNbt = nbt;
+        wolfNbts.add(nbt);
+        //this.wolfNbt = nbt;
     }
 
-    @Override
-    public NbtCompound readWolfNbt() {
-        return this.wolfNbt;
-    }
-
-    @Override
-    public boolean hasWolfNbt() {
-        return this.wolfNbt != null;
-    }
+//    @Override
+//    public NbtCompound readWolfNbt() {
+//        return this.wolfNbt;
+//    }
+//
+//    @Override
+//    public boolean hasWolfNbt() {
+//        return this.wolfNbt != null;
+//    }
 
     //void execOnScreenHandlerOpened(ScreenHandler screenHandler);
 
