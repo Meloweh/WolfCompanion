@@ -14,14 +14,17 @@ import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.data.DataTracker;
 import net.minecraft.entity.data.TrackedData;
 import net.minecraft.entity.data.TrackedDataHandlerRegistry;
+import net.minecraft.entity.effect.StatusEffect;
+import net.minecraft.entity.effect.StatusEffectInstance;
+import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.passive.WolfEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.*;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.*;
-import net.minecraft.particle.ItemStackParticleEffect;
-import net.minecraft.particle.ParticleTypes;
+import net.minecraft.particle.*;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundEvents;
@@ -30,17 +33,22 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.WorldSavePath;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Vector3f;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.util.Map;
 import java.util.UUID;
 
 @Mixin(WolfEntity.class)
@@ -88,11 +96,21 @@ public abstract class WolfEntityMixin implements
 
     @Inject(method = "initGoals", at = @At("TAIL"))
     private void onInitGoals(CallbackInfo info) {
-        System.out.println("Is self present?: " + this.self);
         if (this.self == null) {
             self = (WolfEntity) (Object) this;
         }
         ((MobEntityAccessor) self).getGoalSelector().add(1, new EatFoodGoal(self));
+    }
+
+    @Shadow
+    private boolean furWet;
+
+    @Unique
+    private void doWolfShake() {
+        if (!self.getWorld().isClient) {
+            this.furWet = true;
+            this.self.getWorld().sendEntityStatus(this.self, (byte)56);
+        }
     }
 
     @Unique
@@ -140,6 +158,99 @@ public abstract class WolfEntityMixin implements
         }
     }
 
+    @ModifyArg(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;addParticle(Lnet/minecraft/particle/ParticleEffect;DDDDDD)V"))
+    private ParticleEffect changeType(ParticleEffect parameters) {
+        final byte shakeReason = getShakeReason();
+
+        System.out.println(shakeReason + " " + self.getWorld().isClient);
+
+        return switch (shakeReason) {
+            case 1 -> EntityEffectParticleEffect.create(ParticleTypes.ENTITY_EFFECT, 0.529f, 0.639f, 0.388f);
+            case 2 -> ParticleTypes.SMOKE;
+            default -> ParticleTypes.SPLASH;
+        };
+    }
+
+//    @ModifyArgs(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;addParticle(Lnet/minecraft/particle/ParticleEffect;DDDDDD)V"))
+//    private void changeShakingParticles(Args args) {
+//
+//        args.set(1, ParticleTypes.SMOKE);
+//    }
+
+
+//    @Unique
+//    public void spawnPoisonDustParticle(World world, double x, double y, double z) {
+//        // Create a new DustParticleEffect with RGB values suitable for a "poison" color
+//        Vector3f color = new Vector3f(0.2f, 0.8f, 0.2f); // A green color
+//        float particleScale = 1.0f; // Size of the dust particle
+//
+//        //DustParticleEffect dustParticle = new DustParticleEffect(color, particleScale);
+//        final EntityEffectParticleEffect dustParticle = EntityEffectParticleEffect.create(ParticleTypes.ENTITY_EFFECT, 0.2f, 0.8f, 0.2f);
+//
+//        // Example of how to spawn this particle
+//        for (int i = 0; i < 10; i++) {  // Generate 20 particles for visibility
+//            double offsetX = world.random.nextGaussian() * 0.02;
+//            double offsetY = 0.5f + world.random.nextGaussian() * 0.02;
+//            double offsetZ = world.random.nextGaussian() * 0.02;
+//            world.addParticle(dustParticle, x, y, z, offsetX, offsetY, offsetZ);
+//        }
+//    }
+
+
+    @Unique
+    public boolean isPoisoned(WolfEntity wolf) {
+        Map<RegistryEntry<StatusEffect>, StatusEffectInstance> effects = wolf.getActiveStatusEffects();
+        return effects.keySet().stream().anyMatch(effect ->
+                effect == StatusEffects.POISON
+        );  // No negative effects found
+    }
+
+    @Shadow
+    private float lastShakeProgress; //this.lastShakeProgress >= 2.0F
+
+    @Inject(method = "tick", at = @At("TAIL"))
+    private void shakeConditions(CallbackInfo ci) {
+        if (self.isAlive() && !self.getWorld().isClient) {
+             byte shakeReason = 0;
+             if (!self.isFurWet()) {
+                 if (isPoisoned(this.self))
+                     shakeReason = 1;
+
+                 if (self.isOnFire() && !self.isInLava())
+                     shakeReason = 2;
+
+                 if (getShakeReason() > 0)
+                     setShakeReason((byte)0);
+
+                 if (shakeReason > 0) {
+                     setShakeReason(shakeReason);
+                     doWolfShake();
+                 }
+             } else if (getShakeReason() > 0){
+                 if (lastShakeProgress >= 1.8f) {
+                     setShakeReason((byte)0);
+                     if (isPoisoned(self))
+                        self.removeStatusEffect(StatusEffects.POISON);
+                     else if (self.isOnFire())
+                         self.setFireTicks(0);
+                 }
+             }
+        }
+
+    }
+
+//    @Inject(method = "tick", at = @At("TAIL"))
+//    private void shakeConditions(CallbackInfo ci) {
+//        //if (self.hasStatusEffect())
+//        if (/*hasNegativeStatusEffect(this.self) || */self.isOnFire() && !self.isInLava()) {
+//            //doWolfShake();
+//            //this.self.removeStatusEffect(StatusEffects.POISON);
+//            //self.setOnFire(false);
+//
+//            spawnPoisonDustParticle(self.getWorld(), self.getX(), self.getY(), self.getZ());
+//        }
+//    }
+
     @Inject(method = "onDeath", at = @At("HEAD"))
     private void cancelDeath(DamageSource damageSource, CallbackInfo ci) {
         if (this.self.isTamed() && !this.self.getWorld().isClient) {
@@ -172,7 +283,10 @@ public abstract class WolfEntityMixin implements
 
     @Unique
     private static final TrackedData<Boolean> CHEST = DataTracker.registerData(WolfEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
+    @Unique
     private static final TrackedData<Boolean> DROP_CHEST = DataTracker.registerData(WolfEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
+    @Unique
+    private static final TrackedData<Byte> SHAKE_REASON = DataTracker.registerData(WolfEntity.class, TrackedDataHandlerRegistry.BYTE);
 
 //    private boolean isDirty = false;
 //
@@ -314,6 +428,7 @@ public abstract class WolfEntityMixin implements
     protected void injectInitDataTracker(DataTracker.Builder builder, CallbackInfo ci) {
         builder.add(CHEST, false);
         builder.add(DROP_CHEST, false);
+        builder.add(SHAKE_REASON, (byte)0);
     }
 
     @Unique
@@ -344,6 +459,16 @@ public abstract class WolfEntityMixin implements
     @Override
     public void setShouldDropChest(final boolean yes) {
         getDataTracker(self).set(DROP_CHEST, yes);
+    }
+
+    @Unique
+    public void setShakeReason(byte value) {
+        getDataTracker(self).set(SHAKE_REASON, value);
+    }
+
+    @Unique
+    public byte getShakeReason() {
+        return getDataTracker(self).get(SHAKE_REASON);
     }
 
     @Override
@@ -408,7 +533,6 @@ public abstract class WolfEntityMixin implements
 
             for (int i = 1; i < this.items.size(); i++) {
                 ItemStack itemStack = this.items.getStack(i);
-                System.out.println("writing ItemStack: " + itemStack.toHoverableText().getString());
                 if (!itemStack.isEmpty()) {
                     NbtCompound nbtCompound = new NbtCompound();
                     nbtCompound.putByte("Slot", (byte)(i - 1));
@@ -444,7 +568,6 @@ public abstract class WolfEntityMixin implements
                 int j = nbtCompound.getByte("Slot") & 255;
                 if (j < this.items.size() - 1) {
                     final ItemStack itemStack = ItemStack.fromNbt(self.getRegistryManager(), nbtCompound).orElse(ItemStack.EMPTY);
-                    System.out.println("reading ItemStack: " + itemStack.toHoverableText().getString());
                     this.items.setStack(j + 1, itemStack);
                 }
             }

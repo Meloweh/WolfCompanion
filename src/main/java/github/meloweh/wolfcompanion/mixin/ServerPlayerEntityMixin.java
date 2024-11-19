@@ -66,7 +66,7 @@ public abstract class ServerPlayerEntityMixin implements ServerPlayerAccessor {
             if (!(wolfElement instanceof NbtCompound)) {
                 throw new IllegalStateException("nbt should be compound");
             }
-            wolfNbts.add((NbtCompound) nbt.get(WolfEventHandler.Wolf_NBT_KEY));
+            wolfNbts.add((NbtCompound) wolfElement);
         }
     }
 
@@ -74,14 +74,12 @@ public abstract class ServerPlayerEntityMixin implements ServerPlayerAccessor {
     @Inject(method = "<init>", at = @At("RETURN"))
     private void onConstructor(CallbackInfo info) {
         this.self = (ServerPlayerEntity) (Object) this;
-        //System.out.println("Player uuid: ");
-        //System.out.println(this.self.getUuid());
-        System.out.println("player init");
-        if (!self.getWorld().isClient) {
-            System.out.println("player print");
-            final File worldDirectory = self.getServer().getSavePath(WorldSavePath.ROOT).toFile();
-            //modifyPlayerData(new File(worldDirectory, "playerdata"),self.getUuid());
-        }
+//        System.out.println("player init");
+//        if (!self.getWorld().isClient) {
+//            System.out.println("player print");
+//            final File worldDirectory = self.getServer().getSavePath(WorldSavePath.ROOT).toFile();
+//            //modifyPlayerData(new File(worldDirectory, "playerdata"),self.getUuid());
+//        }
     }
 
     @Inject(method = "sleep", at = @At("HEAD"))
