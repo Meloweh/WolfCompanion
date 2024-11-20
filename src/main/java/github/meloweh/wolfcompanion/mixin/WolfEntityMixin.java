@@ -163,7 +163,7 @@ public abstract class WolfEntityMixin implements
     private ParticleEffect changeType(ParticleEffect parameters) {
         final byte shakeReason = getShakeReason();
 
-        System.out.println(shakeReason + " " + self.getWorld().isClient);
+        //System.out.println(shakeReason + " " + self.getWorld().isClient);
 
         return switch (shakeReason) {
             case 1 -> EntityEffectParticleEffect.create(ParticleTypes.ENTITY_EFFECT, 0.529f, 0.639f, 0.388f);
@@ -217,7 +217,7 @@ public abstract class WolfEntityMixin implements
                  if (ConfigManager.config.canShakeOffPoison && isPoisoned(this.self))
                      shakeReason = 1;
 
-                 if (ConfigManager.config.canShakeOffFire && self.isOnFire() && !self.isInLava())
+                 if (ConfigManager.config.canShakeOffFire && self.isOnFire() && !self.isInLava() && self.isOnGround())
                      shakeReason = 2;
 
                  if (getShakeReason() > 0)

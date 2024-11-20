@@ -2,16 +2,16 @@
 	"schemaVersion": 1,
 	"id": "wolfcompanion",
 	"version": "${version}",
-	"name": "Wolf Companion",
-	"description": "This is an example description! Tell everyone what your mod is about!",
+	"name": "Better Wolf Companion Mod",
+	"description": "This mod introduces a wolf inventory, respawn mechanics, self-healing mechanics and more.",
 	"authors": [
-		"Me!"
+		"Meloweh"
 	],
 	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
+		"homepage": "https://github.com/Meloweh/",
+		"sources": ""
 	},
-	"license": "CC0-1.0",
+	"license": "Copyright © All rights reserved.",
 	"icon": "assets/wolfcompanion/icon.png",
 	"environment": "*",
 	"entrypoints": {

@@ -93,6 +93,8 @@ public abstract class ServerPlayerEntityMixin implements ServerPlayerAccessor {
             wolfNbt.remove("body_armor_item");
             wolfNbt.remove("body_armor_drop_chance");
             wolfNbt.remove("ArmorDropChances");
+            wolfNbt.remove("ChestedWolf");
+            wolfNbt.remove("Items");
 
             ServerWorld world = (ServerWorld) this.self.getWorld();
             final WolfEntity newWolf = EntityType.WOLF.create(world);

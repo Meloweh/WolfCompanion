@@ -3,7 +3,8 @@
     "sounds": [
       {
         "name": "wolfcompanion:whistle",
-        "stream": false
+        "stream": false,
+        "attenuation_distance": 16
       }
     ]
   },
@@ -11,7 +12,8 @@
     "sounds": [
       {
         "name": "wolfcompanion:long_whistle",
-        "stream": false
+        "stream": false,
+        "attenuation_distance": 16
       }
     ]
   }

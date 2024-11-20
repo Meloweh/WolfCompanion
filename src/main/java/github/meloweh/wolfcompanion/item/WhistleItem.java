@@ -9,6 +9,7 @@ import net.minecraft.entity.passive.WolfEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvent;
@@ -61,6 +62,33 @@ public class WhistleItem extends Item {
 //        super.usageTick(world, user, stack, remainingUseTicks);
 //    }
 
+    public void playPositionalSound(World world, PlayerEntity sourcePlayer, SoundEvent soundEvent, float baseVolume, float pitch, double maxDistance) {
+        if (!world.isClient) {
+            for (PlayerEntity player : world.getPlayers()) {
+                // Calculate the distance between the sound source and the player
+                double distance = player.getPos().distanceTo(sourcePlayer.getPos());
+
+                // If the player is within the maximum distance, play the sound
+                if (distance <= maxDistance) {
+                    // Calculate the volume attenuation
+                    float volume = (float) Math.max(0, baseVolume * (1.0 - (distance / maxDistance)));
+
+                    // Use world.playSound with the player as the audience to preserve stereo
+                    world.playSound(
+                            player, // Only the specific player hears the sound
+                            sourcePlayer.getBlockPos(), // Position of the sound source
+                            soundEvent,
+                            SoundCategory.PLAYERS,
+                            volume,
+                            pitch
+                    );
+                }
+            }
+        }
+    }
+
+
+
     @Override
     public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
         ItemStack itemStack = user.getStackInHand(hand);
@@ -70,10 +98,12 @@ public class WhistleItem extends Item {
                     null, // Player - if non-null, will play sound for every nearby player *except* the specified player
                     user.getBlockPos(), // The position of where the sound will come from
                     InitSound.WHISTLE_SOUND_EVENT, // The sound that will play
-                    SoundCategory.PLAYERS, // This determines which of the volume sliders affect this sound
-                    2f, //Volume multiplier, 1 is normal, 0.5 is half volume, etc
+                    SoundCategory.BLOCKS, // This determines which of the volume sliders affect this sound
+                    1f, //Volume multiplier, 1 is normal, 0.5 is half volume, etc
                     1.1f // Pitch multiplier, 1 is normal, 0.5 is half pitch, etc
             );
+            //((ServerPlayerEntity)user).playSound(InitSound.WHISTLE_SOUND_EVENT, 1f, 1.1f);
+            //playPositionalSound(world, user, InitSound.WHISTLE_SOUND_EVENT, 1f, 1.1f, 64);
             user.setCurrentHand(hand);
 
             user.getServer().getWorlds().forEach(world2 -> {
