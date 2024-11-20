@@ -54,5 +54,12 @@ public class WolfCompanionRecipeProvider extends FabricRecipeProvider {
                 .criterion(hasItem(Items.ARMADILLO_SCUTE), conditionsFromItem(Items.ARMADILLO_SCUTE))
                 .offerTo(recipeExporter);
 
+        ShapedRecipeJsonBuilder.create(RecipeCategory.TOOLS, InitItem.DOG_WHISTLE_ITEM)
+                .input('I', Items.IRON_INGOT)
+                .pattern("   ")
+                .pattern("III")
+                .pattern(" II")
+                .criterion(hasItem(Items.IRON_INGOT), conditionsFromItem(Items.IRON_INGOT))
+                .offerTo(recipeExporter);
     }
 }

@@ -7,6 +7,7 @@ import github.meloweh.wolfcompanion.goals.EatFoodGoal;
 import github.meloweh.wolfcompanion.init.InitItem;
 import github.meloweh.wolfcompanion.network.UuidPayload;
 import github.meloweh.wolfcompanion.screenhandler.WolfInventoryScreenHandler;
+import github.meloweh.wolfcompanion.util.ConfigManager;
 import github.meloweh.wolfcompanion.util.NBTHelper;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.entity.*;
@@ -213,10 +214,10 @@ public abstract class WolfEntityMixin implements
         if (self.isAlive() && !self.getWorld().isClient) {
              byte shakeReason = 0;
              if (!self.isFurWet()) {
-                 if (isPoisoned(this.self))
+                 if (ConfigManager.config.canShakeOffPoison && isPoisoned(this.self))
                      shakeReason = 1;
 
-                 if (self.isOnFire() && !self.isInLava())
+                 if (ConfigManager.config.canShakeOffFire && self.isOnFire() && !self.isInLava())
                      shakeReason = 2;
 
                  if (getShakeReason() > 0)
@@ -253,7 +254,7 @@ public abstract class WolfEntityMixin implements
 
     @Inject(method = "onDeath", at = @At("HEAD"))
     private void cancelDeath(DamageSource damageSource, CallbackInfo ci) {
-        if (this.self.isTamed() && !this.self.getWorld().isClient) {
+        if (this.self.isTamed() && !this.self.getWorld().isClient && ConfigManager.config.canRespawn) {
             final NbtCompound wolfNbt = new NbtCompound();
             this.self.writeCustomDataToNbt(wolfNbt);
 

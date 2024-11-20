@@ -4,7 +4,11 @@
       {
         "name": "wolfcompanion:whistle",
         "stream": false
-      },
+      }
+    ]
+  },
+  "long_whistle": {
+    "sounds": [
       {
         "name": "wolfcompanion:long_whistle",
         "stream": false

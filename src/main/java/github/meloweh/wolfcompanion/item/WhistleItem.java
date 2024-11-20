@@ -2,23 +2,64 @@ package github.meloweh.wolfcompanion.item;
 
 import github.meloweh.wolfcompanion.WolfCompanion;
 import github.meloweh.wolfcompanion.init.InitSound;
+import github.meloweh.wolfcompanion.util.ConfigManager;
+import net.minecraft.entity.EntityType;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.passive.WolfEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
+import net.minecraft.stat.Stats;
+import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.TypedActionResult;
+import net.minecraft.util.UseAction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class WhistleItem extends Item {
+    private static final int LONG_WHISTLE_START_TIME = 45;
+
+    private int duration = 0;
+    private boolean canUse = true;
+
     public WhistleItem(Settings settings) {
         super(settings);
     }
+
+//    @Override
+//    public void onStoppedUsing(ItemStack stack, World world, LivingEntity user, int remainingUseTicks) {
+//        super.onStoppedUsing(stack, world, user, remainingUseTicks);
+//        if (user instanceof PlayerEntity player && !user.getWorld().isClient) {
+//            if (duration >= 45) {
+//                world.playSound(
+//                        null, // Player - if non-null, will play sound for every nearby player *except* the specified player
+//                        user.getBlockPos(), // The position of where the sound will come from
+//                        InitSound.LONG_WHISTLE_SOUND_EVENT, // The sound that will play
+//                        SoundCategory.PLAYERS, // This determines which of the volume sliders affect this sound
+//                        2f, //Volume multiplier, 1 is normal, 0.5 is half volume, etc
+//                        1.1f // Pitch multiplier, 1 is normal, 0.5 is half pitch, etc
+//                );
+//            }
+//            duration = 0;
+//        }
+//    }
+//
+//
+//    @Override
+//    public void usageTick(World world, LivingEntity user, ItemStack stack, int remainingUseTicks) {
+//        duration++;
+//        super.usageTick(world, user, stack, remainingUseTicks);
+//    }
 
     @Override
     public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
@@ -29,11 +70,23 @@ public class WhistleItem extends Item {
                     null, // Player - if non-null, will play sound for every nearby player *except* the specified player
                     user.getBlockPos(), // The position of where the sound will come from
                     InitSound.WHISTLE_SOUND_EVENT, // The sound that will play
-                    SoundCategory.BLOCKS, // This determines which of the volume sliders affect this sound
+                    SoundCategory.PLAYERS, // This determines which of the volume sliders affect this sound
                     2f, //Volume multiplier, 1 is normal, 0.5 is half volume, etc
                     1.1f // Pitch multiplier, 1 is normal, 0.5 is half pitch, etc
             );
+            user.setCurrentHand(hand);
 
+            user.getServer().getWorlds().forEach(world2 -> {
+                world2.getEntitiesByType(EntityType.WOLF, wolf ->
+                    wolf.isTamed() &&
+                    wolf.getOwner() != null &&
+                    wolf.getOwner().getUuid() == user.getUuid()
+                ).forEach(wolf -> {
+                    if (ConfigManager.config.canTeleportSitting)
+                        wolf.setSitting(false);
+                    wolf.teleport((ServerWorld) user.getWorld(), user.getX(), user.getY(), user.getZ(), null, user.getYaw(), user.getPitch());
+                });
+            });
         }
 
         return TypedActionResult.success(itemStack, world.isClient());

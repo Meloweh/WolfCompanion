@@ -1,5 +1,7 @@
-// 1.21.1	2024-11-20T06:36:52.860365159	Wolf Companion/Recipes
+// 1.21.1	2024-11-20T11:00:02.424073695	Wolf Companion/Recipes
+904bbe35c10da9672fd26a775c4c008d2b422126 data/wolfcompanion/recipe/dog_whistle_item.json
 37726b1932280e7a063695425be3c5c4bf8b8a6c data/wolfcompanion/advancement/recipes/tools/wolf_bag_item.json
 1dd2fe75390db45b19784b0ffdf11ed873494dd0 data/wolfcompanion/recipe/wolf_single_bag.json
 a859be780fae6c24fe87ac71241ab7af30f1a22a data/wolfcompanion/advancement/recipes/tools/wolf_single_bag.json
+c6af607eb39e2e1966c70da18fd2ff232a5a2a40 data/wolfcompanion/advancement/recipes/tools/dog_whistle_item.json
 07d663242bb01dc300967f35463fe070baa85d1c data/wolfcompanion/recipe/wolf_bag_item.json

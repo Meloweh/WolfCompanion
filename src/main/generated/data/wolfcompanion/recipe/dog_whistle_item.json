@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "I": {
+      "item": "minecraft:iron_ingot"
+    }
+  },
+  "pattern": [
+    "   ",
+    "III",
+    " II"
+  ],
+  "result": {
+    "count": 1,
+    "id": "wolfcompanion:dog_whistle_item"
+  }
+}

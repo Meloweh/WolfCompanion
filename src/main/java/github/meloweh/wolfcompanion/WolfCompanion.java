@@ -5,6 +5,8 @@ import github.meloweh.wolfcompanion.events.WolfEventHandler;
 import github.meloweh.wolfcompanion.init.*;
 import github.meloweh.wolfcompanion.network.DropWolfChestC2SPayload;
 import github.meloweh.wolfcompanion.network.SampleS2CPayload;
+import github.meloweh.wolfcompanion.util.ConfigManager;
+import github.meloweh.wolfcompanion.util.WolfConfig;
 import net.fabricmc.api.ModInitializer;
 
 import net.fabricmc.fabric.api.event.player.AttackEntityCallback;
@@ -26,9 +28,12 @@ public class WolfCompanion implements ModInitializer {
 
 	public static final String CUSTOM_INVENTORY_UPDATE_ID = "custom_inventory_update";
 
+	//public static final WolfConfig CONFIG = WolfConfig.createAndLoad();
+
 	@Override
 	public void onInitialize() {
 		LOGGER.info("Loading...");
+		ConfigManager.loadConfig();
 		InitItem.load();
 		InitBlock.load();
 		InitSound.load();

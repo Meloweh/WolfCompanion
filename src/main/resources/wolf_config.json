@@ -1,0 +1,6 @@
+{
+  "canShakeOffPoison": true,
+  "canShakeOffFire": true,
+  "canTeleportSitting": true,
+  "canRespawn": true
+}
