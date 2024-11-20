@@ -1,0 +1,14 @@
+{
+  "whistle": {
+    "sounds": [
+      {
+        "name": "wolfcompanion:whistle",
+        "stream": false
+      },
+      {
+        "name": "wolfcompanion:long_whistle",
+        "stream": false
+      }
+    ]
+  }
+}

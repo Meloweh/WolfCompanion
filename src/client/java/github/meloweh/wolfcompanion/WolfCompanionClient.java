@@ -30,13 +30,13 @@ public class WolfCompanionClient implements ClientModInitializer {
 		BlockEntityRendererFactories.register(BlockEntityTypeInit.EXAMPLE_INVENTORY_BLOCK_ENTITY, ExampleInventoryBER::new);
 		EntityRendererRegistry.register(EntityType.WOLF, CustomWolfEntityRenderer::new);
 
-		ClientPlayNetworking.registerGlobalReceiver(SampleS2CPayload.ID, (payload, context) -> {
-			context.client().execute(() -> {
-				//ClientBlockHighlighting.highlightBlock(client, payload.blockPos());
-				final int myint = payload.myint();
-				final String mystring = payload.mystring();
-				System.out.println("Client: From Server: string: " + mystring + " int: " + myint);
-			});
-		});
+//		ClientPlayNetworking.registerGlobalReceiver(SampleS2CPayload.ID, (payload, context) -> {
+//			context.client().execute(() -> {
+//				//ClientBlockHighlighting.highlightBlock(client, payload.blockPos());
+//				final int myint = payload.myint();
+//				final String mystring = payload.mystring();
+//				System.out.println("Client: From Server: string: " + mystring + " int: " + myint);
+//			});
+//		});
 	}
 }

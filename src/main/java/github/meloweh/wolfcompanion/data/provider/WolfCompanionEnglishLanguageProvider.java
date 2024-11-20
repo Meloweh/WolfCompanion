@@ -1,10 +1,8 @@
 package github.meloweh.wolfcompanion.data.provider;
 
-import github.meloweh.wolfcompanion.init.InitBlock;
 import github.meloweh.wolfcompanion.init.InitItem;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricLanguageProvider;
-import net.fabricmc.fabric.api.datagen.v1.provider.FabricModelProvider;
 import net.minecraft.registry.RegistryWrapper;
 
 import java.util.concurrent.CompletableFuture;
@@ -24,6 +22,7 @@ public class WolfCompanionEnglishLanguageProvider extends FabricLanguageProvider
 //        translationBuilder.add(InitBlock.EXAMPLE_INVENTORY_BLOCK, "Example Inventory Block");
         translationBuilder.add(InitItem.ITEM_SINGLE_WOLF_BAG, "Single Wolf Bag");
         translationBuilder.add(InitItem.ITEM_WOLF_BAG, "Wolf Bag");
+        translationBuilder.add(InitItem.DOG_WHISTLE_ITEM, "Pet Whistle");
 
     }
 }

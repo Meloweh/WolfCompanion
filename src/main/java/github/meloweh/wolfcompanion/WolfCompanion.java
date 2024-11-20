@@ -2,10 +2,7 @@ package github.meloweh.wolfcompanion;
 
 import github.meloweh.wolfcompanion.accessor.WolfEntityProvider;
 import github.meloweh.wolfcompanion.events.WolfEventHandler;
-import github.meloweh.wolfcompanion.init.BlockEntityTypeInit;
-import github.meloweh.wolfcompanion.init.InitBlock;
-import github.meloweh.wolfcompanion.init.InitItem;
-import github.meloweh.wolfcompanion.init.ScreenHandlerTypeInit;
+import github.meloweh.wolfcompanion.init.*;
 import github.meloweh.wolfcompanion.network.DropWolfChestC2SPayload;
 import github.meloweh.wolfcompanion.network.SampleS2CPayload;
 import net.fabricmc.api.ModInitializer;
@@ -34,6 +31,7 @@ public class WolfCompanion implements ModInitializer {
 		LOGGER.info("Loading...");
 		InitItem.load();
 		InitBlock.load();
+		InitSound.load();
 		BlockEntityTypeInit.load();
 		ScreenHandlerTypeInit.load();
 //		WolfEventHandler.registerEvents();
@@ -85,7 +83,7 @@ public class WolfCompanion implements ModInitializer {
 			});
 		});
 
-		PayloadTypeRegistry.playS2C().register(SampleS2CPayload.ID, SampleS2CPayload.PACKET_CODEC);
+		//PayloadTypeRegistry.playS2C().register(SampleS2CPayload.ID, SampleS2CPayload.PACKET_CODEC);
 
 		/*AttackEntityCallback.EVENT.register((player, world, hand, entity, hitResult) -> {
 			if (entity instanceof WolfEntity && ((WolfEntity) entity).isTamed()) {
