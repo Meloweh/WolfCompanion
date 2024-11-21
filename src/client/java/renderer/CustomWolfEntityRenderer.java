@@ -83,6 +83,8 @@ public class CustomWolfEntityRenderer extends WolfEntityRenderer {
             //m = wolfHead.getHeadRoll(h);
             //m = foxEntity.getHeadRoll(h);
             m = entity.getBegAnimationProgress(partialTicks);
+            //if (entity.isWet())
+            m = entity.getShakeAnimationProgress(partialTicks, 0f) + entity.getBegAnimationProgress(partialTicks);
 
             matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(netHeadYaw));
             matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(headPitch));
@@ -109,7 +111,7 @@ public class CustomWolfEntityRenderer extends WolfEntityRenderer {
             }
 
             ItemStack itemStack = entity.getEquippedStack(EquipmentSlot.MAINHAND);
-            //ItemStack itemStack = Items.COOKED_BEEF.getDefaultStack();
+            itemStack = Items.COOKED_BEEF.getDefaultStack();
 
             this.heldItemRenderer.renderItem(entity, itemStack, ModelTransformationMode.GROUND, false, matrices, vertexConsumers, light);
             matrices.pop();
