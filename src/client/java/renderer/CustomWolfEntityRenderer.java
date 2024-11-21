@@ -111,7 +111,7 @@ public class CustomWolfEntityRenderer extends WolfEntityRenderer {
             }
 
             ItemStack itemStack = entity.getEquippedStack(EquipmentSlot.MAINHAND);
-            itemStack = Items.COOKED_BEEF.getDefaultStack();
+            //itemStack = Items.COOKED_BEEF.getDefaultStack();
 
             this.heldItemRenderer.renderItem(entity, itemStack, ModelTransformationMode.GROUND, false, matrices, vertexConsumers, light);
             matrices.pop();
