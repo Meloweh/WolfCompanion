@@ -87,20 +87,22 @@ public abstract class ServerPlayerEntityMixin implements ServerPlayerAccessor {
     @Inject(method = "sleep", at = @At("HEAD"))
     private void respawnDoggo(BlockPos pos, CallbackInfo ci) {
         wolfNbts.forEach(wolfNbt -> {
-            wolfNbt.putFloat("Health", this.self.getMaxHealth());
             wolfNbt.remove("HurtTime");
             wolfNbt.remove("HurtByTimestamp");
             wolfNbt.remove("DeathTime");
             wolfNbt.remove("body_armor_item");
             wolfNbt.remove("body_armor_drop_chance");
             wolfNbt.remove("ArmorDropChances");
+            wolfNbt.putFloat("Health", this.self.getMaxHealth());
 
-            if (!ConfigManager.config.keepWolfArmor && !ConfigManager.config.keepWolfInventory)
-                wolfNbt.remove("ArmorItems");
-            if (!ConfigManager.config.keepWolfBag && !ConfigManager.config.keepWolfInventory)
-                wolfNbt.remove("ChestedWolf");
-            if (!ConfigManager.config.keepWolfInventory)
+            if (!ConfigManager.config.keepWolfInventory) {
+                if (!ConfigManager.config.keepWolfArmor)
+                    wolfNbt.remove("ArmorItems");
+                if (!ConfigManager.config.keepWolfBag)
+                    wolfNbt.remove("ChestedWolf");
                 wolfNbt.remove("Items");
+            }
+
 
             ServerWorld world = (ServerWorld) this.self.getWorld();
             final WolfEntity newWolf = EntityType.WOLF.create(world);

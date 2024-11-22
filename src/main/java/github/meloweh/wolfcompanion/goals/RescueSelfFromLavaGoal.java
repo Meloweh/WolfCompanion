@@ -2,8 +2,8 @@ package github.meloweh.wolfcompanion.goals;
 
 import github.meloweh.wolfcompanion.accessor.WolfEntityProvider;
 import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.FoodComponent;
 import net.minecraft.component.type.PotionContentsComponent;
+import net.minecraft.entity.AreaEffectCloudEntity;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.goal.Goal;
@@ -15,7 +15,6 @@ import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.passive.TameableEntity;
 import net.minecraft.entity.passive.WolfEntity;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.thrown.PotionEntity;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.InventoryChangedListener;
@@ -26,6 +25,7 @@ import net.minecraft.potion.Potions;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,33 +35,20 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.stream.StreamSupport;
 
-public class RescueOwnerFromLavaGoal extends Goal implements InventoryChangedListener {
+public class RescueSelfFromLavaGoal extends Goal implements InventoryChangedListener {
     private final TameableEntity wolf;
     @Nullable
     private LivingEntity owner;
-    private final double speed;
     private final EntityNavigation navigation;
     private int updateCountdownTicks;
-    private final float maxDistance;
-    private final float minDistance;
-    private float oldWaterPathfindingPenalty;
     private final WolfEntityProvider armoredWolf;
     private final List<ItemStack> inventoryContents;
-    private int shootCooldown, teleportCooldown;
-    private final static int TP_COOLDOWN = 45;
+    private int shootCooldown;
 
-    public RescueOwnerFromLavaGoal(WolfEntity wolf, double speed, float minDistance, float maxDistance) {
+    public RescueSelfFromLavaGoal(WolfEntity wolf) {
         this.wolf = wolf;
-        this.speed = speed;
         this.navigation = wolf.getNavigation();
-        this.minDistance = minDistance;
-        this.maxDistance = maxDistance;
         this.shootCooldown = 0;
-        this.teleportCooldown = TP_COOLDOWN;
-        this.setControls(EnumSet.of(Control.MOVE, Control.LOOK));
-        if (!(wolf.getNavigation() instanceof MobNavigation) && !(wolf.getNavigation() instanceof BirdNavigation)) {
-            throw new IllegalArgumentException("Unsupported mob type for FollowOwnerGoal");
-        }
         this.armoredWolf = (WolfEntityProvider) wolf;
         this.inventoryContents = new ArrayList<>();
     }
@@ -114,15 +101,12 @@ public class RescueOwnerFromLavaGoal extends Goal implements InventoryChangedLis
     public boolean canStart() {
         if (!this.wolf.isTamed()) return false;
         if (!this.armoredWolf.hasChestEquipped()) return false;
-        if (this.wolf.getOwner() == null) return false;
 
         this.owner = this.wolf.getOwner();
 
-        if (
-                this.owner.isSpectator() ||
-                this.owner.isInCreativeMode() ||
-                !(this.owner.isInLava() || this.owner.isOnFire() && this.owner.getHealth() <= this.owner.getMaxHealth() / 4) ||
-                this.owner.hasStatusEffect(StatusEffects.FIRE_RESISTANCE)) {
+        if (    !(this.wolf.isInLava() || this.wolf.isOnFire() && this.wolf.getHealth() <= this.wolf.getMaxHealth() / 4) ||
+                this.wolf.hasStatusEffect(StatusEffects.FIRE_RESISTANCE) ||
+                this.owner != null && (this.owner.isInLava() || this.owner.isOnFire() && this.owner.getHealth() <= this.owner.getMaxHealth() / 4)) {
             return false;
         }
         return true;
@@ -134,46 +118,25 @@ public class RescueOwnerFromLavaGoal extends Goal implements InventoryChangedLis
 
     public void start() {
         this.updateCountdownTicks = 0;
-        this.oldWaterPathfindingPenalty = this.wolf.getPathfindingPenalty(PathNodeType.WATER);
-        this.wolf.setPathfindingPenalty(PathNodeType.WATER, 0.0F);
-        this.teleportCooldown = TP_COOLDOWN;
         this.wolf.setSitting(false);
     }
 
     public void stop() {
         this.owner = null;
         this.navigation.stop();
-        this.wolf.setPathfindingPenalty(PathNodeType.WATER, this.oldWaterPathfindingPenalty);
         shootCooldown = 0;
-        teleportCooldown = TP_COOLDOWN;
         this.wolf.equipStack(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
         inventoryInit();
     }
 
     public void tick() {
-        this.wolf.getLookControl().lookAt(this.owner, 10.0F, (float)this.wolf.getMaxLookPitchChange());
-        if (this.teleportCooldown > 0) this.teleportCooldown--;
-
-        if (--this.updateCountdownTicks <= 0) {
-            this.updateCountdownTicks = this.getTickCount(10);
-            if (teleportCooldown <= 0) {
-                this.wolf.tryTeleportToOwner();
-                this.teleportCooldown = TP_COOLDOWN;
-            } else {
-
-                this.navigation.startMovingTo(this.owner, this.speed);
-            }
-
-        }
-
         ItemStack itemStack = nextPotion();
         this.wolf.equipStack(EquipmentSlot.MAINHAND, itemStack);
 
-        if (this.wolf.squaredDistanceTo(this.owner) <= (double)(this.maxDistance * this.maxDistance) &&
-                this.wolf.canSee(this.owner) &&
-            this.shootCooldown <= 0) {
-            shoot(itemStack);
-            shootCooldown = 60;
+        if (this.shootCooldown <= 0) {
+            //shoot(itemStack);
+            applySplashPotionEffect();
+            shootCooldown = 40;
         } else {
             this.shootCooldown--;
         }
@@ -191,12 +154,6 @@ public class RescueOwnerFromLavaGoal extends Goal implements InventoryChangedLis
     }
 
     public void shoot(final ItemStack itemStack) {
-        Vec3d vec3d = this.owner.getVelocity();
-        double d = this.owner.getX() + vec3d.x - this.wolf.getX();
-        double e = this.owner.getEyeY() - 1.100000023841858 - this.wolf.getY();
-        double f = this.owner.getZ() + vec3d.z - this.wolf.getZ();
-        double g = Math.sqrt(d * d + f * f);
-
         itemStack.decrement(1);
         ItemStack itemStack2 = itemStack.finishUsing(this.wolf.getWorld(), this.wolf);
         if (!itemStack2.isEmpty()) {
@@ -207,10 +164,34 @@ public class RescueOwnerFromLavaGoal extends Goal implements InventoryChangedLis
 
         PotionEntity potionEntity = new PotionEntity(this.wolf.getWorld(), this.wolf);
         potionEntity.setItem(PotionContentsComponent.createStack(Items.SPLASH_POTION, registryEntry));
-        potionEntity.setPitch(potionEntity.getPitch() - -20.0F);
-        potionEntity.setVelocity(d, e + g * 0.2, f, 0.75F, 0F);
         this.wolf.getWorld().playSound(null, this.wolf.getX(), this.wolf.getY(), this.wolf.getZ(), SoundEvents.ENTITY_SPLASH_POTION_THROW, this.wolf.getSoundCategory(), 1.0F, 0.8F + this.wolf.getRandom().nextFloat() * 0.4F);
 
         this.wolf.getWorld().spawnEntity(potionEntity);
     }
+
+    public void applySplashPotionEffect() {
+        RegistryEntry<Potion> registryEntry = Potions.FIRE_RESISTANCE;
+
+        // Get the world and the wolf's position
+        World world = this.wolf.getWorld();
+        double x = this.wolf.getX();
+        double y = this.wolf.getY();
+        double z = this.wolf.getZ();
+
+        // Create a splash effect on the wolf
+        AreaEffectCloudEntity effectCloud = new AreaEffectCloudEntity(world, x, y, z);
+        effectCloud.setOwner(this.wolf); // Set the wolf as the source
+        effectCloud.setRadius(3.0F); // Set splash radius
+        PotionContentsComponent potionContentsComponent = new PotionContentsComponent(Potions.FIRE_RESISTANCE);
+        effectCloud.setPotionContents(potionContentsComponent); // Assign the potion effects (e.g., fire resistance)
+        effectCloud.setDuration(10); // Short duration since it's a splash
+        effectCloud.setWaitTime(0); // Apply immediately
+
+        // Play the splash sound effect
+        world.playSound(null, x, y, z, SoundEvents.ENTITY_SPLASH_POTION_BREAK, this.wolf.getSoundCategory(), 1.0F, 0.8F + this.wolf.getRandom().nextFloat() * 0.4F);
+
+        // Spawn the area effect cloud to apply effects
+        world.spawnEntity(effectCloud);
+    }
+
 }

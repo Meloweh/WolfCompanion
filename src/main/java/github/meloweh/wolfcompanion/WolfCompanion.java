@@ -1,23 +1,17 @@
 package github.meloweh.wolfcompanion;
 
 import github.meloweh.wolfcompanion.accessor.WolfEntityProvider;
-import github.meloweh.wolfcompanion.events.WolfEventHandler;
 import github.meloweh.wolfcompanion.init.*;
 import github.meloweh.wolfcompanion.network.DropWolfChestC2SPayload;
-import github.meloweh.wolfcompanion.network.SampleS2CPayload;
 import github.meloweh.wolfcompanion.util.ConfigManager;
-import github.meloweh.wolfcompanion.util.WolfConfig;
 import net.fabricmc.api.ModInitializer;
 
-import net.fabricmc.fabric.api.event.player.AttackEntityCallback;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.passive.WolfEntity;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.ActionResult;
 import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,8 +75,7 @@ public class WolfCompanion implements ModInitializer {
 						if (owner instanceof ServerPlayerEntity) {
 							((ServerPlayerEntity) owner).closeHandledScreen();
 						}
-						provider.dropInventory();
-						System.out.println("Dropping chest.");
+						provider.wolfcompanion_template_1_21_1$dropInventoryByButton();
 					}
 				});
 			});

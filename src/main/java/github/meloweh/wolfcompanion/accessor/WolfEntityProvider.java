@@ -1,7 +1,6 @@
 package github.meloweh.wolfcompanion.accessor;
 
 import net.minecraft.inventory.SimpleInventory;
-import net.minecraft.inventory.StackReference;
 
 public interface WolfEntityProvider {
     boolean shouldDropChest();
@@ -12,5 +11,5 @@ public interface WolfEntityProvider {
 
     void setShouldDropChest(boolean yes);
 
-    void dropInventory();
+    void wolfcompanion_template_1_21_1$dropInventoryByButton();
 }
