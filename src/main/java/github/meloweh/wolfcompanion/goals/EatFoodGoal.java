@@ -1,26 +1,18 @@
 package github.meloweh.wolfcompanion.goals;
 
 import github.meloweh.wolfcompanion.accessor.WolfEntityProvider;
-import github.meloweh.wolfcompanion.network.WolfEatS2CPayload;
-import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.FoodComponent;
-import net.minecraft.component.type.FoodComponents;
 import net.minecraft.entity.EntityStatuses;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.ai.goal.Goal;
 import net.minecraft.entity.passive.WolfEntity;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.InventoryChangedListener;
-import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.*;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
 import org.jetbrains.annotations.NotNull;
-import org.spongepowered.asm.mixin.Unique;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -72,7 +64,7 @@ public class EatFoodGoal extends Goal implements InventoryChangedListener {
     public void start() {
         if (eatingTime > 0 || this.entity.getTarget() != null) return;
 
-        ItemStack mostEfficientFood = getMostEfficientFood();
+        ItemStack mostEfficientFood = findFood();
 
         if (mostEfficientFood.isEmpty()) return;
 
@@ -108,7 +100,7 @@ public class EatFoodGoal extends Goal implements InventoryChangedListener {
 
         if (!itemStack.isEmpty()) return itemStack;
 
-        itemStack = getMostEfficientFood();
+        itemStack = findFood();
         this.entity.equipStack(EquipmentSlot.MAINHAND, itemStack);
 
         return itemStack;
@@ -129,16 +121,13 @@ public class EatFoodGoal extends Goal implements InventoryChangedListener {
                 return;
             }
 
-            if (this.eatingTime <= 0) {
+            if (this.eatingTime == 0) {
                 final FoodComponent foodComponent = itemStack.get(DataComponentTypes.FOOD);
                 this.entity.heal(foodComponent.nutrition());
-                itemStack.decrement(1);
+                //itemStack.decrement(1);
                 ItemStack itemStack2 = itemStack.finishUsing(this.entity.getWorld(), this.entity);
-                if (!itemStack2.isEmpty()) {
-                    this.entity.equipStack(EquipmentSlot.MAINHAND, itemStack2);
-                }
-
-                this.eatingTime = 0;
+                this.entity.equipStack(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
+                this.eatingTime = -1;
             } else if (this.eatingTime > 0) {
                 if (this.eatingTime % 2 == 0 && this.entity.getRandom().nextFloat() < 0.5F) {
                     this.entity.playSound(this.getEatSound(itemStack), 1.0F, 1.0F);
@@ -221,7 +210,7 @@ public class EatFoodGoal extends Goal implements InventoryChangedListener {
     }
 
     @NotNull
-    private ItemStack getMostEfficientFood() {
+    private ItemStack findFood() {
         final float healthDiff = this.entity.getMaxHealth() - this.entity.getHealth();
 
         return this.inventoryContents.stream()

@@ -4,6 +4,7 @@ import github.meloweh.wolfcompanion.WolfCompanion;
 import github.meloweh.wolfcompanion.accessor.*;
 import github.meloweh.wolfcompanion.events.WolfEventHandler;
 import github.meloweh.wolfcompanion.goals.EatFoodGoal;
+import github.meloweh.wolfcompanion.goals.RescueOwnerFromLavaGoal;
 import github.meloweh.wolfcompanion.init.InitItem;
 import github.meloweh.wolfcompanion.network.UuidPayload;
 import github.meloweh.wolfcompanion.screenhandler.WolfInventoryScreenHandler;
@@ -100,7 +101,8 @@ public abstract class WolfEntityMixin implements
         if (this.self == null) {
             self = (WolfEntity) (Object) this;
         }
-        ((MobEntityAccessor) self).getGoalSelector().add(1, new EatFoodGoal(self));
+        ((MobEntityAccessor) self).getGoalSelector().add(1, new RescueOwnerFromLavaGoal(self, 2.4f, 2.5f, 7f));
+        ((MobEntityAccessor) self).getGoalSelector().add(2, new EatFoodGoal(self));
     }
 
     @Shadow
@@ -498,22 +500,24 @@ public abstract class WolfEntityMixin implements
 
     @Unique
     private void dropEverything() {
-        if (this.items != null) {
-            this.items.clearToList().forEach(itemStack -> {
-                if (!itemStack.isEmpty()) {
-                    if (self.getEquippedStack(EquipmentSlot.BODY) != itemStack) {
-                        self.dropStack(itemStack);
+        if (!ConfigManager.config.keepWolfInventory) {
+            if (this.items != null) {
+                this.items.clearToList().forEach(itemStack -> {
+                    if (!itemStack.isEmpty()) {
+                        if (self.getEquippedStack(EquipmentSlot.BODY) != itemStack || !ConfigManager.config.keepWolfArmor) {
+                            self.dropStack(itemStack);
+                        }
                     }
-                }
-            });
-        }
-
-        if (this.hasChest()) {
-            if (!self.getWorld().isClient) {
-                self.dropItem(InitItem.ITEM_WOLF_BAG);
+                });
             }
 
-            this.setHasChest(false);
+            if (this.hasChest() && !ConfigManager.config.keepWolfBag) {
+                if (!self.getWorld().isClient) {
+                    self.dropItem(InitItem.ITEM_WOLF_BAG);
+                }
+
+                this.setHasChest(false);
+            }
         }
         setShouldDropChest(false);
     }

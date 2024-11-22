@@ -2,5 +2,8 @@
   "canShakeOffPoison": true,
   "canShakeOffFire": true,
   "canTeleportSitting": true,
-  "canRespawn": true
+  "canRespawn": true,
+  "keepWolfBag": true,
+  "keepWolfInventory": false,
+  "keepWolfArmor": false
 }

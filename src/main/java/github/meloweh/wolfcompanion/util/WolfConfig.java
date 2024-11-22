@@ -6,5 +6,8 @@ public class WolfConfig {
     public boolean canShakeOffFire = true;
     public boolean canTeleportSitting = true;
     public boolean canRespawn = true;
+    public boolean keepWolfBag = true;
+    public boolean keepWolfInventory = false;
+    public boolean keepWolfArmor = false;
 
 }

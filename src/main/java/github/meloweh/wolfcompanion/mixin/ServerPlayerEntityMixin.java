@@ -1,7 +1,9 @@
 package github.meloweh.wolfcompanion.mixin;
 
+import github.meloweh.wolfcompanion.WolfCompanion;
 import github.meloweh.wolfcompanion.accessor.ServerPlayerAccessor;
 import github.meloweh.wolfcompanion.events.WolfEventHandler;
+import github.meloweh.wolfcompanion.util.ConfigManager;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.passive.WolfEntity;
 import net.minecraft.nbt.NbtCompound;
@@ -89,12 +91,16 @@ public abstract class ServerPlayerEntityMixin implements ServerPlayerAccessor {
             wolfNbt.remove("HurtTime");
             wolfNbt.remove("HurtByTimestamp");
             wolfNbt.remove("DeathTime");
-            wolfNbt.remove("ArmorItems");
             wolfNbt.remove("body_armor_item");
             wolfNbt.remove("body_armor_drop_chance");
             wolfNbt.remove("ArmorDropChances");
-            wolfNbt.remove("ChestedWolf");
-            wolfNbt.remove("Items");
+
+            if (!ConfigManager.config.keepWolfArmor && !ConfigManager.config.keepWolfInventory)
+                wolfNbt.remove("ArmorItems");
+            if (!ConfigManager.config.keepWolfBag && !ConfigManager.config.keepWolfInventory)
+                wolfNbt.remove("ChestedWolf");
+            if (!ConfigManager.config.keepWolfInventory)
+                wolfNbt.remove("Items");
 
             ServerWorld world = (ServerWorld) this.self.getWorld();
             final WolfEntity newWolf = EntityType.WOLF.create(world);
