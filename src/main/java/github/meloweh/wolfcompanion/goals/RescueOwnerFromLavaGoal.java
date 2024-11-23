@@ -48,7 +48,7 @@ public class RescueOwnerFromLavaGoal extends Goal implements InventoryChangedLis
     private final WolfEntityProvider armoredWolf;
     private final List<ItemStack> inventoryContents;
     private int shootCooldown, teleportCooldown;
-    private final static int TP_COOLDOWN = 45;
+    private final static int TP_COOLDOWN = 45, SHOOT_COOLDOWN = 20;
 
     public RescueOwnerFromLavaGoal(WolfEntity wolf, double speed, float minDistance, float maxDistance) {
         this.wolf = wolf;
@@ -129,7 +129,7 @@ public class RescueOwnerFromLavaGoal extends Goal implements InventoryChangedLis
     }
 
     public boolean shouldContinue() {
-        return !findPotion().isEmpty() && (this.navigation.isIdle() || canStart());
+        return !findPotion().isEmpty() && (this.navigation.isIdle() || canStart()) && --shootCooldown > 0;
     }
 
     public void start() {
@@ -144,7 +144,6 @@ public class RescueOwnerFromLavaGoal extends Goal implements InventoryChangedLis
         this.owner = null;
         this.navigation.stop();
         this.wolf.setPathfindingPenalty(PathNodeType.WATER, this.oldWaterPathfindingPenalty);
-        shootCooldown = 0;
         teleportCooldown = TP_COOLDOWN;
         this.wolf.equipStack(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
         inventoryInit();
@@ -152,6 +151,7 @@ public class RescueOwnerFromLavaGoal extends Goal implements InventoryChangedLis
 
     public void tick() {
         this.wolf.getLookControl().lookAt(this.owner, 10.0F, (float)this.wolf.getMaxLookPitchChange());
+
         if (this.teleportCooldown > 0) this.teleportCooldown--;
 
         if (--this.updateCountdownTicks <= 0) {
@@ -172,10 +172,8 @@ public class RescueOwnerFromLavaGoal extends Goal implements InventoryChangedLis
         if (this.wolf.squaredDistanceTo(this.owner) <= (double)(this.maxDistance * this.maxDistance) &&
                 this.wolf.canSee(this.owner) &&
             this.shootCooldown <= 0) {
-            shoot(itemStack);
-            shootCooldown = 60;
-        } else {
-            this.shootCooldown--;
+            if (!this.wolf.getWorld().isClient()) shoot(itemStack);
+            shootCooldown = SHOOT_COOLDOWN;
         }
     }
 
@@ -197,20 +195,20 @@ public class RescueOwnerFromLavaGoal extends Goal implements InventoryChangedLis
         double f = this.owner.getZ() + vec3d.z - this.wolf.getZ();
         double g = Math.sqrt(d * d + f * f);
 
-        itemStack.decrement(1);
-        ItemStack itemStack2 = itemStack.finishUsing(this.wolf.getWorld(), this.wolf);
-        if (!itemStack2.isEmpty()) {
-            this.wolf.equipStack(EquipmentSlot.MAINHAND, itemStack2);
-        }
-
         RegistryEntry<Potion> registryEntry = Potions.FIRE_RESISTANCE;
 
         PotionEntity potionEntity = new PotionEntity(this.wolf.getWorld(), this.wolf);
         potionEntity.setItem(PotionContentsComponent.createStack(Items.SPLASH_POTION, registryEntry));
         potionEntity.setPitch(potionEntity.getPitch() - -20.0F);
         potionEntity.setVelocity(d, e + g * 0.2, f, 0.75F, 0F);
-        this.wolf.getWorld().playSound(null, this.wolf.getX(), this.wolf.getY(), this.wolf.getZ(), SoundEvents.ENTITY_SPLASH_POTION_THROW, this.wolf.getSoundCategory(), 1.0F, 0.8F + this.wolf.getRandom().nextFloat() * 0.4F);
+        this.wolf.getWorld().playSound(null, this.wolf.getX(), this.wolf.getY(), this.wolf.getZ(), SoundEvents.ENTITY_SPLASH_POTION_THROW, this.wolf.getSoundCategory(), 1.0F, 0.4F + this.wolf.getRandom().nextFloat() * 0.4F);
 
         this.wolf.getWorld().spawnEntity(potionEntity);
+
+        itemStack.decrement(1);
+        ItemStack itemStack2 = itemStack.finishUsing(this.wolf.getWorld(), this.wolf);
+        if (!itemStack2.isEmpty()) {
+            this.wolf.equipStack(EquipmentSlot.MAINHAND, itemStack2);
+        }
     }
 }

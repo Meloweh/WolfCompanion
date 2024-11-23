@@ -221,7 +221,7 @@ public abstract class WolfEntityMixin implements
                  if (ConfigManager.config.canShakeOffPoison && isPoisoned(this.self))
                      shakeReason = 1;
 
-                 if (ConfigManager.config.canShakeOffFire && self.isOnFire() && !self.isInLava() && self.isOnGround())
+                 if (ConfigManager.config.canShakeOffFire && self.isOnFire() && !self.isInLava() && self.isOnGround() && self.prevY <= self.getY())
                      shakeReason = 2;
 
                  if (getShakeReason() > 0)
