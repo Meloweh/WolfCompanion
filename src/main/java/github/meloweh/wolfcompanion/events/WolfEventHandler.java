@@ -1,6 +1,8 @@
 package github.meloweh.wolfcompanion.events;
 
 import github.meloweh.wolfcompanion.accessor.ServerPlayerAccessor;
+import github.meloweh.wolfcompanion.accessor.WolfXpProvider;
+import net.fabricmc.fabric.api.entity.event.v1.ServerEntityCombatEvents;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
@@ -13,6 +15,19 @@ import net.minecraft.server.world.ServerWorld;
 public class WolfEventHandler {
 
     public static final String Wolf_NBT_KEY = "SavedWolfData";
+
+    public static void init() {
+        ServerEntityCombatEvents.AFTER_KILLED_OTHER_ENTITY.register((world, entity, killedEntity) -> {
+            if (entity instanceof WolfEntity) {
+                final WolfXpProvider wolfXp = (WolfXpProvider) entity;
+                wolfXp.addXp(1);
+            }
+        });
+    }
+
+    //public static final String Wolf_NBT_KEY = "SavedWolfData";
+
+
 
 //    public static void registerEvents() {
 //        ServerEntityEvents.ENTITY_UNLOAD.register((entity, world) -> {

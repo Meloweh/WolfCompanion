@@ -58,7 +58,7 @@ public class WolfInventoryScreenHandler extends ScreenHandler {
 
     // Main Constructor - (Directly called from server)
     public WolfInventoryScreenHandler(int syncId, PlayerInventory playerInventory, WolfEntity wolf, NbtCompound nbt) {
-        super(ScreenHandlerTypeInit.EXAMPLE_INVENTORY_SCREEN_HANDLER_2, syncId);
+        super(ScreenHandlerTypeInit.WOLF_INVENTORY_SCREEN_HANDLER, syncId);
 
         this.wolf = wolf;
         this.context = ScreenHandlerContext.create(this.wolf.getWorld(), null);

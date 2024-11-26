@@ -6,13 +6,18 @@ import github.meloweh.wolfcompanion.events.WolfEventHandler;
 import github.meloweh.wolfcompanion.goals.EatFoodGoal;
 import github.meloweh.wolfcompanion.goals.RescueOwnerFromLavaGoal;
 import github.meloweh.wolfcompanion.goals.RescueSelfFromLavaGoal;
+import github.meloweh.wolfcompanion.goals.WolfMeleeAttackGoal;
 import github.meloweh.wolfcompanion.init.InitItem;
 import github.meloweh.wolfcompanion.network.UuidPayload;
 import github.meloweh.wolfcompanion.screenhandler.WolfInventoryScreenHandler;
 import github.meloweh.wolfcompanion.util.ConfigManager;
 import github.meloweh.wolfcompanion.util.NBTHelper;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
+import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.*;
+import net.minecraft.entity.ai.goal.Goal;
+import net.minecraft.entity.ai.goal.MeleeAttackGoal;
+import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.data.DataTracker;
 import net.minecraft.entity.data.TrackedData;
@@ -30,14 +35,17 @@ import net.minecraft.particle.*;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.WorldSavePath;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Math;
 import org.joml.Vector3f;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -64,6 +72,7 @@ public abstract class WolfEntityMixin implements
         EntityAccessor,
         MobEntityAccessor,
         ExtendedScreenHandlerFactory<UuidPayload>,
+        WolfXpProvider,
         WolfEntityMixinProvider {
     @Unique
     protected SimpleInventory items;
@@ -96,13 +105,20 @@ public abstract class WolfEntityMixin implements
 //        return SoundEvents.ENTITY_FOX_EAT;
 //    }
 
+    @ModifyArg(method = "initGoals", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/ai/goal/GoalSelector;add(ILnet/minecraft/entity/ai/goal/Goal;)V", ordinal = 5), index = 1)
+    private Goal f(Goal goal) {
+        if (this.self == null) {
+            self = (WolfEntity) (Object) this;
+        }
+        return new WolfMeleeAttackGoal(this.self, 1.5, true);
+    }
 
     @Inject(method = "initGoals", at = @At("TAIL"))
     private void onInitGoals(CallbackInfo info) {
         if (this.self == null) {
             self = (WolfEntity) (Object) this;
         }
-        ((MobEntityAccessor) self).getGoalSelector().add(1, new RescueOwnerFromLavaGoal(self, 2.4f, 2.5f, 7f));
+        ((MobEntityAccessor) self).getGoalSelector().add(1, new RescueOwnerFromLavaGoal(self, 1.75f, 2.5f, 7f));
         ((MobEntityAccessor) self).getGoalSelector().add(1, new RescueSelfFromLavaGoal(self));
         ((MobEntityAccessor) self).getGoalSelector().add(2, new EatFoodGoal(self));
     }
@@ -294,6 +310,8 @@ public abstract class WolfEntityMixin implements
     private static final TrackedData<Boolean> DROP_CHEST = DataTracker.registerData(WolfEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
     @Unique
     private static final TrackedData<Byte> SHAKE_REASON = DataTracker.registerData(WolfEntity.class, TrackedDataHandlerRegistry.BYTE);
+    @Unique
+    private static final TrackedData<Integer> XP = DataTracker.registerData(WolfEntity.class, TrackedDataHandlerRegistry.INTEGER);
 
 //    private boolean isDirty = false;
 //
@@ -436,6 +454,49 @@ public abstract class WolfEntityMixin implements
         builder.add(CHEST, false);
         builder.add(DROP_CHEST, false);
         builder.add(SHAKE_REASON, (byte)0);
+        builder.add(XP, 0);
+    }
+
+    @Unique
+    private float getKnockbackAgainst(Entity target, DamageSource damageSource) {
+        float f = (float)this.self.getAttributeValue(EntityAttributes.GENERIC_ATTACK_KNOCKBACK);
+        World var5 = this.self.getWorld();
+        if (var5 instanceof ServerWorld serverWorld) {
+            return EnchantmentHelper.modifyKnockback(serverWorld, this.self.getWeaponStack(), target, damageSource, f);
+        } else {
+            return f;
+        }
+    }
+
+    @Override
+    public boolean wolfcompanion_template_1_21_1$tryAttack(Entity target) {
+        float f = (float)this.self.getAttributeValue(EntityAttributes.GENERIC_ATTACK_DAMAGE) + getLevel();
+        DamageSource damageSource = this.self.getDamageSources().mobAttack(this.self);
+        World var5 = this.self.getWorld();
+        if (var5 instanceof ServerWorld serverWorld) {
+            f = EnchantmentHelper.getDamage(serverWorld, this.self.getWeaponStack(), target, damageSource, f);
+        }
+
+        boolean bl = target.damage(damageSource, f);
+        if (bl) {
+            float g = getKnockbackAgainst(target, damageSource);
+            if (g > 0.0F && target instanceof LivingEntity) {
+                LivingEntity livingEntity = (LivingEntity)target;
+                livingEntity.takeKnockback((double)(g * 0.5F), (double) MathHelper.sin(this.self.getYaw() * 0.017453292F), (double)(-MathHelper.cos(this.self.getYaw() * 0.017453292F)));
+                this.self.setVelocity(this.self.getVelocity().multiply(0.6, 1.0, 0.6));
+            }
+
+            World var7 = this.self.getWorld();
+            if (var7 instanceof ServerWorld) {
+                ServerWorld serverWorld2 = (ServerWorld)var7;
+                EnchantmentHelper.onTargetDamaged(serverWorld2, target, damageSource);
+            }
+
+            this.self.onAttacking(target);
+            //this.self.playAttackSound();
+        }
+
+        return bl;
     }
 
     @Unique
@@ -476,6 +537,43 @@ public abstract class WolfEntityMixin implements
     @Unique
     public byte getShakeReason() {
         return getDataTracker(self).get(SHAKE_REASON);
+    }
+
+    @Override
+    public void setXp(int value) {
+        getDataTracker(self).set(XP, value);
+    }
+
+    @Override
+    public int getXp() {
+        return getDataTracker(self).get(XP);
+    }
+
+    @Override
+    public int getLevel() {
+        final int xp = getXp();
+        final float level = 0.5f * (Math.sqrt(2 * xp + 1) - 1);
+        return (int) level;
+    }
+
+    @Override
+    public int getNextLevelXpRequirement(final int level) {
+        //final int prev = Math.max(0, level - 1);
+        //final int prevLevel = 2 * prev * prev + 2 * prev;
+        return 2 * level * level + 2 * level;// - prevLevel;
+    }
+
+    @Override
+    public int getDeltaXp() {
+        final int xp = getXp();
+        final int level = getLevel();
+        final int requiredXp = getNextLevelXpRequirement(level + 1);
+        return requiredXp - xp;
+    }
+
+    @Unique
+    public void addXp(int value) {
+        getDataTracker(self).set(XP, getXp() + value);
     }
 
     @Override
@@ -584,6 +682,7 @@ public abstract class WolfEntityMixin implements
         if (text != null) {
             nbt.putString("CustomName", Text.Serialization.toJsonString(text, this.self.getRegistryManager()));
         }
+        nbt.putInt("XP", this.getXp());
     }
 
     @Inject(method = "readCustomDataFromNbt", at = @At("TAIL"))
@@ -619,6 +718,7 @@ public abstract class WolfEntityMixin implements
                 WolfCompanion.LOGGER.warn("Failed to parse entity custom name {}", string, var16);
             }
         }
+        this.setXp(nbt.getInt("XP"));
     }
 
     @Unique

@@ -7,4 +7,5 @@ public interface MobEntityAccessor {
     ItemStack getBodyArmor();
     void equipBodyArmor(ItemStack stack);
     GoalSelector getGoalSelector();
+    //void playAttackSound();
 }

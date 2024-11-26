@@ -2,9 +2,13 @@ package github.meloweh.wolfcompanion.screen;
 
 import github.meloweh.wolfcompanion.WolfCompanion;
 import github.meloweh.wolfcompanion.accessor.WolfEntityProvider;
+import github.meloweh.wolfcompanion.accessor.WolfXpProvider;
 import github.meloweh.wolfcompanion.network.DropWolfChestC2SPayload;
 import github.meloweh.wolfcompanion.screenhandler.WolfInventoryScreenHandler;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.font.FontStorage;
+import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.gui.screen.ingame.InventoryScreen;
@@ -12,15 +16,27 @@ import net.minecraft.entity.passive.WolfEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.SimpleInventory;
+import net.minecraft.screen.MerchantScreenHandler;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.MathHelper;
+import net.minecraft.village.TradeOffer;
+import net.minecraft.village.VillagerData;
 
 public class WolfInventoryScreen extends HandledScreen<WolfInventoryScreenHandler> {
     private static final Identifier CHEST_SLOTS_TEXTURE = Identifier.ofVanilla("container/horse/chest_slots");
     private static final Identifier TEXTURE = Identifier.ofVanilla("textures/gui/container/horse.png"); //WolfCompanion.id("textures/gui/container/horse .png"); //Identifier.ofVanilla("textures/gui/container/horse.png");
     private static final Identifier SLOT = Identifier.ofVanilla("container/slot");
+    //private static final Identifier EXPERIENCE_BAR_BACKGROUND_TEXTURE = Identifier.ofVanilla("container/villager/experience_bar_background");
+    //private static final Identifier EXPERIENCE_BAR_CURRENT_TEXTURE = Identifier.ofVanilla("container/villager/experience_bar_current");
+    private static final Identifier EXPERIENCE_BAR_RESULT_TEXTURE = Identifier.ofVanilla("container/villager/experience_bar_result");
+    //private static final Identifier HEART = Identifier.ofVanilla("textures/gui/sprites/hud/heart/full");
+    //private static final Identifier HEART_CONTAINER = Identifier.ofVanilla("textures/gui/sprites/hud/heart/container.png");
+    private static final Identifier HALF_HEART = Identifier.ofVanilla("textures/gui/sprites/hud/heart/half");
+
     private final WolfEntity wolf;
+    private final WolfXpProvider wolfXp;
     private final int slotColumnCount;
     private float mouseX;
     private float mouseY;
@@ -32,6 +48,10 @@ public class WolfInventoryScreen extends HandledScreen<WolfInventoryScreenHandle
     private static final Identifier BUTTON_CHEST_HIGHLIGHTED = WolfCompanion.id("textures/gui/container/button_highlighted.png");
     private static final Identifier BUTTON_CHEST_DISABLED = WolfCompanion.id("textures/gui/container/button_disabled.png");
     private static final Identifier WOLF_ARMOR_SLOT = WolfCompanion.id("textures/gui/container/icon_wolf_armor.png");
+    private static final Identifier EXPERIENCE_BAR_BACKGROUND_TEXTURE = WolfCompanion.id("textures/gui/container/wolf_experience_bar_background_v2.png");
+    private static final Identifier EXPERIENCE_BAR_CURRENT_TEXTURE = WolfCompanion.id("textures/gui/container/wolf_experience_bar_current_v2.png");
+    private static final Identifier HEART_CONTAINER = WolfCompanion.id("textures/gui/container/container.png");
+    private static final Identifier HEART = WolfCompanion.id("textures/gui/container/heart.png");
 
     public WolfInventoryScreen(WolfInventoryScreenHandler handler, PlayerInventory inventory, Text title) {
         super(handler, inventory, title);
@@ -41,9 +61,13 @@ public class WolfInventoryScreen extends HandledScreen<WolfInventoryScreenHandle
         //this.entity = inventory.player;
         this.slotColumnCount = 5;
         this.wolf = handler.getWolf();
+        this.wolfXp = (WolfXpProvider) this.wolf;
         this.wolfInventory = handler.getWolfInventory();
         this.player = inventory.player;
         this.handler = handler;
+
+        //final String strTitle = this.title.getString() + " Lv. ";
+        //final int titleLen = textRenderer.getWidth(strTitle);
     }
 
     @Override
@@ -112,11 +136,56 @@ public class WolfInventoryScreen extends HandledScreen<WolfInventoryScreenHandle
         InventoryScreen.drawEntity(context, i + 26, j + 18, i + 78, j + 70, 33, 0.25F, this.mouseX, this.mouseY, this.wolf);
     }
 
+    private void drawHearts(DrawContext context) {
+        final int WIDTH = 8, HEIGHT = 9;
+
+        int x = (this.width) / 2;
+        int y = (this.height) / 2 - 10 - HEIGHT;
+
+        final int maxHealthPoints = (int) wolf.getMaxHealth() / 4;
+        //final float healthPercentage = wolf.getHealth() / wolf.getMaxHealth();
+        final int healthPixels = (int) wolf.getHealth() * 2 + 1;
+        //System.out.println(wolf.getMaxHealth() + " " + wolf.getHealth());
+
+        context.drawTexture(HEART_CONTAINER, x, y, 0, 0, WIDTH * maxHealthPoints + 1, HEIGHT, WIDTH, HEIGHT);
+        context.drawTexture(HEART, x, y, 0, 0, healthPixels, HEIGHT, WIDTH, HEIGHT);
+        //context.drawTexture(WOLF_ARMOR_SLOT, i + 7, j + 35 - 18, 0, 0, 18, 18, 18, 18);
+
+    }
+
+    private void drawLevelInfo(DrawContext context) {
+        final int WIDTH = 30;
+        final int HEIGHT = 5;
+
+        int x = this.width / 2 + this.backgroundWidth / 2 - WIDTH - 7;
+        int y = (this.height - this.backgroundHeight) / 2 + HEIGHT + 3 - 1;
+
+        final int xp = wolfXp.getXp();
+        final int level = wolfXp.getLevel();
+        final int maxXp = wolfXp.getNextLevelXpRequirement(level + 1);
+        final int prevMaxXp = wolfXp.getNextLevelXpRequirement(level);
+        final int deltaMaxXp = maxXp - prevMaxXp;
+        final int deltaXp = xp - prevMaxXp;
+
+        //System.out.println("xp: " + xp + " level: " + level + " maxXp: " + maxXp + " prevMaxXp: " + prevMaxXp + " deltaMaxXp: " + deltaMaxXp + " deltaXp: " + deltaXp);
+
+        String xpText = (level < 1) ? "" : level + "";
+        int xpTextWidth = textRenderer.getWidth(xpText);
+        context.drawText(textRenderer, xpText, x + WIDTH / 2 - xpTextWidth / 2, y - 4 + 2, 0X7EFC20, true);
+
+        context.drawTexture(EXPERIENCE_BAR_BACKGROUND_TEXTURE, x, y, 0, 0, WIDTH, HEIGHT, WIDTH, HEIGHT);
+        final int currentXpBar = WIDTH * (deltaXp / deltaMaxXp);
+        context.drawTexture(EXPERIENCE_BAR_CURRENT_TEXTURE, x, y, 0, 0, WIDTH * deltaXp / deltaMaxXp, HEIGHT, WIDTH, HEIGHT);
+    }
+
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         this.mouseX = (float)mouseX;
         this.mouseY = (float)mouseY;
         super.render(context, mouseX, mouseY, delta);
         this.drawMouseoverTooltip(context, mouseX, mouseY);
+        this.drawLevelInfo(context);
+        this.drawHearts(context);
+        //context.drawText(MinecraftClient.getInstance().textRenderer, "Lv. 3", i, j, 0xFF0000, true);
     }
 }

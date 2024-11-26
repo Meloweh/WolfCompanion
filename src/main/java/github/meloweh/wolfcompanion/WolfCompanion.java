@@ -1,6 +1,7 @@
 package github.meloweh.wolfcompanion;
 
 import github.meloweh.wolfcompanion.accessor.WolfEntityProvider;
+import github.meloweh.wolfcompanion.events.WolfEventHandler;
 import github.meloweh.wolfcompanion.init.*;
 import github.meloweh.wolfcompanion.network.DropWolfChestC2SPayload;
 import github.meloweh.wolfcompanion.util.ConfigManager;
@@ -33,6 +34,7 @@ public class WolfCompanion implements ModInitializer {
 		InitSound.load();
 		BlockEntityTypeInit.load();
 		ScreenHandlerTypeInit.load();
+		WolfEventHandler.init();
 //		WolfEventHandler.registerEvents();
 
 //		EnergyStorage.SIDED.registerForBlockEntity(ExampleEnergyGeneratorBlockEntity::getEnergyProvider, BlockEntityTypeInit.EXAMPLE_ENERGY_GENERATOR);

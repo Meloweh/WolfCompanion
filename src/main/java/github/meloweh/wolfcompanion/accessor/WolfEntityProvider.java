@@ -1,5 +1,6 @@
 package github.meloweh.wolfcompanion.accessor;
 
+import net.minecraft.entity.Entity;
 import net.minecraft.inventory.SimpleInventory;
 
 public interface WolfEntityProvider {
@@ -12,4 +13,6 @@ public interface WolfEntityProvider {
     void setShouldDropChest(boolean yes);
 
     void wolfcompanion_template_1_21_1$dropInventoryByButton();
+
+    boolean wolfcompanion_template_1_21_1$tryAttack(Entity target);
 }

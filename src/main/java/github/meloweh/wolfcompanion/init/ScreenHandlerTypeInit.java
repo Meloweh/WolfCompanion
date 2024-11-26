@@ -18,8 +18,8 @@ public class ScreenHandlerTypeInit {
     public static final ScreenHandlerType<ExampleInventoryScreenHandler> EXAMPLE_INVENTORY_SCREEN_HANDLER =
             register("example_inventory", ExampleInventoryScreenHandler::new, BlockPosPayload.PACKET_CODEC);
 
-    public static final ScreenHandlerType<WolfInventoryScreenHandler> EXAMPLE_INVENTORY_SCREEN_HANDLER_2 =
-            register("example_inventory2", WolfInventoryScreenHandler::new, UuidPayload.PACKET_CODEC);
+    public static final ScreenHandlerType<WolfInventoryScreenHandler> WOLF_INVENTORY_SCREEN_HANDLER =
+            register("wolf_inventory", WolfInventoryScreenHandler::new, UuidPayload.PACKET_CODEC);
 
     //public static final ScreenHandlerType<WolfScreenHandler> WOLF_INVENTORY_SCREEN_HANDLER =
     //        register("wolf_inventory", WolfScreenHandler::new, OpenWolfScreenS2CPacket.CODEC);
