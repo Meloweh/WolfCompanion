@@ -20,7 +20,10 @@ public class WolfEventHandler {
         ServerEntityCombatEvents.AFTER_KILLED_OTHER_ENTITY.register((world, entity, killedEntity) -> {
             if (entity instanceof WolfEntity) {
                 final WolfXpProvider wolfXp = (WolfXpProvider) entity;
-                wolfXp.addXp(1);
+                final int remaining = wolfXp.repairGear(10);
+                if (remaining >= 5) {
+                    wolfXp.addXp(1);
+                }
             }
         });
     }

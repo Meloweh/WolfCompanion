@@ -101,11 +101,14 @@ public abstract class ServerPlayerEntityMixin implements ServerPlayerAccessor {
                 if (!ConfigManager.config.keepWolfBag)
                     wolfNbt.remove("ChestedWolf");
                 wolfNbt.remove("Items");
+                wolfNbt.putInt("XP", 0);
             }
 
 
             ServerWorld world = (ServerWorld) this.self.getWorld();
             final WolfEntity newWolf = EntityType.WOLF.create(world);
+            newWolf.setHealth(newWolf.getMaxHealth());
+            newWolf.clearStatusEffects();
             newWolf.readNbt(wolfNbt);
             newWolf.refreshPositionAndAngles(self.getX(), self.getY(), self.getZ(), self.getYaw(), self.getPitch());
             newWolf.playSpawnEffects();

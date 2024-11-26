@@ -13,10 +13,11 @@ import github.meloweh.wolfcompanion.screenhandler.WolfInventoryScreenHandler;
 import github.meloweh.wolfcompanion.util.ConfigManager;
 import github.meloweh.wolfcompanion.util.NBTHelper;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
+import net.minecraft.component.EnchantmentEffectComponentTypes;
+import net.minecraft.enchantment.EnchantmentEffectContext;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.goal.Goal;
-import net.minecraft.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.data.DataTracker;
@@ -46,7 +47,6 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Math;
-import org.joml.Vector3f;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -60,6 +60,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 @Mixin(WolfEntity.class)
@@ -574,6 +575,27 @@ public abstract class WolfEntityMixin implements
     @Unique
     public void addXp(int value) {
         getDataTracker(self).set(XP, getXp() + value);
+    }
+
+    @Override
+    public int repairGear(final int amount) {
+        Optional<EnchantmentEffectContext> optional = EnchantmentHelper.chooseEquipmentWith(EnchantmentEffectComponentTypes.REPAIR_WITH_XP, this.self, ItemStack::isDamaged);
+        if (optional.isPresent()) {
+            ItemStack itemStack = ((EnchantmentEffectContext)optional.get()).stack();
+            int i = EnchantmentHelper.getRepairWithXp((ServerWorld) this.self.getWorld(), itemStack, amount);
+            int j = java.lang.Math.min(i, itemStack.getDamage());
+            itemStack.setDamage(itemStack.getDamage() - j);
+            if (j > 0) {
+                int k = amount - j * amount / i;
+                if (k > 0) {
+                    return this.repairGear(k);
+                }
+            }
+
+            return 0;
+        } else {
+            return amount;
+        }
     }
 
     @Override

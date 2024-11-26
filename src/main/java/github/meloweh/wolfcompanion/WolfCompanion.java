@@ -7,11 +7,18 @@ import github.meloweh.wolfcompanion.network.DropWolfChestC2SPayload;
 import github.meloweh.wolfcompanion.util.ConfigManager;
 import net.fabricmc.api.ModInitializer;
 
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.passive.WolfEntity;
+import net.minecraft.registry.DynamicRegistryManager;
+import net.minecraft.registry.Registry;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.RegistryKeys;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
@@ -22,6 +29,8 @@ public class WolfCompanion implements ModInitializer {
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
 	public static final String CUSTOM_INVENTORY_UPDATE_ID = "custom_inventory_update";
+
+	public static DynamicRegistryManager dynamicRegistryManager;
 
 	//public static final WolfConfig CONFIG = WolfConfig.createAndLoad();
 
@@ -35,38 +44,15 @@ public class WolfCompanion implements ModInitializer {
 		BlockEntityTypeInit.load();
 		ScreenHandlerTypeInit.load();
 		WolfEventHandler.init();
-//		WolfEventHandler.registerEvents();
 
-//		EnergyStorage.SIDED.registerForBlockEntity(ExampleEnergyGeneratorBlockEntity::getEnergyProvider, BlockEntityTypeInit.EXAMPLE_ENERGY_GENERATOR);
-//		EnergyStorage.SIDED.registerForBlockEntity(ExampleEnergyStorageBlockEntity::getEnergyProvider, BlockEntityTypeInit.EXAMPLE_ENERGY_STORAGE);
-
-
-		/*
-		PayloadTypeRegistry.playC2S().register(UuidPayload.ID, UuidPayload.PACKET_CODEC);
-
-		ServerPlayNetworking.registerGlobalReceiver(UuidPayload.ID, (payload, context) -> {
-			context.server().execute(() -> {
-				final UUID uuid = payload.uuid();
-				final NbtCompound nbt = payload.nbt();
-				context.server().getWorlds().forEach(world -> {
-					Entity entity = world.getEntity(uuid);
-					if (entity != null) {
-						System.out.println("C2S:");
-						final SimpleInventory inventory = NBTHelper.getInventory(nbt, (WolfEntity) entity);
-					}
-				});
-			});
+		ServerLifecycleEvents.SERVER_STARTED.register(minecraftServer -> {
+			dynamicRegistryManager = minecraftServer.getRegistryManager();
 		});
-		System.out.println("BB");*/
-
 
 		PayloadTypeRegistry.playC2S().register(DropWolfChestC2SPayload.ID, DropWolfChestC2SPayload.PACKET_CODEC);
 
 		ServerPlayNetworking.registerGlobalReceiver(DropWolfChestC2SPayload.ID, (payload, context) -> {
 			context.server().execute(() -> {
-//				final int myint = payload.myint();
-//				final String mystring = payload.mystring();
-//				System.out.println("Server: From Client: string: " + mystring + " int: " + myint);
 				context.server().getWorlds().forEach(serverWorld -> {
 					final Entity entity = serverWorld.getEntity(payload.wolfUUID());
 					if (entity != null) {
@@ -82,19 +68,19 @@ public class WolfCompanion implements ModInitializer {
 				});
 			});
 		});
-
-		//PayloadTypeRegistry.playS2C().register(SampleS2CPayload.ID, SampleS2CPayload.PACKET_CODEC);
-
-		/*AttackEntityCallback.EVENT.register((player, world, hand, entity, hitResult) -> {
-			if (entity instanceof WolfEntity && ((WolfEntity) entity).isTamed()) {
-				return ActionResult.FAIL;
-			}
-			return ActionResult.PASS;
-		});*/
-
 	}
 
 	public static Identifier id(String path) {
 		return Identifier.of(MOD_ID, path);
+	}
+
+	public static boolean isSameEnchantment(Enchantment enchantment, RegistryKey<Enchantment> enchantmentRegistryKey) {
+		if (dynamicRegistryManager == null) {
+			System.out.println("ERROR: dynamic registry manager was null");
+			return false;
+		}
+		Registry<Enchantment> enchantmentRegistry = dynamicRegistryManager.get(RegistryKeys.ENCHANTMENT);
+		RegistryEntry<Enchantment> enchantmentEntry = enchantmentRegistry.getEntry(enchantment);
+		return enchantmentEntry != null && enchantmentEntry.matchesKey(enchantmentRegistryKey);
 	}
 }

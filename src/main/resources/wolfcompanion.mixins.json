@@ -3,11 +3,12 @@
   "package": "github.meloweh.wolfcompanion.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "EnchantmentMixin",
+    "EntityMixin",
     "LivingEntityMixin",
     "MobEntityMixin",
     "ServerPlayerEntityMixin",
-    "WolfEntityMixin",
-    "EntityMixin"
+    "WolfEntityMixin"
   ],
   "injectors": {
     "defaultRequire": 1

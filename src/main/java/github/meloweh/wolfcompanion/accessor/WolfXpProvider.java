@@ -7,4 +7,6 @@ public interface WolfXpProvider {
     int getNextLevelXpRequirement(final int level);
     int getDeltaXp();
     void addXp(int value);
+
+    int repairGear(int amount);
 }
