@@ -1,6 +1,8 @@
 package github.meloweh.wolfcompanion.goals;
 
+import com.ibm.icu.impl.Pair;
 import github.meloweh.wolfcompanion.accessor.WolfEntityProvider;
+import github.meloweh.wolfcompanion.util.WolfInventoryHelper;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.FoodComponent;
 import net.minecraft.component.type.PotionContentsComponent;
@@ -86,53 +88,33 @@ public class RescueOwnerFromLavaGoal extends Goal implements InventoryChangedLis
         refreshInventoryContents(armoredWolf.getInventory());
     }
 
-    @NotNull
-    private ItemStack findPotion() {
-        System.out.println(inventoryContents.size());
-        return this.inventoryContents.stream()
-                .filter(itemStack -> {
-                    itemStack.getComponents().forEach(e -> System.out.println(e.toString()));
-                    //System.out.println(itemStack.getComponents());
-                    return !itemStack.isEmpty() && itemStack.contains(DataComponentTypes.POTION_CONTENTS);
-                })
-                .filter(itemStack -> {
-                    PotionContentsComponent potion = itemStack.get(DataComponentTypes.POTION_CONTENTS);
-                    return StreamSupport.stream(potion.getEffects().spliterator(), false)
-                            .anyMatch(effect -> effect.getEffectType() == StatusEffects.FIRE_RESISTANCE);
-                })
-                .max(Comparator.comparing(itemStack -> {
-                    PotionContentsComponent potion = itemStack.get(DataComponentTypes.POTION_CONTENTS);
-                    return StreamSupport.stream(potion.getEffects().spliterator(), false)
-                            .filter(effect -> effect.getEffectType() == StatusEffects.FIRE_RESISTANCE)
-                            .mapToInt(StatusEffectInstance::getDuration)
-                            .max()
-                            .orElse(0);
-                }))
-                .orElse(ItemStack.EMPTY);
-    }
-
     public boolean canStart() {
         if (!this.wolf.isTamed()) return false;
         if (!this.armoredWolf.hasChestEquipped()) return false;
-        if (this.wolf.getOwner() == null) return false;
 
         this.owner = this.wolf.getOwner();
 
-        if (
-                this.owner.isSpectator() ||
-                this.owner.isInCreativeMode() ||
-                !(this.owner.isInLava() || this.owner.isOnFire() && this.owner.getHealth() <= this.owner.getMaxHealth() / 4) ||
-                this.owner.hasStatusEffect(StatusEffects.FIRE_RESISTANCE)) {
-            return false;
-        }
+        if (this.owner == null || this.owner.isSpectator() || this.owner.isInCreativeMode()) return false;
+        if (WolfInventoryHelper.hasFittingLifesavingEffect(this.owner)) return false;
         return true;
     }
 
     public boolean shouldContinue() {
-        return !findPotion().isEmpty() && (this.navigation.isIdle() || canStart()) && --shootCooldown > 0;
+        --shootCooldown;
+        if (this.owner == null || this.owner.isSpectator() || this.owner.isInCreativeMode()) return false;
+//        if (WolfInventoryHelper.hasFittingLifesavingEffect(this.owner, inventoryContents)) return false;
+//        if (WolfInventoryHelper.findLifesavingPotions(inventoryContents, this.owner).first.isEmpty()) return false;
+//        System.out.println("A");
+//
+//        System.out.println("B");
+//        if (WolfInventoryHelper.findLifesavingPotions(inventoryContents, this.owner).first.isEmpty()) return false;
+//        System.out.println("C");
+//        return true;
+        return --shootCooldown > 0;
     }
 
     public void start() {
+        this.shootCooldown = 0;
         this.updateCountdownTicks = 0;
         this.oldWaterPathfindingPenalty = this.wolf.getPathfindingPenalty(PathNodeType.WATER);
         this.wolf.setPathfindingPenalty(PathNodeType.WATER, 0.0F);
@@ -141,6 +123,7 @@ public class RescueOwnerFromLavaGoal extends Goal implements InventoryChangedLis
     }
 
     public void stop() {
+        shootCooldown = 0;
         this.owner = null;
         this.navigation.stop();
         this.wolf.setPathfindingPenalty(PathNodeType.WATER, this.oldWaterPathfindingPenalty);
@@ -151,6 +134,9 @@ public class RescueOwnerFromLavaGoal extends Goal implements InventoryChangedLis
 
     public void tick() {
         this.wolf.getLookControl().lookAt(this.owner, 10.0F, (float)this.wolf.getMaxLookPitchChange());
+
+        if (WolfInventoryHelper.hasFittingLifesavingEffect(this.owner, inventoryContents)) return;
+        //if (WolfInventoryHelper.findLifesavingPotions(inventoryContents, this.owner).first.isEmpty()) return;
 
         if (this.teleportCooldown > 0) this.teleportCooldown--;
 
@@ -166,36 +152,39 @@ public class RescueOwnerFromLavaGoal extends Goal implements InventoryChangedLis
 
         }
 
-        ItemStack itemStack = nextPotion();
-        this.wolf.equipStack(EquipmentSlot.MAINHAND, itemStack);
+        final Pair<ItemStack, RegistryEntry<Potion>> itemStack = nextPotion();
 
-        if (this.wolf.squaredDistanceTo(this.owner) <= (double)(this.maxDistance * this.maxDistance) &&
-                this.wolf.canSee(this.owner) &&
-            this.shootCooldown <= 0) {
-            if (!this.wolf.getWorld().isClient()) shoot(itemStack);
-            shootCooldown = SHOOT_COOLDOWN;
+        if (!itemStack.first.isEmpty()) {
+            this.wolf.equipStack(EquipmentSlot.MAINHAND, itemStack.first);
+
+            if (this.wolf.squaredDistanceTo(this.owner) <= (double) (this.maxDistance * this.maxDistance) &&
+                    this.wolf.canSee(this.owner) &&
+                    this.shootCooldown <= 0) {
+                if (!this.wolf.getWorld().isClient()) shoot(itemStack);
+                shootCooldown = SHOOT_COOLDOWN;
+            }
         }
     }
 
-    private ItemStack nextPotion() {
-        ItemStack itemStack = this.wolf.getEquippedStack(EquipmentSlot.MAINHAND);
+    private Pair<ItemStack, RegistryEntry<Potion>> nextPotion() {
+        //Pair<ItemStack, RegistryEntry<Potion>> itemStack = this.wolf.getEquippedStack(EquipmentSlot.MAINHAND);
 
-        if (!itemStack.isEmpty()) return itemStack;
+        //if (!itemStack.first.isEmpty()) return itemStack;
 
-        itemStack = findPotion();
-        this.wolf.equipStack(EquipmentSlot.MAINHAND, itemStack);
+        final Pair<ItemStack, RegistryEntry<Potion>> itemStack = WolfInventoryHelper.findLifesavingPotions(inventoryContents, this.owner);
+        this.wolf.equipStack(EquipmentSlot.MAINHAND, itemStack.first);
 
         return itemStack;
     }
 
-    public void shoot(final ItemStack itemStack) {
+    public void shoot(final Pair<ItemStack, RegistryEntry<Potion>> itemStack) {
         Vec3d vec3d = this.owner.getVelocity();
         double d = this.owner.getX() + vec3d.x - this.wolf.getX();
         double e = this.owner.getEyeY() - 1.100000023841858 - this.wolf.getY();
         double f = this.owner.getZ() + vec3d.z - this.wolf.getZ();
         double g = Math.sqrt(d * d + f * f);
 
-        RegistryEntry<Potion> registryEntry = Potions.FIRE_RESISTANCE;
+        RegistryEntry<Potion> registryEntry = itemStack.second;//Potions.FIRE_RESISTANCE;
 
         PotionEntity potionEntity = new PotionEntity(this.wolf.getWorld(), this.wolf);
         potionEntity.setItem(PotionContentsComponent.createStack(Items.SPLASH_POTION, registryEntry));
@@ -205,8 +194,8 @@ public class RescueOwnerFromLavaGoal extends Goal implements InventoryChangedLis
 
         this.wolf.getWorld().spawnEntity(potionEntity);
 
-        itemStack.decrement(1);
-        ItemStack itemStack2 = itemStack.finishUsing(this.wolf.getWorld(), this.wolf);
+        itemStack.first.decrement(1);
+        ItemStack itemStack2 = itemStack.first.finishUsing(this.wolf.getWorld(), this.wolf);
         if (!itemStack2.isEmpty()) {
             this.wolf.equipStack(EquipmentSlot.MAINHAND, itemStack2);
         }

@@ -61,8 +61,8 @@ public class EnchantmentScreenHandlerMixin {
             level = MathHelper.clamp(Math.round((float)level + (float)level * f), 1, Integer.MAX_VALUE);
             List<EnchantmentLevelEntry> list2 = EnchantmentHelperHelper.getPossibleWolfArmorEntries(level, possibleEnchantments);
             //List<EnchantmentLevelEntry> list2 = EnchantmentHelper.getPossibleEntries(level, stack, possibleEnchantments);
-            System.out.println("A");
-            list2.forEach(e -> System.out.println(e.enchantment.value().description().getString()));
+            //System.out.println("A");
+            //list2.forEach(e -> System.out.println(e.enchantment.value().description().getString()));
             Optional<EnchantmentLevelEntry> var10000 = Weighting.getRandom(random, list2);
             var10000.ifPresent(list::add);  // Explicitly using a lambda expression
 

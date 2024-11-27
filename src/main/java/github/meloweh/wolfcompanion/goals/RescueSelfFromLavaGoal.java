@@ -1,39 +1,28 @@
 package github.meloweh.wolfcompanion.goals;
 
+import com.ibm.icu.impl.Pair;
 import github.meloweh.wolfcompanion.accessor.WolfEntityProvider;
-import net.minecraft.component.DataComponentTypes;
+import github.meloweh.wolfcompanion.util.WolfInventoryHelper;
 import net.minecraft.component.type.PotionContentsComponent;
 import net.minecraft.entity.AreaEffectCloudEntity;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.goal.Goal;
-import net.minecraft.entity.ai.pathing.BirdNavigation;
 import net.minecraft.entity.ai.pathing.EntityNavigation;
-import net.minecraft.entity.ai.pathing.MobNavigation;
-import net.minecraft.entity.ai.pathing.PathNodeType;
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.passive.TameableEntity;
 import net.minecraft.entity.passive.WolfEntity;
-import net.minecraft.entity.projectile.thrown.PotionEntity;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.InventoryChangedListener;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
 import net.minecraft.potion.Potion;
 import net.minecraft.potion.Potions;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.sound.SoundEvents;
-import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.EnumSet;
 import java.util.List;
-import java.util.stream.StreamSupport;
 
 public class RescueSelfFromLavaGoal extends Goal implements InventoryChangedListener {
     private final TameableEntity wolf;
@@ -74,55 +63,17 @@ public class RescueSelfFromLavaGoal extends Goal implements InventoryChangedList
         refreshInventoryContents(armoredWolf.getInventory());
     }
 
-    @NotNull
-    private ItemStack findPotion() {
-        System.out.println(inventoryContents.size());
-        return this.inventoryContents.stream()
-                .filter(itemStack -> {
-                    itemStack.getComponents().forEach(e -> System.out.println(e.toString()));
-                    //System.out.println(itemStack.getComponents());
-                    return !itemStack.isEmpty() && itemStack.contains(DataComponentTypes.POTION_CONTENTS);
-                })
-                .filter(itemStack -> {
-                    PotionContentsComponent potion = itemStack.get(DataComponentTypes.POTION_CONTENTS);
-                    return StreamSupport.stream(potion.getEffects().spliterator(), false)
-                            .anyMatch(effect -> effect.getEffectType() == StatusEffects.FIRE_RESISTANCE);
-                })
-                .max(Comparator.comparing(itemStack -> {
-                    PotionContentsComponent potion = itemStack.get(DataComponentTypes.POTION_CONTENTS);
-                    return StreamSupport.stream(potion.getEffects().spliterator(), false)
-                            .filter(effect -> effect.getEffectType() == StatusEffects.FIRE_RESISTANCE)
-                            .mapToInt(StatusEffectInstance::getDuration)
-                            .max()
-                            .orElse(0);
-                }))
-                .orElse(ItemStack.EMPTY);
-    }
-
     public boolean canStart() {
         if (!this.wolf.isTamed()) return false;
         if (!this.armoredWolf.hasChestEquipped()) return false;
-        if (this.wolf.hasStatusEffect(StatusEffects.FIRE_RESISTANCE)) return false;
+        if (WolfInventoryHelper.hasFittingLifesavingEffect(this.wolf)) return false;
         if (this.wolf.getWorld().isClient()) return false;
-        //if (Math.abs(this.wolf.getVelocity().getY()) > 0.5f) return false;
-//        if (this.owner != null && (
-//            this.owner.isInLava() && !this.owner.hasStatusEffect(StatusEffects.FIRE_RESISTANCE) ||
-//            this.owner.isOnFire() && this.owner.getHealth() <= this.owner.getMaxHealth() / 4) &&
-//            !this.owner.isInCreativeMode() && !this.owner.isSpectator()
-//        )
-
-        this.owner = this.wolf.getOwner();
-
-        if (    !(this.wolf.isInLava() || this.wolf.isOnFire() && this.wolf.getHealth() <= this.wolf.getMaxHealth() / 4)
-                //|| this.owner != null && (this.owner.isInLava() || this.owner.isOnFire() && this.owner.getHealth() <= this.owner.getMaxHealth() / 4)
-        ) {
-            return false;
-        }
         return true;
     }
 
     public boolean shouldContinue() {
-        return !findPotion().isEmpty() && canStart();
+        if (WolfInventoryHelper.hasFittingLifesavingEffect(this.wolf, inventoryContents)) return false;
+        return true;
     }
 
     public void start() {
@@ -140,22 +91,22 @@ public class RescueSelfFromLavaGoal extends Goal implements InventoryChangedList
     }
 
     public void tick() {
-        ItemStack itemStack = nextPotion();
-        this.wolf.equipStack(EquipmentSlot.MAINHAND, itemStack);
+        Pair<ItemStack, RegistryEntry<Potion>> itemStack = nextPotion();
+        this.wolf.equipStack(EquipmentSlot.MAINHAND, itemStack.first);
 
         if (this.wolf.getWorld().isClient()) return;
         if (Math.abs(this.wolf.getVelocity().getY()) > 0.3f) return;
-        if (this.wolf.hasStatusEffect(StatusEffects.FIRE_RESISTANCE)) return;
+        if (WolfInventoryHelper.hasFittingLifesavingEffect(this.wolf, inventoryContents)) return;
 
         if (++lavaTicks < LAVA_TICKS) return;
         if (!this.wolf.isInLava()) lavaTicks = 0;
 
         if (this.shootCooldown <= 0) {
             //shoot(itemStack);
-            applySplashPotionEffect();
+            applySplashPotionEffect(itemStack.second);
 
-            itemStack.decrement(1);
-            ItemStack itemStack2 = itemStack.finishUsing(this.wolf.getWorld(), this.wolf);
+            itemStack.first.decrement(1);
+            ItemStack itemStack2 = itemStack.first.finishUsing(this.wolf.getWorld(), this.wolf);
             if (!itemStack2.isEmpty()) {
                 this.wolf.equipStack(EquipmentSlot.MAINHAND, itemStack2);
             }
@@ -165,19 +116,19 @@ public class RescueSelfFromLavaGoal extends Goal implements InventoryChangedList
         }
     }
 
-    private ItemStack nextPotion() {
-        ItemStack itemStack = this.wolf.getEquippedStack(EquipmentSlot.MAINHAND);
+    private Pair<ItemStack, RegistryEntry<Potion>> nextPotion() {
+        //ItemStack itemStack = this.wolf.getEquippedStack(EquipmentSlot.MAINHAND);
 
-        if (!itemStack.isEmpty()) return itemStack;
+        //if (!itemStack.isEmpty()) return itemStack;
 
-        itemStack = findPotion();
-        this.wolf.equipStack(EquipmentSlot.MAINHAND, itemStack);
+        final Pair<ItemStack, RegistryEntry<Potion>> itemStack = WolfInventoryHelper.findLifesavingPotions(inventoryContents, this.wolf);
+        this.wolf.equipStack(EquipmentSlot.MAINHAND, itemStack.first);
 
         return itemStack;
     }
 
-    public void applySplashPotionEffect() {
-        RegistryEntry<Potion> registryEntry = Potions.FIRE_RESISTANCE;
+    public void applySplashPotionEffect(RegistryEntry<Potion> second) {
+        //RegistryEntry<Potion> registryEntry = Potions.FIRE_RESISTANCE;
 
         // Get the world and the wolf's position
         World world = this.wolf.getWorld();
@@ -189,9 +140,9 @@ public class RescueSelfFromLavaGoal extends Goal implements InventoryChangedList
         AreaEffectCloudEntity effectCloud = new AreaEffectCloudEntity(world, x, y + 0.5f, z);
         effectCloud.setOwner(this.wolf); // Set the wolf as the source
         effectCloud.setRadius(1F); // Set splash radius
-        PotionContentsComponent potionContentsComponent = new PotionContentsComponent(Potions.FIRE_RESISTANCE);
+        PotionContentsComponent potionContentsComponent = new PotionContentsComponent(second);
         effectCloud.setPotionContents(potionContentsComponent); // Assign the potion effects (e.g., fire resistance)
-        effectCloud.setDuration(9); // Short duration since it's a splash
+        effectCloud.setDuration(15); // Short duration since it's a splash
         effectCloud.setWaitTime(0); // Apply immediately
 
         // Play the splash sound effect

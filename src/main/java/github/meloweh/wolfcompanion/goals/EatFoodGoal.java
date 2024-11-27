@@ -123,6 +123,10 @@ public class EatFoodGoal extends Goal implements InventoryChangedListener {
 
             if (this.eatingTime == 0) {
                 final FoodComponent foodComponent = itemStack.get(DataComponentTypes.FOOD);
+                if (foodComponent == null) {
+                    this.eatingTime++;
+                    return;
+                }
                 this.entity.heal(foodComponent.nutrition());
                 //itemStack.decrement(1);
                 ItemStack itemStack2 = itemStack.finishUsing(this.entity.getWorld(), this.entity);
