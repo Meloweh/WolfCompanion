@@ -80,6 +80,7 @@ public class WolfCompanion implements ModInitializer {
 			return false;
 		}
 		Registry<Enchantment> enchantmentRegistry = dynamicRegistryManager.get(RegistryKeys.ENCHANTMENT);
+
 		RegistryEntry<Enchantment> enchantmentEntry = enchantmentRegistry.getEntry(enchantment);
 		return enchantmentEntry != null && enchantmentEntry.matchesKey(enchantmentRegistryKey);
 	}

@@ -471,7 +471,7 @@ public abstract class WolfEntityMixin implements
 
     @Override
     public boolean wolfcompanion_template_1_21_1$tryAttack(Entity target) {
-        float f = (float)this.self.getAttributeValue(EntityAttributes.GENERIC_ATTACK_DAMAGE) + getLevel();
+        float f = (float)this.self.getAttributeValue(EntityAttributes.GENERIC_ATTACK_DAMAGE) + getLevel() * 0.5f;
         DamageSource damageSource = this.self.getDamageSources().mobAttack(this.self);
         World var5 = this.self.getWorld();
         if (var5 instanceof ServerWorld serverWorld) {

@@ -3,11 +3,15 @@
   "package": "github.meloweh.wolfcompanion.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "EnchantmentHelperMixin",
     "EnchantmentMixin",
+    "EnchantmentScreenHandlerMixin",
     "EntityMixin",
+    "ItemMixin",
     "LivingEntityMixin",
     "MobEntityMixin",
     "ServerPlayerEntityMixin",
+    "WolfArmorMixin",
     "WolfEntityMixin"
   ],
   "injectors": {
