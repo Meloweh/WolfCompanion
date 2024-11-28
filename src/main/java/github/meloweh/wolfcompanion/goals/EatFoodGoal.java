@@ -55,9 +55,15 @@ public class EatFoodGoal extends Goal implements InventoryChangedListener {
 
     @Override
     public boolean canStart() {
-        return !this.entity.isInvulnerable()
+        final boolean wouldStart = !this.entity.isInvulnerable()
                 && this.entity.hurtTime == 0
                 && this.armoredWolf.hasChestEquipped();
+
+        if (this.entity.getEquippedStack(EquipmentSlot.MAINHAND).contains(DataComponentTypes.FOOD)) {
+            this.entity.equipStack(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
+        }
+
+        return wouldStart && this.entity.getEquippedStack(EquipmentSlot.MAINHAND).isEmpty();
     }
 
     @Override
@@ -113,7 +119,7 @@ public class EatFoodGoal extends Goal implements InventoryChangedListener {
                 this.entity.canMoveVoluntarily() &&
                 !this.eatingFood.isEmpty()) {
 
-            ItemStack itemStack = nextFood();
+            ItemStack itemStack = this.eatingFood;
             if (!itemStack.isEmpty()) {
                 this.eatingTime--;
             } else {

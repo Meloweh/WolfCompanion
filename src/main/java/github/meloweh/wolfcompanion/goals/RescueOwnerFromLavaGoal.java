@@ -51,6 +51,7 @@ public class RescueOwnerFromLavaGoal extends Goal implements InventoryChangedLis
     private final List<ItemStack> inventoryContents;
     private int shootCooldown, teleportCooldown;
     private final static int TP_COOLDOWN = 45, SHOOT_COOLDOWN = 20;
+    private Pair<ItemStack, RegistryEntry<Potion>> usingPotion = Pair.of(ItemStack.EMPTY, Potions.AWKWARD);
 
     public RescueOwnerFromLavaGoal(WolfEntity wolf, double speed, float minDistance, float maxDistance) {
         this.wolf = wolf;
@@ -58,7 +59,7 @@ public class RescueOwnerFromLavaGoal extends Goal implements InventoryChangedLis
         this.navigation = wolf.getNavigation();
         this.minDistance = minDistance;
         this.maxDistance = maxDistance;
-        this.shootCooldown = 0;
+        this.shootCooldown = SHOOT_COOLDOWN;
         this.teleportCooldown = TP_COOLDOWN;
         this.setControls(EnumSet.of(Control.MOVE, Control.LOOK));
         if (!(wolf.getNavigation() instanceof MobNavigation) && !(wolf.getNavigation() instanceof BirdNavigation)) {
@@ -89,41 +90,50 @@ public class RescueOwnerFromLavaGoal extends Goal implements InventoryChangedLis
     }
 
     public boolean canStart() {
-        if (!this.wolf.isTamed()) return false;
-        if (!this.armoredWolf.hasChestEquipped()) return false;
-
         this.owner = this.wolf.getOwner();
+        if (this.wolf.getEquippedStack(EquipmentSlot.MAINHAND).contains(DataComponentTypes.POTION_CONTENTS)) {
+            this.wolf.equipStack(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
+        }
 
-        if (this.owner == null || this.owner.isSpectator() || this.owner.isInCreativeMode()) return false;
-        if (WolfInventoryHelper.hasFittingLifesavingEffect(this.owner)) return false;
-        return true;
+        final boolean wouldStart = this.wolf.isTamed()
+                && this.armoredWolf.hasChestEquipped()
+                && this.owner != null
+                && !this.owner.isSpectator()
+                && !this.owner.isInCreativeMode();
+
+        if (wouldStart) {
+            refreshInventoryContents(armoredWolf.getInventory());
+            if (WolfInventoryHelper.hasFittingLifesavingEffect(this.owner, inventoryContents)) return false;
+        }
+
+        return wouldStart;
     }
 
     public boolean shouldContinue() {
-        --shootCooldown;
-        if (this.owner == null || this.owner.isSpectator() || this.owner.isInCreativeMode()) return false;
-//        if (WolfInventoryHelper.hasFittingLifesavingEffect(this.owner, inventoryContents)) return false;
-//        if (WolfInventoryHelper.findLifesavingPotions(inventoryContents, this.owner).first.isEmpty()) return false;
-//        System.out.println("A");
-//
-//        System.out.println("B");
-//        if (WolfInventoryHelper.findLifesavingPotions(inventoryContents, this.owner).first.isEmpty()) return false;
-//        System.out.println("C");
-//        return true;
-        return --shootCooldown > 0;
+        return shootCooldown > 0;
     }
 
     public void start() {
-        this.shootCooldown = 0;
+        inventoryInit();
+
+        this.shootCooldown = SHOOT_COOLDOWN;
         this.updateCountdownTicks = 0;
         this.oldWaterPathfindingPenalty = this.wolf.getPathfindingPenalty(PathNodeType.WATER);
         this.wolf.setPathfindingPenalty(PathNodeType.WATER, 0.0F);
         this.teleportCooldown = TP_COOLDOWN;
         this.wolf.setSitting(false);
+
+        usingPotion = nextPotion();
+
+        if (usingPotion.first.isEmpty()) return;
+
+        this.wolf.equipStack(EquipmentSlot.MAINHAND, usingPotion.first);
+
+        shootCooldown = SHOOT_COOLDOWN;
     }
 
     public void stop() {
-        shootCooldown = 0;
+        shootCooldown = SHOOT_COOLDOWN;
         this.owner = null;
         this.navigation.stop();
         this.wolf.setPathfindingPenalty(PathNodeType.WATER, this.oldWaterPathfindingPenalty);
@@ -133,35 +143,48 @@ public class RescueOwnerFromLavaGoal extends Goal implements InventoryChangedLis
     }
 
     public void tick() {
-        this.wolf.getLookControl().lookAt(this.owner, 10.0F, (float)this.wolf.getMaxLookPitchChange());
+        if (!this.wolf.getWorld().isClient &&
+                this.wolf.isAlive() &&
+                this.wolf.canMoveVoluntarily()) {
+            this.wolf.getLookControl().lookAt(this.owner, 10.0F, (float) this.wolf.getMaxLookPitchChange());
 
-        if (WolfInventoryHelper.hasFittingLifesavingEffect(this.owner, inventoryContents)) return;
-        //if (WolfInventoryHelper.findLifesavingPotions(inventoryContents, this.owner).first.isEmpty()) return;
+            final Pair<ItemStack, RegistryEntry<Potion>> itemStack = usingPotion;
+            shootCooldown--;
+//            if (itemStack.first.isEmpty()) {
+//                shootCooldown = 0;
+//                return;
+//            } else {
+//                shootCooldown--;
+//            }
 
-        if (this.teleportCooldown > 0) this.teleportCooldown--;
+            if (WolfInventoryHelper.hasFittingLifesavingEffect(this.owner, inventoryContents)) return;
+            //System.out.println("A1");
+            //if (WolfInventoryHelper.findLifesavingPotions(inventoryContents, this.owner).first.isEmpty()) return;
 
-        if (--this.updateCountdownTicks <= 0) {
-            this.updateCountdownTicks = this.getTickCount(10);
-            if (teleportCooldown <= 0) {
-                this.wolf.tryTeleportToOwner();
-                this.teleportCooldown = TP_COOLDOWN;
-            } else {
+            if (this.teleportCooldown > 0) this.teleportCooldown--;
 
-                this.navigation.startMovingTo(this.owner, this.speed);
+            if (--this.updateCountdownTicks <= 0) {
+                this.updateCountdownTicks = this.getTickCount(10);
+                if (teleportCooldown <= 0) {
+                    this.wolf.tryTeleportToOwner();
+                    this.teleportCooldown = wolf.getRandom().nextBetween(TP_COOLDOWN / 2, TP_COOLDOWN + TP_COOLDOWN / 2);
+                } else {
+
+                    this.navigation.startMovingTo(this.owner, this.speed);
+                }
+
             }
 
-        }
+            if (!itemStack.first.isEmpty()) {
+                this.wolf.equipStack(EquipmentSlot.MAINHAND, itemStack.first);
 
-        final Pair<ItemStack, RegistryEntry<Potion>> itemStack = nextPotion();
-
-        if (!itemStack.first.isEmpty()) {
-            this.wolf.equipStack(EquipmentSlot.MAINHAND, itemStack.first);
-
-            if (this.wolf.squaredDistanceTo(this.owner) <= (double) (this.maxDistance * this.maxDistance) &&
-                    this.wolf.canSee(this.owner) &&
-                    this.shootCooldown <= 0) {
-                if (!this.wolf.getWorld().isClient()) shoot(itemStack);
-                shootCooldown = SHOOT_COOLDOWN;
+                if (this.wolf.squaredDistanceTo(this.owner) <= (double) (this.maxDistance * this.maxDistance) &&
+                        this.wolf.canSee(this.owner) &&
+                        this.wolf.getEquippedStack(EquipmentSlot.MAINHAND) == itemStack.first) {
+                    shoot(itemStack);
+                    this.wolf.equipStack(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
+                    //shootCooldown = 0;
+                }
             }
         }
     }

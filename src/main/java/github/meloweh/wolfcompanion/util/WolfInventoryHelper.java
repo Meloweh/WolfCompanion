@@ -31,7 +31,7 @@ public class WolfInventoryHelper {
 //    }
 
     private static boolean hasLifesavingEffects(final LivingEntity entity) {
-        return getLifeSavingEffects().stream().anyMatch(entity::hasStatusEffect);
+        return getLifeSavingEffects(true).stream().anyMatch(entity::hasStatusEffect);
     }
 
     public static boolean hasFittingLifesavingEffect(final LivingEntity entity) {
@@ -59,7 +59,7 @@ public class WolfInventoryHelper {
 
         if (entity.isInLava()) {
             if (!hasFireResistance) {
-                if (hasFirePotion) return false;
+                if (hasAnyPotion) return false;
             }
         }
         if (isLow) {
@@ -94,10 +94,10 @@ public class WolfInventoryHelper {
         //return getLifeSavingEffects().stream().anyMatch(entity::hasStatusEffect);
     }
 
-    private static List<RegistryEntry<StatusEffect>> getLifeSavingEffects() {
+    private static List<RegistryEntry<StatusEffect>> getLifeSavingEffects(final boolean withFire) {
         //System.out.println(withFire);
         final List<RegistryEntry<StatusEffect>> acceptableStatusEffects = new ArrayList<>();
-        //if (withFire)
+        if (withFire)
             acceptableStatusEffects.add(StatusEffects.FIRE_RESISTANCE);
         acceptableStatusEffects.add(StatusEffects.INSTANT_HEALTH);
         acceptableStatusEffects.add(StatusEffects.REGENERATION);
@@ -144,13 +144,14 @@ public class WolfInventoryHelper {
     }
 
     public static Pair<ItemStack, RegistryEntry<Potion>> findLifesavingPotions(final List<ItemStack> inventoryContents, final LivingEntity entity) {
-        //final boolean withFire = (entity.isOnFire() || entity.isInLava()) && !entity.hasStatusEffect(StatusEffects.FIRE_RESISTANCE);
+        final boolean withFire = (entity.isOnFire() || entity.isInLava()) && !entity.hasStatusEffect(StatusEffects.FIRE_RESISTANCE);
         final List<RegistryEntry<StatusEffect>> acceptableEffects =
-                getLifeSavingEffects();
+                getLifeSavingEffects(withFire);
 
         final Set<RegistryEntry<StatusEffect>> actives = entity.getStatusEffects().stream().map(StatusEffectInstance::getEffectType).collect(Collectors.toSet());
 
-        final List<RegistryEntry<StatusEffect>> filtered = acceptableEffects.stream().filter(e -> actives.stream().noneMatch(a -> a.matchesKey(e.getKey().get()))).toList();
+        final List<RegistryEntry<StatusEffect>> filtered = acceptableEffects.stream()
+                .filter(e -> actives.stream().noneMatch(a -> a.matchesKey(e.getKey().get()))).toList();
 
         return findPotions(inventoryContents, filtered);
 

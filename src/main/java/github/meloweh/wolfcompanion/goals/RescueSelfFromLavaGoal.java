@@ -3,6 +3,7 @@ package github.meloweh.wolfcompanion.goals;
 import com.ibm.icu.impl.Pair;
 import github.meloweh.wolfcompanion.accessor.WolfEntityProvider;
 import github.meloweh.wolfcompanion.util.WolfInventoryHelper;
+import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.PotionContentsComponent;
 import net.minecraft.entity.AreaEffectCloudEntity;
 import net.minecraft.entity.EquipmentSlot;
@@ -64,6 +65,10 @@ public class RescueSelfFromLavaGoal extends Goal implements InventoryChangedList
     }
 
     public boolean canStart() {
+        if (this.wolf.getEquippedStack(EquipmentSlot.MAINHAND).contains(DataComponentTypes.POTION_CONTENTS)) {
+            this.wolf.equipStack(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
+        }
+
         if (!this.wolf.isTamed()) return false;
         if (!this.armoredWolf.hasChestEquipped()) return false;
         if (WolfInventoryHelper.hasFittingLifesavingEffect(this.wolf)) return false;
