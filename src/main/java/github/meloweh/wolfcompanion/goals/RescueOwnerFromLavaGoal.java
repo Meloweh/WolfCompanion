@@ -182,7 +182,7 @@ public class RescueOwnerFromLavaGoal extends Goal implements InventoryChangedLis
                         this.wolf.canSee(this.owner) &&
                         this.wolf.getEquippedStack(EquipmentSlot.MAINHAND) == itemStack.first) {
                     shoot(itemStack);
-                    this.wolf.equipStack(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
+                    this.wolf.equipStack(EquipmentSlot.MAINHAND, nextPotion().first);
                     //shootCooldown = 0;
                 }
             }
