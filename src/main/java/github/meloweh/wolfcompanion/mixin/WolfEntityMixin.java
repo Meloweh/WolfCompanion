@@ -822,9 +822,8 @@ public abstract class WolfEntityMixin implements
     @Inject(method = "handleStatus", at = @At("HEAD"), cancellable = true)
     private void onHandleStatus(byte status, CallbackInfo ci) {
         if (status == EntityStatuses.CREATE_EATING_PARTICLES) {
-            //ItemStack itemStack = this.self.getEquippedStack(EquipmentSlot.MAINHAND);
+            ItemStack itemStack = this.self.getEquippedStack(EquipmentSlot.MAINHAND);
             final Vec2f vec = vecFromYaw(self.bodyYaw).normalize();
-            ItemStack itemStack = Items.COOKED_BEEF.getDefaultStack();
             if (!itemStack.isEmpty()) {
                 for (int i = 0; i < 8; i++) {
                     Vec3d vec3d = new Vec3d(((double)this.self.getRandom().nextFloat() - 0.5) * 0.1, Math.random() * 0.1 + 0.1, 0.0)
