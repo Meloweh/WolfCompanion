@@ -31,6 +31,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.*;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.nbt.*;
 import net.minecraft.particle.*;
 import net.minecraft.registry.entry.RegistryEntry;
@@ -43,6 +44,7 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.WorldSavePath;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.Vec2f;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
@@ -230,8 +232,14 @@ public abstract class WolfEntityMixin implements
     @Shadow
     private float lastShakeProgress; //this.lastShakeProgress >= 2.0F
 
+    private int debug = 0;
+
     @Inject(method = "tick", at = @At("TAIL"))
     private void shakeConditions(CallbackInfo ci) {
+        debug++;
+        if (debug % 2 == 0) {
+            self.getWorld().sendEntityStatus(self, EntityStatuses.CREATE_EATING_PARTICLES);
+        }
         if (self.isAlive() && !self.getWorld().isClient) {
              byte shakeReason = 0;
              if (!self.isFurWet()) {
@@ -805,10 +813,18 @@ public abstract class WolfEntityMixin implements
 //        }
 //    }
 
+    @Unique
+    private Vec2f vecFromYaw(final float yaw) {
+        final float rad = Math.toRadians(yaw);
+        return new Vec2f(-MathHelper.sin(rad), MathHelper.cos(rad));
+    }
+
     @Inject(method = "handleStatus", at = @At("HEAD"), cancellable = true)
     private void onHandleStatus(byte status, CallbackInfo ci) {
         if (status == EntityStatuses.CREATE_EATING_PARTICLES) {
-            ItemStack itemStack = this.self.getEquippedStack(EquipmentSlot.MAINHAND);
+            //ItemStack itemStack = this.self.getEquippedStack(EquipmentSlot.MAINHAND);
+            final Vec2f vec = vecFromYaw(self.bodyYaw).normalize();
+            ItemStack itemStack = Items.COOKED_BEEF.getDefaultStack();
             if (!itemStack.isEmpty()) {
                 for (int i = 0; i < 8; i++) {
                     Vec3d vec3d = new Vec3d(((double)this.self.getRandom().nextFloat() - 0.5) * 0.1, Math.random() * 0.1 + 0.1, 0.0)
@@ -816,9 +832,9 @@ public abstract class WolfEntityMixin implements
                             .rotateY(-this.self.getYaw() * (float) (Math.PI / 180.0));
                     this.self.getWorld().addParticle(
                                     new ItemStackParticleEffect(ParticleTypes.ITEM, itemStack),
-                            this.self.getX() + this.self.getRotationVector().x / 2.0,
-                            this.self.getY(),
-                            this.self.getZ() + this.self.getRotationVector().z / 2.0,
+                            this.self.getX() + vec.x * 0.6,
+                            this.self.getY() + 0.6,
+                            this.self.getZ() + vec.y * 0.6,
                                     vec3d.x,
                                     vec3d.y + 0.05,
                                     vec3d.z
