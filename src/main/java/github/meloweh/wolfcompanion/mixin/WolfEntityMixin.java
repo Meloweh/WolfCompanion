@@ -232,14 +232,8 @@ public abstract class WolfEntityMixin implements
     @Shadow
     private float lastShakeProgress; //this.lastShakeProgress >= 2.0F
 
-    private int debug = 0;
-
     @Inject(method = "tick", at = @At("TAIL"))
     private void shakeConditions(CallbackInfo ci) {
-        debug++;
-        if (debug % 2 == 0) {
-            self.getWorld().sendEntityStatus(self, EntityStatuses.CREATE_EATING_PARTICLES);
-        }
         if (self.isAlive() && !self.getWorld().isClient) {
              byte shakeReason = 0;
              if (!self.isFurWet()) {
