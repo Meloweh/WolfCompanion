@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(LivingEntity.class)
-public abstract class LivingEntityMixin {
+public abstract class LivingEntityMixin{
     /*@Inject(method = "getStackReference*", at = @At("RETURN"), cancellable = true)
     private void injected(CallbackInfoReturnable<StackReference> cir) {
         cir.setReturnValue(cir.getReturnValue());

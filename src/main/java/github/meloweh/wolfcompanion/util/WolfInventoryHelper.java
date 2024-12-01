@@ -1,6 +1,5 @@
 package github.meloweh.wolfcompanion.util;
 
-import com.ibm.icu.impl.Pair;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.PotionContentsComponent;
 import net.minecraft.entity.Entity;

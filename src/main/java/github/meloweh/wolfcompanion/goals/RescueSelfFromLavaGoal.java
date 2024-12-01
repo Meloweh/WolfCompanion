@@ -1,7 +1,7 @@
 package github.meloweh.wolfcompanion.goals;
 
-import com.ibm.icu.impl.Pair;
 import github.meloweh.wolfcompanion.accessor.WolfEntityProvider;
+import github.meloweh.wolfcompanion.util.Pair;
 import github.meloweh.wolfcompanion.util.WolfInventoryHelper;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.PotionContentsComponent;

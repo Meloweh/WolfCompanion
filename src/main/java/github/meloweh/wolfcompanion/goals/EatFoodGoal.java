@@ -97,10 +97,6 @@ public class EatFoodGoal extends Goal implements InventoryChangedListener {
         return SoundEvents.ENTITY_FOX_EAT;
     }
 
-    private boolean canEat(ItemStack stack) {
-        return stack.contains(DataComponentTypes.FOOD);
-    }
-
     private ItemStack nextFood() {
         ItemStack itemStack = this.entity.getEquippedStack(EquipmentSlot.MAINHAND);
 
@@ -209,7 +205,7 @@ public class EatFoodGoal extends Goal implements InventoryChangedListener {
     private void refreshInventoryContents(Inventory invBasic) {
         this.inventoryContents.clear();
         for(int slotIndex = 1;
-            slotIndex < 16;
+            slotIndex < invBasic.size();
             ++slotIndex) {
             this.inventoryContents.add(invBasic.getStack(slotIndex));
         }
@@ -219,16 +215,17 @@ public class EatFoodGoal extends Goal implements InventoryChangedListener {
         return this.entity.getMaxHealth() - this.entity.getHealth();
     }
 
-    @NotNull
-    private ItemStack findFood() {
-        final float healthDiff = this.entity.getMaxHealth() - this.entity.getHealth();
+    private boolean canEat(final ItemStack itemStack) {
+        return !itemStack.isEmpty() && entity.isBreedingItem(itemStack) && itemStack.contains(DataComponentTypes.FOOD);
+    }
 
+    @NotNull
+    public ItemStack findFood() {
+        final float healthDiff = this.entity.getMaxHealth() - this.entity.getHealth();
         return this.inventoryContents.stream()
-                .filter(itemStack -> !itemStack.isEmpty() && entity.isBreedingItem(itemStack) && itemStack.contains(DataComponentTypes.FOOD))
-                .min(Comparator.comparing(itemStack -> {
-                    FoodComponent food = itemStack.get(DataComponentTypes.FOOD);
-                    return Math.abs(healthDiff - food.nutrition());
-                }))
+                .filter(this::canEat)
+                .min(Comparator.comparing(itemStack
+                        -> Math.abs(healthDiff - itemStack.get(DataComponentTypes.FOOD).nutrition())))
                 .orElse(ItemStack.EMPTY);
     }
 }

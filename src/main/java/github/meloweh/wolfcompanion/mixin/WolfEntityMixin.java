@@ -3,10 +3,7 @@ package github.meloweh.wolfcompanion.mixin;
 import github.meloweh.wolfcompanion.WolfCompanion;
 import github.meloweh.wolfcompanion.accessor.*;
 import github.meloweh.wolfcompanion.events.WolfEventHandler;
-import github.meloweh.wolfcompanion.goals.EatFoodGoal;
-import github.meloweh.wolfcompanion.goals.RescueOwnerFromLavaGoal;
-import github.meloweh.wolfcompanion.goals.RescueSelfFromLavaGoal;
-import github.meloweh.wolfcompanion.goals.WolfMeleeAttackGoal;
+import github.meloweh.wolfcompanion.goals.*;
 import github.meloweh.wolfcompanion.init.InitItem;
 import github.meloweh.wolfcompanion.network.UuidPayload;
 import github.meloweh.wolfcompanion.screenhandler.WolfInventoryScreenHandler;
@@ -43,9 +40,12 @@ import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.WorldSavePath;
+import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec2f;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.Vec3i;
+import net.minecraft.world.GameRules;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Math;
@@ -61,9 +61,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Mixin(WolfEntity.class)
 public abstract class WolfEntityMixin implements
@@ -99,8 +98,9 @@ public abstract class WolfEntityMixin implements
     private void onConstructor(CallbackInfo info) {
         //items.addListener(this);
         //items.markDirty();
-        self = (WolfEntity) (Object) this;
+        this.self = (WolfEntity) (Object) this;
         this.onChestedStatusChanged();
+        this.self.setCanPickUpLoot(true);
     }
 
 //    @Unique
@@ -124,6 +124,7 @@ public abstract class WolfEntityMixin implements
         ((MobEntityAccessor) self).getGoalSelector().add(1, new RescueOwnerFromLavaGoal(self, 1.75f, 2.5f, 7f));
         ((MobEntityAccessor) self).getGoalSelector().add(1, new RescueSelfFromLavaGoal(self));
         ((MobEntityAccessor) self).getGoalSelector().add(2, new EatFoodGoal(self));
+        ((MobEntityAccessor) self).getGoalSelector().add(9, new PickUpFoodGoal(self));
     }
 
     @Shadow
@@ -785,6 +786,120 @@ public abstract class WolfEntityMixin implements
 //            this.inventoryContents.add(invBasic.getStack(slotIndex));
 //        }
 //    }
+
+//    @Unique
+//    protected void loot(ItemEntity item) {
+//        ItemStack itemStack = item.getStack();
+//        if (!itemStack.isEmpty()) {
+//            if (this.items.canInsert(itemStack)) {
+//                this.self.triggerItemPickedUpByEntityCriteria(item);
+//                final ItemStack itemStack2 = this.items.addStack(itemStack);
+//                System.out.println(itemStack.getCount() + " " + itemStack.getItem().toString() + " " + itemStack2.getCount() + " " + (itemStack2.getItem().toString()));
+//
+//                //this.items.markDirty();
+//                itemStack.decrement(itemStack2.getCount());
+//                this.self.sendPickup(item, itemStack2.getCount());
+//                if (itemStack.isEmpty()) {
+//                    item.discard();
+//                }
+//            }
+//        }
+//    }
+
+//    @Unique
+//    private int addToPresent(final ItemStack stack) {
+//        final DefaultedList<ItemStack> stacks = this.items.getHeldStacks();
+//        int transfer = stack.getCount();
+//        int transfered = 0;
+//        final Set<ItemStack> sames = stacks.stream().filter(e -> e.isOf(stack.getItem())).collect(Collectors.toSet());
+//
+//        for (ItemStack same : sames) {
+//            final int fits = same.getMaxCount() - same.getCount();
+//            final int transfering = Math.min(fits, transfer);
+//            same.increment(transfering);
+//            stack.decrement(transfering);
+//            transfered += transfering;
+//            transfer -= transfering;
+//
+//            same
+//
+//            if (transfer <= 0) break;
+//        }
+//
+//        if (transfer > 0) {
+//            final Optional<ItemStack> opt = stacks.stream().filter(e -> e.isOf(Items.AIR)).findFirst();
+//
+//        }
+//
+//
+//
+//        if (transfered > transfer) {
+//            throw new IllegalStateException("transfered more items than allowed... How did you even get here?");
+//        }
+//
+//
+//    }
+
+    @Unique
+    private SimpleInventory getReducedInventory() {
+        final SimpleInventory inv = new SimpleInventory(15);
+        for (int i = 1; i < this.items.size(); i++) {
+            inv.setStack(i - 1, this.items.getStack(i));
+        }
+        return inv;
+    }
+
+    @Unique
+    private void transferReducedInventory(final SimpleInventory inv) {
+        for (int i = 1; i < this.items.size(); i++) {
+            this.items.setStack(i, inv.getStack(i - 1));
+        }
+    }
+
+    @Unique
+    protected void loot(ItemEntity item) {
+        ItemStack itemStack = item.getStack();
+        if (!itemStack.isEmpty()) {
+            if (this.items.canInsert(itemStack)) {
+                this.self.triggerItemPickedUpByEntityCriteria(item);
+
+                final SimpleInventory reducedInventory = getReducedInventory();
+                final ItemStack itemStack2 = reducedInventory.addStack(itemStack); //this.items.addStack(itemStack);
+                transferReducedInventory(reducedInventory);
+
+                final int transfered = itemStack.getCount() - itemStack2.getCount();
+
+                this.self.sendPickup(item, transfered);
+                itemStack.decrement(transfered);
+
+                if (itemStack.isEmpty()) {
+                    item.discard();
+                }
+                System.out.println(this.items.toString());
+            }
+        }
+    }
+
+    @Inject(method = "tickMovement", at = @At("TAIL"))
+    private void onTickMovement(CallbackInfo ci) {
+        this.self.getWorld().getProfiler().push("looting");
+        if (!this.self.getWorld().isClient && this.self.isAlive() && !this.self.isDead() && this.self.getWorld().getGameRules().getBoolean(GameRules.DO_MOB_GRIEFING)) {
+            Vec3i vec3i = ((MobEntityAccessor)this.self).getItemPickUpRangeExpander__();
+            List<ItemEntity> list = this.getWorld().getNonSpectatingEntities(ItemEntity.class, this.self.getBoundingBox().expand(vec3i.getX(), vec3i.getY(), vec3i.getZ()));
+
+            for (ItemEntity itemEntity : list) {
+                if (!itemEntity.isRemoved() && !itemEntity.getStack().isEmpty() && !itemEntity.cannotPickup() && this.self.canGather(itemEntity.getStack())) {
+                    this.loot(itemEntity);
+                }
+            }
+
+            this.items.removeListener(this);
+            this.items.addListener(this);
+            this.items.markDirty();
+        }
+
+        this.self.getWorld().getProfiler().pop();
+    }
 
 //    @Inject(method = "tickMovement", at = @At("TAIL"))
 //    private void onTickMovement(CallbackInfo ci) {
