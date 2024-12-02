@@ -93,7 +93,7 @@ public class WolfInventoryProvider {
     public boolean onlyFood(final Item item) {
         return this.inventoryContents.stream()
                 .filter(this::canEat_)
-                .anyMatch(i -> (!i.isOf(item)) && !i.isEmpty());
+                .noneMatch(e -> !e.isOf(item) && !e.isEmpty());
     }
 
 //    public boolean isOnlyItem(final Item item, final int max) {
