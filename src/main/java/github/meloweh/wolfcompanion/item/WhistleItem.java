@@ -1,6 +1,7 @@
 package github.meloweh.wolfcompanion.item;
 
 import github.meloweh.wolfcompanion.WolfCompanion;
+import github.meloweh.wolfcompanion.accessor.MobEntityAccessor;
 import github.meloweh.wolfcompanion.init.InitSound;
 import github.meloweh.wolfcompanion.util.ConfigManager;
 import net.minecraft.entity.EntityType;
@@ -115,6 +116,7 @@ public class WhistleItem extends Item {
                     if (ConfigManager.config.canTeleportSitting)
                         wolf.setSitting(false);
                     wolf.teleport((ServerWorld) user.getWorld(), user.getX(), user.getY(), user.getZ(), null, user.getYaw(), user.getPitch());
+                    ((MobEntityAccessor)wolf).getNavigator__().stop();
                 });
             });
         }

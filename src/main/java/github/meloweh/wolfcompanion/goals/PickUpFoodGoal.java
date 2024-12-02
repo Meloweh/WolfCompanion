@@ -12,7 +12,6 @@ import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.InventoryChangedListener;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.registry.tag.ItemTags;
 import net.minecraft.world.GameRules;
 
 import java.util.ArrayList;
@@ -24,7 +23,7 @@ public class PickUpFoodGoal extends Goal implements InventoryChangedListener {
     final WolfEntity wolf;
     final WolfEntityProvider provider;
     int scanCooldown;
-    final int SCAN_COOLDOWN = 20 * 10;
+    //final int SCAN_COOLDOWN = 20 * 10;
     final WolfInventoryProvider inventory;
 
     final Predicate<ItemEntity> PICKABLE_DROP_FILTER = (item)
@@ -43,9 +42,9 @@ public class PickUpFoodGoal extends Goal implements InventoryChangedListener {
         if (provider.hasChestEquipped()) this.inventory.refreshInventoryContents(sender);
     }
 
-    private boolean playerFoodEnough() {
-        if (this.wolf.getOwner() != null) {
-            final PlayerInventory inv = ((PlayerEntity)this.wolf.getOwner()).getInventory();
+    public static boolean playerFoodEnough(final WolfEntity wolf) {
+        if (wolf.getOwner() != null) {
+            final PlayerInventory inv = ((PlayerEntity)wolf.getOwner()).getInventory();
             final List<ItemStack> ic = new ArrayList<>();
             for(int slotIndex = 0;
                 slotIndex < inv.size();
@@ -64,7 +63,6 @@ public class PickUpFoodGoal extends Goal implements InventoryChangedListener {
     }
 
     private boolean wantsToPickupItem() {
-        if (!playerFoodEnough()) return false;
         if (provider.hasChestEquipped()) {
             this.inventory.inventoryInit(this);
 
@@ -73,7 +71,7 @@ public class PickUpFoodGoal extends Goal implements InventoryChangedListener {
                 return true;
             }
         }
-        return nakedAndHungry();
+        return nakedAndHungry() && playerFoodEnough(this.wolf);
     }
 
     private List<ItemEntity> findPickups() {
@@ -104,16 +102,6 @@ public class PickUpFoodGoal extends Goal implements InventoryChangedListener {
             return false;
         }
     }
-
-//    protected void loot(ItemEntity item) {
-//        ItemStack itemStack = item.getStack();
-//        if (this.intenvory.canEat_(itemStack) && this.intenvory.hasSpace()) {
-//            int i = itemStack.getCount();
-//
-//            this.wolf.sendPickup(item, itemStack.getCount());
-//            item.discard();
-//        }
-//    }
 
     @Override
     public void tick() {

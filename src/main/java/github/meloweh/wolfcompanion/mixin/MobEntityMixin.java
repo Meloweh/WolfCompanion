@@ -2,6 +2,7 @@ package github.meloweh.wolfcompanion.mixin;
 
 import github.meloweh.wolfcompanion.accessor.MobEntityAccessor;
 import net.minecraft.entity.ai.goal.GoalSelector;
+import net.minecraft.entity.ai.pathing.EntityNavigation;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.Vec3i;
@@ -32,6 +33,9 @@ public abstract class MobEntityMixin implements MobEntityAccessor {
     public Vec3i getItemPickUpRangeExpander__() {
         return getItemPickUpRangeExpander();
     }
+
+    @Accessor("navigation")
+    public abstract EntityNavigation getNavigator__();
 
     /*
     @Invoker("hasPassenger")

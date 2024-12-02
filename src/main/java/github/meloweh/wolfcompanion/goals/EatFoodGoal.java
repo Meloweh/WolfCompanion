@@ -66,7 +66,7 @@ public class EatFoodGoal extends Goal implements InventoryChangedListener {
             if (!this.entity.getEquippedStack(EquipmentSlot.MAINHAND).contains(DataComponentTypes.FOOD)) {
                 this.entity.equipStack(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
             }
-            return wouldStart; // && this.entity.getEquippedStack(EquipmentSlot.MAINHAND).isEmpty();
+            return wouldStart && PickUpFoodGoal.playerFoodEnough(this.entity); // && this.entity.getEquippedStack(EquipmentSlot.MAINHAND).isEmpty();
         }
 
         return false;
