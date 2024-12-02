@@ -66,6 +66,7 @@ public class RescueSelfFromLavaGoal extends Goal implements InventoryChangedList
     }
 
     public boolean canStart() {
+        if (!this.armoredWolf.hasChestEquipped()) return false;
         if (this.wolf.getEquippedStack(EquipmentSlot.MAINHAND).contains(DataComponentTypes.POTION_CONTENTS)) {
             this.wolf.equipStack(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
         }

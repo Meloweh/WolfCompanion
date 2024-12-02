@@ -90,6 +90,8 @@ public class RescueOwnerFromLavaGoal extends Goal implements InventoryChangedLis
     }
 
     public boolean canStart() {
+        if (!this.armoredWolf.hasChestEquipped()) return false;
+
         this.owner = this.wolf.getOwner();
         if (this.wolf.getEquippedStack(EquipmentSlot.MAINHAND).contains(DataComponentTypes.POTION_CONTENTS)) {
             this.wolf.equipStack(EquipmentSlot.MAINHAND, ItemStack.EMPTY);

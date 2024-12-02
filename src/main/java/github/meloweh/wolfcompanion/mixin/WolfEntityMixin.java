@@ -80,6 +80,8 @@ public abstract class WolfEntityMixin implements
     protected SimpleInventory items;
     @Unique
     private WolfEntity self;
+    @Unique
+    private Optional<ItemEntity> targetPickup = Optional.empty();
 
 //    @Unique
 //    private static final int EATING_DURATION = 600;
@@ -101,6 +103,20 @@ public abstract class WolfEntityMixin implements
         this.self = (WolfEntity) (Object) this;
         this.onChestedStatusChanged();
         this.self.setCanPickUpLoot(true);
+    }
+
+    @Override
+    public void setTargetPickup__(final ItemEntity entity) {
+        if (entity == null) {
+            this.targetPickup = Optional.empty();
+        } else {
+            this.targetPickup = Optional.of(entity);
+        }
+    }
+
+    @Override
+    public Optional<ItemEntity> getTargetPickup__() {
+        return this.targetPickup;
     }
 
 //    @Unique
@@ -857,48 +873,87 @@ public abstract class WolfEntityMixin implements
     }
 
     @Unique
-    protected void loot(ItemEntity item) {
+    private void dropItem(ItemStack stack) {
+        ItemEntity itemEntity = new ItemEntity(this.self.getWorld(), this.self.getX(), this.self.getY(), this.self.getZ(), stack);
+        this.self.getWorld().spawnEntity(itemEntity);
+    }
+
+    @Override
+    public void spit__(ItemStack stack) {
+        if (!stack.isEmpty() && !this.self.getWorld().isClient) {
+            ItemEntity itemEntity = new ItemEntity(
+                    this.self.getWorld(), this.self.getX() + this.self.getRotationVector().x, this.self.getY() + 1.0, this.self.getZ() + this.self.getRotationVector().z, stack
+            );
+            itemEntity.setPickupDelay(40);
+            itemEntity.setThrower(this.self);
+            this.self.playSound(SoundEvents.ENTITY_FOX_SPIT, 1.0F, 1.0F);
+            this.self.getWorld().spawnEntity(itemEntity);
+        }
+    }
+
+    @Unique
+    private void loot(ItemEntity item) {
         ItemStack itemStack = item.getStack();
         if (!itemStack.isEmpty()) {
-            if (this.items.canInsert(itemStack)) {
-                this.self.triggerItemPickedUpByEntityCriteria(item);
+            if (this.hasChestEquipped()) {
+                if (this.items.canInsert(itemStack)) {
+                    this.self.triggerItemPickedUpByEntityCriteria(item);
 
-                final SimpleInventory reducedInventory = getReducedInventory();
-                final ItemStack itemStack2 = reducedInventory.addStack(itemStack); //this.items.addStack(itemStack);
-                transferReducedInventory(reducedInventory);
+                    final SimpleInventory reducedInventory = getReducedInventory();
+                    final ItemStack itemStack2 = reducedInventory.addStack(itemStack); //this.items.addStack(itemStack);
+                    transferReducedInventory(reducedInventory);
 
-                final int transfered = itemStack.getCount() - itemStack2.getCount();
+                    final int transfered = itemStack.getCount() - itemStack2.getCount();
 
-                this.self.sendPickup(item, transfered);
-                itemStack.decrement(transfered);
+                    this.self.sendPickup(item, transfered);
+                    itemStack.decrement(transfered);
 
-                if (itemStack.isEmpty()) {
-                    item.discard();
+                    if (itemStack.isEmpty()) {
+                        item.discard();
+                    }
+
+                    this.items.removeListener(this);
+                    this.items.addListener(this);
+                    this.items.markDirty();
                 }
-                System.out.println(this.items.toString());
+            } else {
+                int i = itemStack.getCount();
+                if (i > 1) {
+                    this.dropItem(itemStack.split(i - 1));
+                }
+
+                this.spit__(this.self.getEquippedStack(EquipmentSlot.MAINHAND));
+                this.self.triggerItemPickedUpByEntityCriteria(item);
+                this.self.equipStack(EquipmentSlot.MAINHAND, itemStack.split(1));
+                this.self.sendPickup(item, itemStack.getCount());
+                item.discard();
             }
         }
     }
 
     @Inject(method = "tickMovement", at = @At("TAIL"))
     private void onTickMovement(CallbackInfo ci) {
-        this.self.getWorld().getProfiler().push("looting");
-        if (!this.self.getWorld().isClient && this.self.isAlive() && !this.self.isDead() && this.self.getWorld().getGameRules().getBoolean(GameRules.DO_MOB_GRIEFING)) {
-            Vec3i vec3i = ((MobEntityAccessor)this.self).getItemPickUpRangeExpander__();
-            List<ItemEntity> list = this.getWorld().getNonSpectatingEntities(ItemEntity.class, this.self.getBoundingBox().expand(vec3i.getX(), vec3i.getY(), vec3i.getZ()));
+        if(this.targetPickup.isPresent()) {
+            if (!this.self.getWorld().isClient
+                    && this.self.isAlive()
+                    && !this.self.isDead()
+                    && this.self.getWorld().getGameRules().getBoolean(GameRules.DO_MOB_GRIEFING)) {
+                this.self.getWorld().getProfiler().push("looting");
 
-            for (ItemEntity itemEntity : list) {
-                if (!itemEntity.isRemoved() && !itemEntity.getStack().isEmpty() && !itemEntity.cannotPickup() && this.self.canGather(itemEntity.getStack())) {
-                    this.loot(itemEntity);
+                Vec3i vec3i = ((MobEntityAccessor) this.self).getItemPickUpRangeExpander__();
+                List<ItemEntity> list = this.getWorld().getNonSpectatingEntities(ItemEntity.class, this.self.getBoundingBox()
+                        .expand(vec3i.getX(), vec3i.getY(), vec3i.getZ()))
+                        .stream().filter(e -> e == this.targetPickup.get()).toList();
+
+                for (ItemEntity itemEntity : list) {
+                    if (!itemEntity.isRemoved() && !itemEntity.getStack().isEmpty() && !itemEntity.cannotPickup() && this.self.canGather(itemEntity.getStack())) {
+                        this.loot(itemEntity);
+                    }
                 }
+
+                this.self.getWorld().getProfiler().pop();
             }
-
-            this.items.removeListener(this);
-            this.items.addListener(this);
-            this.items.markDirty();
         }
-
-        this.self.getWorld().getProfiler().pop();
     }
 
 //    @Inject(method = "tickMovement", at = @At("TAIL"))

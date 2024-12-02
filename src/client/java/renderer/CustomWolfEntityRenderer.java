@@ -56,18 +56,21 @@ public class CustomWolfEntityRenderer extends WolfEntityRenderer {
 
         @Override
         public void render(MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, WolfEntity entity, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
-            if (!entity.isTamed() || !((WolfEntityProvider)entity).hasChestEquipped()) return;
+            //if (!entity.isTamed() || !((WolfEntityProvider)entity).hasChestEquipped()) return;
 
-            matrices.push();
-            bagModelV2.copyTransform(wolfTorso);
-            bagModelV2.render(matrices, vertexConsumers.getBuffer(RenderLayer.getEntitySolid(WolfBagModelV2.TEXTURE_LOCATION)), light, OverlayTexture.DEFAULT_UV);
+            if (((WolfEntityProvider)entity).hasChestEquipped()) {
+                matrices.push();
+                bagModelV2.copyTransform(wolfTorso);
+                bagModelV2.render(matrices, vertexConsumers.getBuffer(RenderLayer.getEntitySolid(WolfBagModelV2.TEXTURE_LOCATION)), light, OverlayTexture.DEFAULT_UV);
 
-            if (!entity.hasArmor()) {
-                VertexConsumer vertexConsumer = vertexConsumers.getBuffer(RenderLayer.getEntityCutoutNoCull(WolfBagModelV2.STRAP_LAYER_TEXTURE));
-                this.getContextModel().render(matrices, vertexConsumer, light, OverlayTexture.DEFAULT_UV);
+                if (!entity.hasArmor()) {
+                    VertexConsumer vertexConsumer = vertexConsumers.getBuffer(RenderLayer.getEntityCutoutNoCull(WolfBagModelV2.STRAP_LAYER_TEXTURE));
+                    this.getContextModel().render(matrices, vertexConsumer, light, OverlayTexture.DEFAULT_UV);
+                }
+
+                matrices.pop();
             }
 
-            matrices.pop();
 
             boolean bl = entity.isSleeping();
             boolean bl2 = entity.isBaby();

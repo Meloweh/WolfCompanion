@@ -46,8 +46,12 @@ public class WolfInventoryProvider {
         return stack.isIn(ItemTags.WOLF_FOOD);
     }
 
+    public static boolean canPlayerEat(final ItemStack itemStack) {
+        return !itemStack.isEmpty() && itemStack.contains(DataComponentTypes.FOOD);
+    }
+
     public static boolean canEat(final ItemStack itemStack) {
-        return !itemStack.isEmpty() && isBreedingItem(itemStack) && itemStack.contains(DataComponentTypes.FOOD);
+        return canPlayerEat(itemStack) && isBreedingItem(itemStack);
     }
 
     public boolean canEat_(final ItemStack itemStack) {
@@ -65,7 +69,7 @@ public class WolfInventoryProvider {
     }
 
     public long getFoodCount() {
-        return this.inventoryContents.stream().filter(this::canEat_).count();
+        return this.inventoryContents.stream().filter(this::canEat_).mapToInt(ItemStack::getCount).sum();
     }
 
 //    public boolean hasFood() {

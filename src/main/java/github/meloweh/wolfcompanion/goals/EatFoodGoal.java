@@ -56,21 +56,27 @@ public class EatFoodGoal extends Goal implements InventoryChangedListener {
     @Override
     public boolean canStart() {
         final boolean wouldStart = !this.entity.isInvulnerable()
-                && this.entity.hurtTime == 0
-                && this.armoredWolf.hasChestEquipped();
+                && this.entity.hurtTime == 0 && !this.entity.getWorld().isClient;
 
-        if (this.entity.getEquippedStack(EquipmentSlot.MAINHAND).contains(DataComponentTypes.FOOD)) {
-            this.entity.equipStack(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
+        if (!this.armoredWolf.hasChestEquipped() && this.entity.getEquippedStack(EquipmentSlot.MAINHAND).contains(DataComponentTypes.FOOD)) {
+            return wouldStart;
         }
 
-        return wouldStart && this.entity.getEquippedStack(EquipmentSlot.MAINHAND).isEmpty();
+        if (this.armoredWolf.hasChestEquipped()) {
+            if (!this.entity.getEquippedStack(EquipmentSlot.MAINHAND).contains(DataComponentTypes.FOOD)) {
+                this.entity.equipStack(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
+            }
+            return wouldStart; // && this.entity.getEquippedStack(EquipmentSlot.MAINHAND).isEmpty();
+        }
+
+        return false;
     }
 
     @Override
     public void start() {
-        if (eatingTime > 0 || this.entity.getTarget() != null) return;
+        if (eatingTime > 0 || this.entity.getTarget() != null || this.entity.getWorld().isClient) return;
 
-        ItemStack mostEfficientFood = findFood();
+        ItemStack mostEfficientFood = this.armoredWolf.hasChestEquipped() ? findFood() : this.entity.getEquippedStack(EquipmentSlot.MAINHAND);
 
         if (mostEfficientFood.isEmpty()) return;
 
@@ -80,7 +86,12 @@ public class EatFoodGoal extends Goal implements InventoryChangedListener {
 
         float damageAmount = (this.entity.getMaxHealth() - this.entity.getHealth());
 
-        if (damageAmount < 1.0F || damageAmount < foodComponent.nutrition()) return;
+        if (damageAmount < 1.0F || damageAmount < foodComponent.nutrition()) {
+            if (!this.armoredWolf.hasChestEquipped()) {
+                armoredWolf.spit__(this.entity.getEquippedStack(EquipmentSlot.MAINHAND));
+            }
+            return;
+        }
 
         this.eatingFood = mostEfficientFood;
         foodEatTime = foodComponent.getEatTicks();
