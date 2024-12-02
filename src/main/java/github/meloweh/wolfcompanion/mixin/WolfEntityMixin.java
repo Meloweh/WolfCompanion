@@ -15,7 +15,6 @@ import net.minecraft.enchantment.EnchantmentEffectContext;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.goal.Goal;
-import net.minecraft.entity.ai.pathing.EntityNavigation;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.data.DataTracker;
@@ -29,7 +28,6 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.*;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
 import net.minecraft.nbt.*;
 import net.minecraft.particle.*;
 import net.minecraft.registry.entry.RegistryEntry;
@@ -41,7 +39,6 @@ import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.WorldSavePath;
-import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec2f;
 import net.minecraft.util.math.Vec3d;
@@ -63,7 +60,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Mixin(WolfEntity.class)
 public abstract class WolfEntityMixin implements
@@ -254,7 +250,7 @@ public abstract class WolfEntityMixin implements
     private void shakeConditions(CallbackInfo ci) {
         if (self.isAlive() && !self.getWorld().isClient) {
              byte shakeReason = 0;
-             if (!self.isFurWet()) {
+             if (!self.isWet()) {
                  if (ConfigManager.config.canShakeOffPoison && isPoisoned(this.self))
                      shakeReason = 1;
 
@@ -480,7 +476,7 @@ public abstract class WolfEntityMixin implements
 
     @Unique
     private float getKnockbackAgainst(Entity target, DamageSource damageSource) {
-        float f = (float)this.self.getAttributeValue(EntityAttributes.GENERIC_ATTACK_KNOCKBACK);
+        float f = (float)this.self.getAttributeValue(EntityAttributes.ATTACK_KNOCKBACK);
         World var5 = this.self.getWorld();
         if (var5 instanceof ServerWorld serverWorld) {
             return EnchantmentHelper.modifyKnockback(serverWorld, this.self.getWeaponStack(), target, damageSource, f);
@@ -490,29 +486,28 @@ public abstract class WolfEntityMixin implements
     }
 
     @Override
-    public boolean wolfcompanion_template_1_21_1$tryAttack(Entity target) {
-        float f = (float)this.self.getAttributeValue(EntityAttributes.GENERIC_ATTACK_DAMAGE) + getLevel() * 0.5f;
-        DamageSource damageSource = this.self.getDamageSources().mobAttack(this.self);
-        World var5 = this.self.getWorld();
-        if (var5 instanceof ServerWorld serverWorld) {
-            f = EnchantmentHelper.getDamage(serverWorld, this.self.getWeaponStack(), target, damageSource, f);
-        }
-
-        boolean bl = target.damage(damageSource, f);
+    public boolean tryAttack__(ServerWorld world, Entity target) {
+        float f = (float)this.self.getAttributeValue(EntityAttributes.ATTACK_DAMAGE) + getLevel() * 0.5f;
+        ItemStack itemStack = this.self.getWeaponStack();
+        DamageSource damageSource = (DamageSource)Optional.ofNullable(itemStack.getItem().getDamageSource(this.self)).orElse(this.self.getDamageSources().mobAttack(this.self));
+        f = EnchantmentHelper.getDamage(world, itemStack, target, damageSource, f);
+        f += itemStack.getItem().getBonusAttackDamage(target, f, damageSource);
+        boolean bl = target.damage(world, damageSource, f);
         if (bl) {
             float g = getKnockbackAgainst(target, damageSource);
+            LivingEntity livingEntity;
             if (g > 0.0F && target instanceof LivingEntity) {
-                LivingEntity livingEntity = (LivingEntity)target;
-                livingEntity.takeKnockback((double)(g * 0.5F), (double) MathHelper.sin(this.self.getYaw() * 0.017453292F), (double)(-MathHelper.cos(this.self.getYaw() * 0.017453292F)));
+                livingEntity = (LivingEntity)target;
+                livingEntity.takeKnockback(g * 0.5F, MathHelper.sin(this.self.getYaw() * 0.017453292F), -MathHelper.cos(this.self.getYaw() * 0.017453292F));
                 this.self.setVelocity(this.self.getVelocity().multiply(0.6, 1.0, 0.6));
             }
 
-            World var7 = this.self.getWorld();
-            if (var7 instanceof ServerWorld) {
-                ServerWorld serverWorld2 = (ServerWorld)var7;
-                EnchantmentHelper.onTargetDamaged(serverWorld2, target, damageSource);
+            if (target instanceof LivingEntity) {
+                livingEntity = (LivingEntity)target;
+                itemStack.postHit(livingEntity, this.self);
             }
 
+            EnchantmentHelper.onTargetDamaged(world, target, damageSource);
             this.self.onAttacking(target);
             //this.self.playAttackSound();
         }
@@ -601,7 +596,7 @@ public abstract class WolfEntityMixin implements
     public int repairGear(final int amount) {
         Optional<EnchantmentEffectContext> optional = EnchantmentHelper.chooseEquipmentWith(EnchantmentEffectComponentTypes.REPAIR_WITH_XP, this.self, ItemStack::isDamaged);
         if (optional.isPresent()) {
-            ItemStack itemStack = ((EnchantmentEffectContext)optional.get()).stack();
+            ItemStack itemStack = optional.get().stack();
             int i = EnchantmentHelper.getRepairWithXp((ServerWorld) this.self.getWorld(), itemStack, amount);
             int j = java.lang.Math.min(i, itemStack.getDamage());
             itemStack.setDamage(itemStack.getDamage() - j);
@@ -628,7 +623,7 @@ public abstract class WolfEntityMixin implements
                     if (!itemStack.isEmpty()) {
                         if (self.getEquippedStack(EquipmentSlot.BODY) != itemStack) {
                             this.items.removeStack(i);
-                            self.dropStack(itemStack);
+                            self.dropStack((ServerWorld) self.getWorld(), itemStack);
                         }
                     }
                 }
@@ -638,7 +633,7 @@ public abstract class WolfEntityMixin implements
 
                 if (shouldDropChest() || !ConfigManager.config.keepWolfBag) {
                     if (!self.getWorld().isClient) {
-                        self.dropItem(InitItem.ITEM_WOLF_BAG);
+                        self.dropItem((ServerWorld) self.getWorld(), InitItem.ITEM_WOLF_BAG);
                     }
                     this.setHasChest(false);
                 }
@@ -696,7 +691,7 @@ public abstract class WolfEntityMixin implements
 //    }
 
     @Inject(method = "damage", at = @At("HEAD"), cancellable = true)
-    private void cancelPlayerDamage(DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
+    private void cancelPlayerDamage(ServerWorld world, DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
         if (source.getAttacker() instanceof PlayerEntity) {
             cir.setReturnValue(false);
             cir.cancel();
@@ -714,7 +709,7 @@ public abstract class WolfEntityMixin implements
                 if (!itemStack.isEmpty()) {
                     NbtCompound nbtCompound = new NbtCompound();
                     nbtCompound.putByte("Slot", (byte)(i - 1));
-                    nbtList.add(itemStack.encode(self.getRegistryManager(), nbtCompound));
+                    nbtList.add(itemStack.toNbt(self.getRegistryManager(), nbtCompound));
                 }
             }
 

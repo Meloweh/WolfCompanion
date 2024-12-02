@@ -4,7 +4,6 @@ import github.meloweh.wolfcompanion.accessor.WolfEntityProvider;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.goal.Goal;
 import net.minecraft.entity.ai.pathing.Path;
-import net.minecraft.entity.mob.PathAwareEntity;
 import net.minecraft.entity.passive.WolfEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.predicate.entity.EntityPredicates;
@@ -126,7 +125,7 @@ public class WolfMeleeAttackGoal extends Goal {
         if (this.canAttack(target)) {
             this.resetCooldown();
             this.mob.swingHand(Hand.MAIN_HAND);
-            this.wolf.wolfcompanion_template_1_21_1$tryAttack(target);
+            this.wolf.tryAttack__(getServerWorld(this.mob), target);
         }
 
     }

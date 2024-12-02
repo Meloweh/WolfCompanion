@@ -4,6 +4,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.server.world.ServerWorld;
 
 import java.util.Optional;
 
@@ -18,7 +19,7 @@ public interface WolfEntityProvider {
 
     void wolfcompanion_template_1_21_1$dropInventoryByButton();
 
-    boolean wolfcompanion_template_1_21_1$tryAttack(Entity target);
+    boolean tryAttack__(ServerWorld serverWorld, Entity target);
 
     Optional<ItemEntity> getTargetPickup__();
 

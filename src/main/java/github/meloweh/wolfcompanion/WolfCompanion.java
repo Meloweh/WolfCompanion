@@ -79,7 +79,7 @@ public class WolfCompanion implements ModInitializer {
 			System.out.println("ERROR: dynamic registry manager was null");
 			return false;
 		}
-		Registry<Enchantment> enchantmentRegistry = dynamicRegistryManager.get(RegistryKeys.ENCHANTMENT);
+		Registry<Enchantment> enchantmentRegistry = dynamicRegistryManager.getOrThrow(RegistryKeys.ENCHANTMENT);
 
 		RegistryEntry<Enchantment> enchantmentEntry = enchantmentRegistry.getEntry(enchantment);
 		return enchantmentEntry != null && enchantmentEntry.matchesKey(enchantmentRegistryKey);
