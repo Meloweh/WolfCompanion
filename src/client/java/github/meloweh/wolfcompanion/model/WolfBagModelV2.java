@@ -16,7 +16,7 @@ public class WolfBagModelV2 extends Model {
 	private final ModelPart left;
 	private final ModelPart right;
 	public WolfBagModelV2(ModelPart root) {
-		super(RenderLayer::getEntitySolid);
+		super(root, RenderLayer::getEntitySolid);
         this.main = root.getChild("main");
 		this.left = this.main.getChild("left");
 		this.right = this.main.getChild("right");
@@ -39,12 +39,10 @@ public class WolfBagModelV2 extends Model {
 	}
 
 
-
-
-	@Override
-	public void render(MatrixStack matrices, VertexConsumer vertexConsumer, int light, int overlay, int color) {
-		this.main.render(matrices, vertexConsumer, light, overlay, color);
-	}
+//	@Override
+//	public void render(MatrixStack matrices, VertexConsumer vertexConsumer, int light, int overlay, int color) {
+//		this.main.render(matrices, vertexConsumer, light, overlay, color);
+//	}
 
 	public void copyTransform(ModelPart part) {
 		this.main.copyTransform(part);

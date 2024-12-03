@@ -6,23 +6,17 @@ import github.meloweh.wolfcompanion.accessor.WolfXpProvider;
 import github.meloweh.wolfcompanion.network.DropWolfChestC2SPayload;
 import github.meloweh.wolfcompanion.screenhandler.WolfInventoryScreenHandler;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.font.FontStorage;
-import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.gui.screen.ingame.InventoryScreen;
+import net.minecraft.client.render.RenderLayer;
 import net.minecraft.entity.passive.WolfEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.SimpleInventory;
-import net.minecraft.screen.MerchantScreenHandler;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.village.TradeOffer;
-import net.minecraft.village.VillagerData;
 
 public class WolfInventoryScreen extends HandledScreen<WolfInventoryScreenHandler> {
     private static final Identifier CHEST_SLOTS_TEXTURE = Identifier.ofVanilla("container/horse/chest_slots");
@@ -58,24 +52,17 @@ public class WolfInventoryScreen extends HandledScreen<WolfInventoryScreenHandle
         this.backgroundWidth = 176;
         this.backgroundHeight = 184;
         this.playerInventoryTitleY = this.backgroundHeight - 111;
-        //this.entity = inventory.player;
         this.slotColumnCount = 5;
         this.wolf = handler.getWolf();
         this.wolfXp = (WolfXpProvider) this.wolf;
         this.wolfInventory = handler.getWolfInventory();
         this.player = inventory.player;
         this.handler = handler;
-
-        //final String strTitle = this.title.getString() + " Lv. ";
-        //final int titleLen = textRenderer.getWidth(strTitle);
     }
 
     @Override
     public void close() {
         super.close();
-
-        //if (player.getWorld().isClient)
-        //    ClientPlayNetworking.send(new SampleC2SPayload("It says we are on " + player.getWorld().isClient, 69));
     }
 
     private boolean clickedDropChest(double mouseX, double mouseY) {
@@ -96,27 +83,22 @@ public class WolfInventoryScreen extends HandledScreen<WolfInventoryScreenHandle
         return super.mouseClicked(mouseX, mouseY, button);
     }
 
-    /*@Override
-    public void setTooltip(Text tooltip) {
-        super.setTooltip(tooltip);
-    }*/
-
     @Override
     protected void drawBackground(DrawContext context, float delta, int mouseX, int mouseY) {
         int i = (this.width - this.backgroundWidth) / 2;
         int j = (this.height - this.backgroundHeight) / 2;
-        context.drawTexture(TEXTURE, i, j, 0, 0, this.backgroundWidth, this.backgroundHeight);
+        context.drawTexture(RenderLayer::getGuiTextured, TEXTURE, i, j, 0.0F, 0.0F, this.backgroundWidth, this.backgroundHeight, 256, 256);
 
         if (((WolfEntityProvider)wolf).hasChestEquipped()) {
             if (this.slotColumnCount > 0) {
-                context.drawGuiTexture(CHEST_SLOTS_TEXTURE, 90, 54, 0, 0, i + 79, j + 17, this.slotColumnCount * 18, 54);
+                context.drawGuiTexture(RenderLayer::getGuiTextured, CHEST_SLOTS_TEXTURE, 90, 54, 0, 0, i + 79, j + 17, this.slotColumnCount * 18, 54);
             }
         }
 
-        if (this.wolf.hasArmor()) {
-            context.drawGuiTexture(SLOT, i + 7, j + 35 - 18, 18, 18);
+        if (this.wolf.isWearingBodyArmor()) {
+            context.drawGuiTexture(RenderLayer::getGuiTextured, SLOT, i + 7, j + 35 - 18, 18, 18);
         } else {
-            context.drawTexture(WOLF_ARMOR_SLOT, i + 7, j + 35 - 18, 0, 0, 18, 18, 18, 18);
+            context.drawGuiTexture(RenderLayer::getGuiTextured, WOLF_ARMOR_SLOT, i + 7, j + 35 - 18, 18, 18);
         }
 
         if (((WolfEntityProvider)this.wolf).hasChestEquipped()) {
@@ -124,10 +106,10 @@ public class WolfInventoryScreen extends HandledScreen<WolfInventoryScreenHandle
                     this.mouseX < i + 7 + 18 &&
                     this.mouseY >= j + 35 &&
                     this.mouseY < j + 35 + 18) {
-                context.drawTexture(BUTTON_CHEST_HIGHLIGHTED, i + 7, j + 35, 0, 0, 18, 18, 18, 18);
+                context.drawTexture(RenderLayer::getGuiTextured, BUTTON_CHEST_HIGHLIGHTED, i + 7, j + 35, 0, 0, 18, 18, 18, 18);
                 this.setTooltip(Text.of("Drop bag and items"));
             } else {
-                context.drawTexture(BUTTON_CHEST_AVAILABLE, i + 7, j + 35, 0, 0, 18, 18, 18, 18);
+                context.drawTexture(RenderLayer::getGuiTextured, BUTTON_CHEST_AVAILABLE, i + 7, j + 35, 0, 0, 18, 18, 18, 18);
             }
         } else {
             //context.drawTexture(BUTTON_CHEST_DISABLED, i + 7, j + 35, 0, 0, 18, 18, 18, 18);
@@ -147,8 +129,8 @@ public class WolfInventoryScreen extends HandledScreen<WolfInventoryScreenHandle
         final int healthPixels = (int) wolf.getHealth() * 2 + 1;
         //System.out.println(wolf.getMaxHealth() + " " + wolf.getHealth());
 
-        context.drawTexture(HEART_CONTAINER, x, y, 0, 0, WIDTH * maxHealthPoints + 1, HEIGHT, WIDTH, HEIGHT);
-        context.drawTexture(HEART, x, y, 0, 0, healthPixels, HEIGHT, WIDTH, HEIGHT);
+        context.drawTexture(RenderLayer::getGuiTextured, HEART_CONTAINER, x, y, 0, 0, WIDTH * maxHealthPoints + 1, HEIGHT, WIDTH, HEIGHT);
+        context.drawTexture(RenderLayer::getGuiTextured, HEART, x, y, 0, 0, healthPixels, HEIGHT, WIDTH, HEIGHT);
         //context.drawTexture(WOLF_ARMOR_SLOT, i + 7, j + 35 - 18, 0, 0, 18, 18, 18, 18);
 
     }
@@ -173,9 +155,9 @@ public class WolfInventoryScreen extends HandledScreen<WolfInventoryScreenHandle
         int xpTextWidth = textRenderer.getWidth(xpText);
         context.drawText(textRenderer, xpText, x + WIDTH / 2 - xpTextWidth / 2, y - 4 + 2, 0X7EFC20, true);
 
-        context.drawTexture(EXPERIENCE_BAR_BACKGROUND_TEXTURE, x, y, 0, 0, WIDTH, HEIGHT, WIDTH, HEIGHT);
+        context.drawTexture(RenderLayer::getGuiTextured, EXPERIENCE_BAR_BACKGROUND_TEXTURE, x, y, 0, 0, WIDTH, HEIGHT, WIDTH, HEIGHT);
         final int currentXpBar = WIDTH * (deltaXp / deltaMaxXp);
-        context.drawTexture(EXPERIENCE_BAR_CURRENT_TEXTURE, x, y, 0, 0, WIDTH * deltaXp / deltaMaxXp, HEIGHT, WIDTH, HEIGHT);
+        context.drawTexture(RenderLayer::getGuiTextured, EXPERIENCE_BAR_CURRENT_TEXTURE, x, y, 0, 0, WIDTH * deltaXp / deltaMaxXp, HEIGHT, WIDTH, HEIGHT);
     }
 
     @Override
