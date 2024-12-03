@@ -29,6 +29,8 @@ public class EatFoodGoal extends Goal implements InventoryChangedListener {
     private int foodEatTime, eatingTime;
     private boolean hasHealedSinceLastReset;
 
+    private final int eatSeconds = 2;
+
     public EatFoodGoal(@NotNull WolfEntity wolf) {
         this.entity = wolf;
         this.armoredWolf = (WolfEntityProvider) wolf;
@@ -94,7 +96,7 @@ public class EatFoodGoal extends Goal implements InventoryChangedListener {
         }
 
         this.eatingFood = mostEfficientFood;
-        foodEatTime = foodComponent.getEatTicks();
+        foodEatTime = this.eatSeconds * 20;
         eatingTime = foodEatTime / 2 + entity.getRandom().nextInt(foodEatTime);
         this.entity.equipStack(EquipmentSlot.MAINHAND, this.eatingFood);
     }
