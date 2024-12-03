@@ -28,11 +28,12 @@ public class WolfBagFeatureRenderer extends FeatureRenderer<WolfEntityRenderStat
 
         final ModelPart bagRootV2 = WolfBagModelV2.getTexturedModelData().createModel();
         this.bagModelV2 = new WolfBagModelV2(bagRootV2);
+
     }
 
     @Override
     public void render(MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, WolfEntityRenderState state, float limbAngle, float limbDistance) {
-        if (((WolfEntityProvider) state).hasChestEquipped()) {
+        //if (((WolfEntityProvider) state).hasChestEquipped()) {
             matrices.push();
             bagModelV2.copyTransform(wolfTorso);
             bagModelV2.render(matrices, vertexConsumers.getBuffer(RenderLayer.getEntitySolid(WolfBagModelV2.TEXTURE_LOCATION)), light, OverlayTexture.DEFAULT_UV);
@@ -42,6 +43,6 @@ public class WolfBagFeatureRenderer extends FeatureRenderer<WolfEntityRenderStat
             }
 
             matrices.pop();
-        }
+        //}
     }
 }

@@ -3,6 +3,8 @@ package github.meloweh.wolfcompanion.mixin;
 import com.google.common.collect.Lists;
 import github.meloweh.wolfcompanion.WolfCompanion;
 import github.meloweh.wolfcompanion.util.EnchantmentHelperHelper;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.EnchantableComponent;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.enchantment.EnchantmentLevelEntry;
@@ -51,46 +53,60 @@ public class EnchantmentScreenHandlerMixin {
     @Unique
     public List<EnchantmentLevelEntry> generateEnchantments(Random random, ItemStack stack, int level, Stream<RegistryEntry<Enchantment>> possibleEnchantments) {
         List<EnchantmentLevelEntry> list = Lists.newArrayList();
-        Item item = stack.getItem();
-        int i = item.getEnchantability();
-        if (i <= 0) {
+        EnchantableComponent enchantableComponent = stack.get(DataComponentTypes.ENCHANTABLE);
+        if (enchantableComponent == null) {
             return list;
         } else {
-            level += 1 + random.nextInt(i / 4 + 1) + random.nextInt(i / 4 + 1);
+            level += 1 + random.nextInt(enchantableComponent.value() / 4 + 1) + random.nextInt(enchantableComponent.value() / 4 + 1);
             float f = (random.nextFloat() + random.nextFloat() - 1.0F) * 0.15F;
             level = MathHelper.clamp(Math.round((float)level + (float)level * f), 1, Integer.MAX_VALUE);
             List<EnchantmentLevelEntry> list2 = EnchantmentHelperHelper.getPossibleWolfArmorEntries(level, possibleEnchantments);
-            //List<EnchantmentLevelEntry> list2 = EnchantmentHelper.getPossibleEntries(level, stack, possibleEnchantments);
-            //System.out.println("A");
-            //list2.forEach(e -> System.out.println(e.enchantment.value().description().getString()));
             Optional<EnchantmentLevelEntry> var10000 = Weighting.getRandom(random, list2);
             var10000.ifPresent(list::add);  // Explicitly using a lambda expression
 
             while (random.nextInt(50) <= level) {
                 var10000 = Weighting.getRandom(random, list2);
-                var10000.ifPresent(list::add);  // Explicitly using a lambda expression
+                var10000.ifPresent(list::add);
                 level /= 2;
             }
-
-            System.out.println("B");
-            list.forEach(e -> System.out.println(e.enchantment.value().description().getString()));
-            System.out.println("B2");
-
 
             return list;
         }
     }
 
+//    @Unique
+//    public List<EnchantmentLevelEntry> generateEnchantments(Random random, ItemStack stack, int level, Stream<RegistryEntry<Enchantment>> possibleEnchantments) {
+//        List<EnchantmentLevelEntry> list = Lists.newArrayList();
+//        Item item = stack.getItem();
+//        int i = item.getEnchantability();
+//        if (i <= 0) {
+//            return list;
+//        } else {
+//            level += 1 + random.nextInt(i / 4 + 1) + random.nextInt(i / 4 + 1);
+//            float f = (random.nextFloat() + random.nextFloat() - 1.0F) * 0.15F;
+//            level = MathHelper.clamp(Math.round((float)level + (float)level * f), 1, Integer.MAX_VALUE);
+//            List<EnchantmentLevelEntry> list2 = EnchantmentHelperHelper.getPossibleWolfArmorEntries(level, possibleEnchantments);
+//            Optional<EnchantmentLevelEntry> var10000 = Weighting.getRandom(random, list2);
+//            var10000.ifPresent(list::add);  // Explicitly using a lambda expression
+//
+//            while (random.nextInt(50) <= level) {
+//                var10000 = Weighting.getRandom(random, list2);
+//                var10000.ifPresent(list::add);
+//                level /= 2;
+//            }
+//
+//            return list;
+//        }
+//    }
+
 
     @Inject(method = "generateEnchantments", at = @At("HEAD"), cancellable = true)
     public void changeGenerateEnchantments(DynamicRegistryManager registryManager, ItemStack stack, int slot, int level, CallbackInfoReturnable<List<EnchantmentLevelEntry>> cir) {
         if (stack.isOf(Items.WOLF_ARMOR)) {
-            this.random.setSeed((long) (this.seed.get() + slot));
-//        registryManager.get(RegistryKeys.ENCHANTMENT).getIndexedEntries().forEach(e -> {
-//            System.out.println(e.value().description().getString());
-//        });
+            this.random.setSeed(this.seed.get() + slot);
+
             List<RegistryEntry<Enchantment>> enchantments = new ArrayList<>();
-            registryManager.get(RegistryKeys.ENCHANTMENT).getIndexedEntries().forEach(e -> {
+            registryManager.getOrThrow(RegistryKeys.ENCHANTMENT).getIndexedEntries().forEach(e -> {
                 if (WolfCompanion.isSameEnchantment(e.value(), Enchantments.UNBREAKING)) {
                     enchantments.add(e);
                 }

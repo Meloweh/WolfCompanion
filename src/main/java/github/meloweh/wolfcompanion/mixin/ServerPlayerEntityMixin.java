@@ -5,6 +5,7 @@ import github.meloweh.wolfcompanion.accessor.ServerPlayerAccessor;
 import github.meloweh.wolfcompanion.events.WolfEventHandler;
 import github.meloweh.wolfcompanion.util.ConfigManager;
 import net.minecraft.entity.EntityType;
+import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.passive.WolfEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
@@ -106,7 +107,7 @@ public abstract class ServerPlayerEntityMixin implements ServerPlayerAccessor {
 
 
             ServerWorld world = (ServerWorld) this.self.getWorld();
-            final WolfEntity newWolf = EntityType.WOLF.create(world);
+            final WolfEntity newWolf = EntityType.WOLF.create(world, SpawnReason.MOB_SUMMONED);
             newWolf.setHealth(newWolf.getMaxHealth());
             newWolf.clearStatusEffects();
             newWolf.readNbt(wolfNbt);

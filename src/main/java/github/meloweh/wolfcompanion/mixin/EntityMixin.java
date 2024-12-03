@@ -16,23 +16,4 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class EntityMixin implements EntityAccessor, WolfEntityProvider {
     @Invoker("hasPassenger")
     public abstract boolean invokeHasPassenger(Entity passenger);
-
-    //@Invoker("getDataTracker")
-    //public abstract DataTracker getDataTracker();
-
-    //@Accessor("get")
-    //public abstract ItemStack getGetBodyArmor();
-
-    /*@Inject(method = "getStackReference", at = @At("RETURN"), cancellable = true)
-    private void injectedGetStackReference(int mappedIndex, CallbackInfoReturnable<StackReference> cir) {
-        if (((Object)this) instanceof Entity) {
-            System.out.println("getStackReference yes");
-            final StackReference sr = this.wolfcompanion_template_1_21_1$getGetStackReference(mappedIndex);
-            cir.setReturnValue(sr);
-        } else {
-            System.out.println("getStackReference no");
-        }
-    }*/
-
-
 }

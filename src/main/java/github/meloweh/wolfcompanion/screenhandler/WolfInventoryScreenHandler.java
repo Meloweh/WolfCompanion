@@ -142,7 +142,7 @@ public class WolfInventoryScreenHandler extends ScreenHandler {
     @Override
     public void onSlotClick(int slotIndex, int button, SlotActionType actionType, PlayerEntity player) {
         super.onSlotClick(slotIndex, button, actionType, player);
-        if (!armorSlot.getStack().isEmpty() && !wolf.hasArmor()) {
+        if (!armorSlot.getStack().isEmpty() && !wolf.isWearingBodyArmor()) {
             wolf.equipBodyArmor(armorSlot.getStack());
         }
     }

@@ -41,7 +41,7 @@ public class WolfCompanion implements ModInitializer {
 		InitItem.load();
 		InitBlock.load();
 		InitSound.load();
-		BlockEntityTypeInit.load();
+		//BlockEntityTypeInit.load();
 		ScreenHandlerTypeInit.load();
 		WolfEventHandler.init();
 
