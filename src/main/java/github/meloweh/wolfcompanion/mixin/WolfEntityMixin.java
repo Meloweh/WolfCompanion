@@ -23,6 +23,7 @@ import net.minecraft.entity.data.TrackedDataHandlerRegistry;
 import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
+import net.minecraft.entity.passive.FoxEntity;
 import net.minecraft.entity.passive.WolfEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -43,6 +44,8 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec2f;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3i;
+import net.minecraft.util.profiler.Profiler;
+import net.minecraft.util.profiler.Profilers;
 import net.minecraft.world.GameRules;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
@@ -933,8 +936,9 @@ public abstract class WolfEntityMixin implements
             if (!this.self.getWorld().isClient
                     && this.self.isAlive()
                     && !this.self.isDead()
-                    && this.self.getWorld().getGameRules().getBoolean(GameRules.DO_MOB_GRIEFING)) {
-                this.self.getWorld().getProfiler().push("looting");
+                    && ((ServerWorld)this.self.getWorld()).getGameRules().getBoolean(GameRules.DO_MOB_GRIEFING)) {
+                final Profiler profiler = Profilers.get();
+                profiler.push("looting");
 
                 Vec3i vec3i = ((MobEntityAccessor) this.self).getItemPickUpRangeExpander__();
                 List<ItemEntity> list = this.getWorld().getNonSpectatingEntities(ItemEntity.class, this.self.getBoundingBox()
@@ -942,12 +946,12 @@ public abstract class WolfEntityMixin implements
                         .stream().filter(e -> e == this.targetPickup.get()).toList();
 
                 for (ItemEntity itemEntity : list) {
-                    if (!itemEntity.isRemoved() && !itemEntity.getStack().isEmpty() && !itemEntity.cannotPickup() && this.self.canGather(itemEntity.getStack())) {
+                    if (!itemEntity.isRemoved() && !itemEntity.getStack().isEmpty() && !itemEntity.cannotPickup() && this.self.canGather(((ServerWorld)this.self.getWorld()), itemEntity.getStack())) {
                         this.loot(itemEntity);
                     }
                 }
 
-                this.self.getWorld().getProfiler().pop();
+                profiler.pop();
             }
         }
     }
@@ -1015,12 +1019,12 @@ public abstract class WolfEntityMixin implements
             final ItemStack itemStack = player.getStackInHand(hand);
             if (!this.hasChest() && itemStack.isOf(InitItem.ITEM_WOLF_BAG)) {
                 this.addChest(player, itemStack);
-                final ActionResult result = ActionResult.success(self.getWorld().isClient);
+                final ActionResult result = self.getWorld().isClient ? ActionResult.SUCCESS : ActionResult.SUCCESS_SERVER;
                 cir.setReturnValue(result);
                 cir.cancel();
             } else if (player.isSneaking()) {
                 this.openInventory(player);
-                final ActionResult result =  ActionResult.success(self.getWorld().isClient);
+                final ActionResult result = self.getWorld().isClient ? ActionResult.SUCCESS : ActionResult.SUCCESS_SERVER;
                 cir.setReturnValue(result);
                 cir.cancel();
             }

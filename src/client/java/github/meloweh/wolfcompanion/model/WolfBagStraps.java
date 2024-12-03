@@ -26,6 +26,9 @@ public class WolfBagStraps extends Model {
                 .uv(0, 2).cuboid(-3.0F, 3.0F, -3.0F, 6.0F, 1.0F, 0.0F, new Dilation(0.0F)), ModelTransform.pivot(0.0F, 24.0F, 0.0F));
         return TexturedModelData.of(modelData, 16, 8);
     }
+
+
+
     @Override
     public void render(MatrixStack matrices, VertexConsumer vertexConsumer, int light, int overlay, int color) {
         this.main.render(matrices, vertexConsumer, light, overlay, color);

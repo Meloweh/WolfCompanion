@@ -8,9 +8,6 @@ import net.minecraft.client.render.entity.model.EntityModelLayer;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
 
-// Made with Blockbench 4.11.2
-// Exported for Minecraft version 1.17+ for Yarn
-// Paste this class into your mod and generate all required imports
 public class WolfBagModelV2 extends Model {
 	public static final EntityModelLayer LAYER_LOCATION = new EntityModelLayer(WolfCompanion.id("wb"), "main");
 	public static final Identifier STRAP_LAYER_TEXTURE = WolfCompanion.id("textures/entity/wa.png");
@@ -40,6 +37,10 @@ public class WolfBagModelV2 extends Model {
 				.uv(22, 19).cuboid(7.0F, 0.0F, -2.0F, 1.0F, 5.0F, 4.0F, new Dilation(0.0F)), ModelTransform.pivot(-4.0F, 1.0F, 0.0F));
 		return TexturedModelData.of(modelData, 32, 32);
 	}
+
+
+
+
 	@Override
 	public void render(MatrixStack matrices, VertexConsumer vertexConsumer, int light, int overlay, int color) {
 		this.main.render(matrices, vertexConsumer, light, overlay, color);
