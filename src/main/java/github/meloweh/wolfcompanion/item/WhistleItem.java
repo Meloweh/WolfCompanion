@@ -101,13 +101,15 @@ public class WhistleItem extends Item {
                 ).forEach(wolf -> {
                     if (ConfigManager.config.canTeleportSitting)
                         wolf.setSitting(false);
-                    wolf.teleport((ServerWorld) user.getWorld(), user.getX(), user.getY(), user.getZ(), null, user.getYaw(), user.getPitch());
+                    //(ServerWorld world, double destX, double destY, double destZ, Set<PositionFlag> flags, float yaw, float pitch, boolean resetCamera) {
+                    wolf.teleport((ServerWorld) wolf.getWorld(), user.getX(), user.getY(), user.getZ(), null, user.getYaw(), user.getPitch(), false);
                     ((MobEntityAccessor)wolf).getNavigator__().stop();
                 });
             });
         }
 
-        return new ActionResult.Success(world.isClient() ? ActionResult.SwingSource.CLIENT : ActionResult.SwingSource.SERVER, );
-        return ActionResult.success(itemStack, world.isClient());
+        return ActionResult.CONSUME;
+        //return new ActionResult.Success(world.isClient() ? ActionResult.SwingSource.CLIENT : ActionResult.SwingSource.SERVER, ActionResult.CONSUME.itemContext());
+        //return ActionResult.success(itemStack, world.isClient());
     }
 }
