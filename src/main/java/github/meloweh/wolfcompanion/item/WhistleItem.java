@@ -10,6 +10,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvent;
+import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.world.World;
 
@@ -76,7 +77,7 @@ public class WhistleItem extends Item {
 
 
     @Override
-    public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
+    public ActionResult use(World world, PlayerEntity user, Hand hand) {
         ItemStack itemStack = user.getStackInHand(hand);
 
         if (!world.isClient) {
@@ -106,6 +107,7 @@ public class WhistleItem extends Item {
             });
         }
 
-        return TypedActionResult.success(itemStack, world.isClient());
+        return new ActionResult.Success(world.isClient() ? ActionResult.SwingSource.CLIENT : ActionResult.SwingSource.SERVER, );
+        return ActionResult.success(itemStack, world.isClient());
     }
 }

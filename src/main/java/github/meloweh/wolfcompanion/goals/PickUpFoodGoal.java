@@ -12,6 +12,7 @@ import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.InventoryChangedListener;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.world.GameRules;
 
 import java.util.ArrayList;
@@ -81,7 +82,7 @@ public class PickUpFoodGoal extends Goal implements InventoryChangedListener {
 
     @Override
     public boolean canStart() {
-        if (!wolf.getWorld().isClient && wolf.isAlive() && !wolf.isDead() && wolf.getWorld().getGameRules().getBoolean(GameRules.DO_MOB_GRIEFING)) {
+        if (!wolf.getWorld().isClient && wolf.isAlive() && !wolf.isDead() && ((ServerWorld)wolf.getWorld()).getGameRules().getBoolean(GameRules.DO_MOB_GRIEFING)) {
             if (wolf.isTamed()
                     && !wolf.getWorld().isClient
                     && !wolf.isSitting()

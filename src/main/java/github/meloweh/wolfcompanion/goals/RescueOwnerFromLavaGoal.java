@@ -211,7 +211,7 @@ public class RescueOwnerFromLavaGoal extends Goal implements InventoryChangedLis
 
         RegistryEntry<Potion> registryEntry = itemStack.second;//Potions.FIRE_RESISTANCE;
 
-        PotionEntity potionEntity = new PotionEntity(this.wolf.getWorld(), this.wolf);
+        PotionEntity potionEntity = new PotionEntity(this.wolf.getWorld(), this.wolf, itemStack.first);
         potionEntity.setItem(PotionContentsComponent.createStack(Items.SPLASH_POTION, registryEntry));
         potionEntity.setPitch(potionEntity.getPitch() - -20.0F);
         potionEntity.setVelocity(d, e + g * 0.2, f, 0.75F, 0F);
