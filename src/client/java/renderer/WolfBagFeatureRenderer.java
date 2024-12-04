@@ -1,8 +1,10 @@
 package renderer;
 
 import accessor.WolfEntityModelAccessor;
+import accessor.WolfEntityRenderStateProvider;
 import github.meloweh.wolfcompanion.accessor.WolfEntityProvider;
 import github.meloweh.wolfcompanion.model.WolfBagModelV2;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.model.ModelPart;
 import net.minecraft.client.render.OverlayTexture;
 import net.minecraft.client.render.RenderLayer;
@@ -14,6 +16,7 @@ import net.minecraft.client.render.entity.model.WolfEntityModel;
 import net.minecraft.client.render.entity.state.WolfEntityRenderState;
 import net.minecraft.client.render.item.ItemRenderer;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.entity.passive.WolfEntity;
 
 public class WolfBagFeatureRenderer extends FeatureRenderer<WolfEntityRenderState, WolfEntityModel> {
     final private ModelPart wolfTorso;
@@ -33,16 +36,18 @@ public class WolfBagFeatureRenderer extends FeatureRenderer<WolfEntityRenderStat
 
     @Override
     public void render(MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, WolfEntityRenderState state, float limbAngle, float limbDistance) {
-        //if (((WolfEntityProvider) state).hasChestEquipped()) {
+        final WolfEntityRenderStateProvider provider = (WolfEntityRenderStateProvider) state;
+
+        if (provider.hasChestEquipped__()) {
             matrices.push();
             bagModelV2.copyTransform(wolfTorso);
             bagModelV2.render(matrices, vertexConsumers.getBuffer(RenderLayer.getEntitySolid(WolfBagModelV2.TEXTURE_LOCATION)), light, OverlayTexture.DEFAULT_UV);
-            if (!state.bodyArmor.isEmpty()) {
+            if (state.bodyArmor.isEmpty()) {
                 VertexConsumer vertexConsumer = vertexConsumers.getBuffer(RenderLayer.getEntityCutoutNoCull(WolfBagModelV2.STRAP_LAYER_TEXTURE));
                 this.getContextModel().render(matrices, vertexConsumer, light, OverlayTexture.DEFAULT_UV);
             }
 
             matrices.pop();
-        //}
+        }
     }
 }
