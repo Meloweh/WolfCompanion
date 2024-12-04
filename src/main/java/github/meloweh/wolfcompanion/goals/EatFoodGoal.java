@@ -57,6 +57,7 @@ public class EatFoodGoal extends Goal implements InventoryChangedListener {
 
     @Override
     public boolean canStart() {
+
         final boolean wouldStart = !this.entity.isInvulnerable()
                 && this.entity.hurtTime == 0 && !this.entity.getWorld().isClient;
 
@@ -110,93 +111,47 @@ public class EatFoodGoal extends Goal implements InventoryChangedListener {
         return SoundEvents.ENTITY_FOX_EAT;
     }
 
-    private ItemStack nextFood() {
-        ItemStack itemStack = this.entity.getEquippedStack(EquipmentSlot.MAINHAND);
-
-        if (!itemStack.isEmpty()) return itemStack;
-
-        itemStack = findFood();
-        this.entity.equipStack(EquipmentSlot.MAINHAND, itemStack);
-
-        return itemStack;
-    }
-
     @Override
     public void tick() {
         if (!this.entity.getWorld().isClient &&
                 this.entity.isAlive() &&
-                this.entity.canMoveVoluntarily() &&
-                !this.eatingFood.isEmpty()) {
-
-            ItemStack itemStack = this.eatingFood;
-            if (!itemStack.isEmpty()) {
-                this.eatingTime--;
-            } else {
-                this.eatingTime = 0;
-                return;
-            }
-
-            if (this.eatingTime == 0) {
-                final FoodComponent foodComponent = itemStack.get(DataComponentTypes.FOOD);
-                if (foodComponent == null) {
-                    this.eatingTime++;
+                this.entity.canMoveVoluntarily()) {
+            if (!this.eatingFood.isEmpty()) {
+                if (!this.inventoryContents.contains(this.eatingFood)) {
+                    this.eatingTime = 0;
                     return;
                 }
-                this.entity.heal(foodComponent.nutrition());
-                //itemStack.decrement(1);
-                ItemStack itemStack2 = itemStack.finishUsing(this.entity.getWorld(), this.entity);
-                this.entity.equipStack(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
-                this.eatingTime = -1;
-            } else if (this.eatingTime > 0) {
-                if (this.eatingTime % 2 == 0 && this.entity.getRandom().nextFloat() < 0.5F) {
-                    this.entity.playSound(this.getEatSound(itemStack), 1.0F, 1.0F);
-                    this.entity.getWorld().sendEntityStatus(this.entity, EntityStatuses.CREATE_EATING_PARTICLES);
+
+                ItemStack itemStack = this.eatingFood;
+                if (!itemStack.isEmpty()) {
+                    this.eatingTime--;
+                } else {
+                    this.eatingTime = 0;
+                    return;
                 }
 
+                if (this.eatingTime == 0) {
+                    final FoodComponent foodComponent = itemStack.get(DataComponentTypes.FOOD);
+                    if (foodComponent == null) {
+                        this.eatingTime++;
+                        return;
+                    }
+                    this.entity.heal(foodComponent.nutrition());
+                    //itemStack.decrement(1);
+                    ItemStack itemStack2 = itemStack.finishUsing(this.entity.getWorld(), this.entity);
+                    this.entity.equipStack(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
+                    this.eatingTime = -1;
+                } else if (this.eatingTime > 0) {
+                    if (this.eatingTime % 2 == 0 && this.entity.getRandom().nextFloat() < 0.5F) {
+                        this.entity.playSound(this.getEatSound(itemStack), 1.0F, 1.0F);
+                        this.entity.getWorld().sendEntityStatus(this.entity, EntityStatuses.CREATE_EATING_PARTICLES);
+                    }
+
+                }
+            } else {
+                this.eatingTime = 0;
             }
         }
-//        this.eatCooldown--;
-//        this.eatingTime++;
-//        ItemStack itemStack = this.entity.getEquippedStack(EquipmentSlot.MAINHAND);
-//        if (itemStack.contains(DataComponentTypes.FOOD)) {
-//            if (this.eatingTime > 600) {
-//                ItemStack itemStack2 = itemStack.finishUsing(this.entity.getWorld(), this.entity);
-//                if (!itemStack2.isEmpty()) {
-//                    this.entity.equipStack(EquipmentSlot.MAINHAND, itemStack2);
-//                }
-//
-//                this.eatingTime = 0;
-//            } else if (this.eatingTime > 560 && this.entity.getRandom().nextFloat() < 0.1F) {
-//                this.entity.playSound(this.entity.getEatSound(itemStack), 1.0F, 1.0F);
-//                this.entity.getWorld().sendEntityStatus(this.entity, EntityStatuses.CREATE_EATING_PARTICLES);
-//            }
-//        }
-        
-        /*--eatCooldown;
-        if (!eatingFood.isEmpty() && eatingFood.getComponents().contains(DataComponentTypes.FOOD)) {
-            if (foodEatTime > 0) {
-                if (--foodEatTime % 4 == 0) {
-//                    for (ServerPlayerEntity player : PlayerLookup.tracking((ServerWorld) entity.getWorld(), entity.getBlockPos())) {
-//                        ServerPlayNetworking.send(player, new WolfEatS2CPayload(entity.getId(), eatingFood));
-//                    }
-                    this.entity.sen
-                    this.entity.playSound(SoundEvents.ENTITY_GENERIC_EAT, 0.5F, (this.entity.getRandom().nextFloat() - this.entity.getRandom().nextFloat()) * 0.2F + 1);
-                }
-            } else if (!hasHealedSinceLastReset) {
-                CreatureFoodStats foodStats = this.armoredWolf.getFoodStats();
-                boolean creatureFoodStatsEnabled = this.config.getFoodStatsLevel() != WolfFoodStatsLevel.DISABLED;
-                hasHealedSinceLastReset = true;
-                TargetPoint targetPoint = new TargetPoint(entity.dimension, entity.posX, entity.posY, entity.posZ, 80);
-                this.connection.sendToAllAround(new WolfHealMessage(entity.getEntityId()), targetPoint);
-
-                if (creatureFoodStatsEnabled) {
-                    foodStats.addStats((ItemFood)this.eatingFood.getItem(), this.eatingFood);
-                } else {
-                    this.entity.heal((float) ((ItemFood) eatingFood.getItem()).getHealAmount(eatingFood));
-                }
-                this.eatingFood.shrink(1);
-            }
-        }*/
     }
 
 

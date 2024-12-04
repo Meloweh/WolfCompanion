@@ -7,7 +7,11 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
+import net.minecraft.entity.passive.WolfEntity;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.potion.Potion;
 import net.minecraft.potion.Potions;
 import net.minecraft.registry.RegistryKeys;
@@ -56,9 +60,30 @@ public class WolfInventoryHelper {
         final boolean hasAnyPotion = !findLifesavingPotions(inventoryContents, entity).first.isEmpty();
         final boolean hasFirePotion = !findPotion(inventoryContents, StatusEffects.FIRE_RESISTANCE).first.isEmpty();
 
+        boolean hasArmor = false;
+
+        if (entity instanceof WolfEntity) {
+            WolfEntity w = (WolfEntity) entity;
+            hasArmor = w.isWearingBodyArmor();
+        }
+
+        if (entity instanceof PlayerEntity) {
+            PlayerEntity p = (PlayerEntity) entity;
+            boolean isOk = true;
+
+            for (ItemStack e : p.getArmorItems()) {
+                if (!e.isOf(Items.NETHERITE_BOOTS) && !e.isOf(Items.NETHERITE_LEGGINGS) && !e.isOf(Items.NETHERITE_CHESTPLATE) && !e.isOf(Items.NETHERITE_HELMET)) {
+                    isOk = false;
+                    break;
+                }
+            }
+
+            hasArmor = isOk;
+        }
+
         if (entity.isInLava()) {
             if (!hasFireResistance) {
-                if (hasAnyPotion) return false;
+                if (hasAnyPotion && !hasArmor || hasFirePotion) return false;
             }
         }
         if (isLow) {

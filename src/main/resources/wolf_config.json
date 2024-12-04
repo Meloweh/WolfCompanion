@@ -4,5 +4,10 @@
   "canTeleportSitting": true,
   "canRespawn": true,
   "keepWolfBag": true,
-  "keepWolfInventory": false
+  "keepWolfInventory": false,
+  "canPickupFood": true,
+  "maxPickupFood": 10,
+  "pickAllRottenFlesh": true,
+  "shouldCarePlayerFood": true,
+  "requiredPlayerFood": 10
 }

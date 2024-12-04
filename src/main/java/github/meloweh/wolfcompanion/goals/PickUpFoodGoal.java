@@ -1,6 +1,7 @@
 package github.meloweh.wolfcompanion.goals;
 
 import github.meloweh.wolfcompanion.accessor.WolfEntityProvider;
+import github.meloweh.wolfcompanion.util.ConfigManager;
 import github.meloweh.wolfcompanion.util.WolfInventoryProvider;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.ItemEntity;
@@ -44,6 +45,7 @@ public class PickUpFoodGoal extends Goal implements InventoryChangedListener {
     }
 
     public static boolean playerFoodEnough(final WolfEntity wolf) {
+        if (!ConfigManager.config.shouldCarePlayerFood) return true;
         if (wolf.getOwner() != null) {
             final PlayerInventory inv = ((PlayerEntity)wolf.getOwner()).getInventory();
             final List<ItemStack> ic = new ArrayList<>();
@@ -52,7 +54,7 @@ public class PickUpFoodGoal extends Goal implements InventoryChangedListener {
                 ++slotIndex) {
                 ic.add(inv.getStack(slotIndex));
             }
-            return ic.stream().filter(WolfInventoryProvider::canPlayerEat).mapToInt(ItemStack::getCount).sum() >= 10;
+            return ic.stream().filter(WolfInventoryProvider::canPlayerEat).mapToInt(ItemStack::getCount).sum() >= ConfigManager.config.requiredPlayerFood;
         }
         return true;
     }
@@ -64,11 +66,12 @@ public class PickUpFoodGoal extends Goal implements InventoryChangedListener {
     }
 
     private boolean wantsToPickupItem() {
+        if (!ConfigManager.config.canPickupFood) return false;
         if (provider.hasChestEquipped()) {
             this.inventory.inventoryInit(this);
 
-            if (this.inventory.hasSpace() && (this.inventory.getFoodCount() <= 8
-                    || this.inventory.onlyFood(Items.ROTTEN_FLESH))) {
+            if (this.inventory.hasSpace() && (this.inventory.getFoodCount() <= ConfigManager.config.maxPickupFood
+                    || ConfigManager.config.pickAllRottenFlesh && this.inventory.onlyFood(Items.ROTTEN_FLESH))) {
                 return true;
             }
         }
