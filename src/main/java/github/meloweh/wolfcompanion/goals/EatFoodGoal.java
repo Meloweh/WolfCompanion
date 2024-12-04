@@ -117,10 +117,10 @@ public class EatFoodGoal extends Goal implements InventoryChangedListener {
                 this.entity.isAlive() &&
                 this.entity.canMoveVoluntarily()) {
             if (!this.eatingFood.isEmpty()) {
-                if (!this.inventoryContents.contains(this.eatingFood)) {
-                    this.eatingTime = 0;
-                    return;
-                }
+//                if (this.armoredWolf.hasChestEquipped() && !this.inventoryContents.contains(this.eatingFood)) {
+//                    stop();
+//                    return;
+//                }
 
                 ItemStack itemStack = this.eatingFood;
                 if (!itemStack.isEmpty()) {

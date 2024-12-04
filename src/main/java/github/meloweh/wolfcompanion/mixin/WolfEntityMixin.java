@@ -23,7 +23,6 @@ import net.minecraft.entity.data.TrackedDataHandlerRegistry;
 import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
-import net.minecraft.entity.passive.FoxEntity;
 import net.minecraft.entity.passive.WolfEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -102,7 +101,7 @@ public abstract class WolfEntityMixin implements
         //items.markDirty();
         this.self = (WolfEntity) (Object) this;
         this.onChestedStatusChanged();
-        this.self.setCanPickUpLoot(true);
+        //this.self.setCanPickUpLoot(true);
     }
 
     @Override
@@ -789,82 +788,6 @@ public abstract class WolfEntityMixin implements
         return 5;
     }
 
-    /*@Inject(method = "tick", at = @At("TAIL"))
-    private void onTickEnd(CallbackInfo ci) {
-        this.self.playSound(this.self.getEatSound(Items.PORKCHOP.getDefaultStack()), 1.0F, 1.0F);
-        this.self.getWorld().sendEntityStatus(this.self, EntityStatuses.CREATE_EATING_PARTICLES);
-    }*/
-
-//    @Unique
-//    private boolean canEat(ItemStack stack) {
-//        return stack.contains(DataComponentTypes.FOOD) && this.self.getTarget() == null;
-//    }
-
-//    @Unique
-//    private final List<ItemStack> inventoryContents = new ArrayList<>();
-//
-//    private void refreshInventoryContents(Inventory invBasic) {
-//        this.inventoryContents.clear();
-//        for(int slotIndex = 1;
-//            slotIndex < 16;
-//            ++slotIndex) {
-//            this.inventoryContents.add(invBasic.getStack(slotIndex));
-//        }
-//    }
-
-//    @Unique
-//    protected void loot(ItemEntity item) {
-//        ItemStack itemStack = item.getStack();
-//        if (!itemStack.isEmpty()) {
-//            if (this.items.canInsert(itemStack)) {
-//                this.self.triggerItemPickedUpByEntityCriteria(item);
-//                final ItemStack itemStack2 = this.items.addStack(itemStack);
-//                System.out.println(itemStack.getCount() + " " + itemStack.getItem().toString() + " " + itemStack2.getCount() + " " + (itemStack2.getItem().toString()));
-//
-//                //this.items.markDirty();
-//                itemStack.decrement(itemStack2.getCount());
-//                this.self.sendPickup(item, itemStack2.getCount());
-//                if (itemStack.isEmpty()) {
-//                    item.discard();
-//                }
-//            }
-//        }
-//    }
-
-//    @Unique
-//    private int addToPresent(final ItemStack stack) {
-//        final DefaultedList<ItemStack> stacks = this.items.getHeldStacks();
-//        int transfer = stack.getCount();
-//        int transfered = 0;
-//        final Set<ItemStack> sames = stacks.stream().filter(e -> e.isOf(stack.getItem())).collect(Collectors.toSet());
-//
-//        for (ItemStack same : sames) {
-//            final int fits = same.getMaxCount() - same.getCount();
-//            final int transfering = Math.min(fits, transfer);
-//            same.increment(transfering);
-//            stack.decrement(transfering);
-//            transfered += transfering;
-//            transfer -= transfering;
-//
-//            same
-//
-//            if (transfer <= 0) break;
-//        }
-//
-//        if (transfer > 0) {
-//            final Optional<ItemStack> opt = stacks.stream().filter(e -> e.isOf(Items.AIR)).findFirst();
-//
-//        }
-//
-//
-//
-//        if (transfered > transfer) {
-//            throw new IllegalStateException("transfered more items than allowed... How did you even get here?");
-//        }
-//
-//
-//    }
-
     @Unique
     private SimpleInventory getReducedInventory() {
         final SimpleInventory inv = new SimpleInventory(15);
@@ -901,7 +824,7 @@ public abstract class WolfEntityMixin implements
     }
 
     @Unique
-    private void loot(ItemEntity item) {
+    private void loot__(ItemEntity item) {
         ItemStack itemStack = item.getStack();
         if (!itemStack.isEmpty()) {
             if (this.hasChestEquipped()) {
@@ -942,6 +865,7 @@ public abstract class WolfEntityMixin implements
 
     @Inject(method = "tickMovement", at = @At("TAIL"))
     private void onTickMovement(CallbackInfo ci) {
+        System.out.println(this.self.canPickUpLoot());
         if(this.targetPickup.isPresent()) {
             if (!this.self.getWorld().isClient
                     && this.self.isAlive()
@@ -957,7 +881,7 @@ public abstract class WolfEntityMixin implements
 
                 for (ItemEntity itemEntity : list) {
                     if (!itemEntity.isRemoved() && !itemEntity.getStack().isEmpty() && !itemEntity.cannotPickup() && this.self.canGather(((ServerWorld)this.self.getWorld()), itemEntity.getStack())) {
-                        this.loot(itemEntity);
+                        this.loot__(itemEntity);
                     }
                 }
 
@@ -965,27 +889,6 @@ public abstract class WolfEntityMixin implements
             }
         }
     }
-
-//    @Inject(method = "tickMovement", at = @At("TAIL"))
-//    private void onTickMovement(CallbackInfo ci) {
-//        if (!this.self.getWorld().isClient && this.self.isAlive() && this.self.canMoveVoluntarily()) {
-//            this.eatingTime++;
-//            ItemStack itemStack = this.self.getEquippedStack(EquipmentSlot.MAINHAND);
-//            if (canEat(itemStack)) { // TODO: no cookies for doggo
-//                if (this.eatingTime > 600) {
-//                    ItemStack itemStack2 = itemStack.finishUsing(this.self.getWorld(), this.self);
-//                    if (!itemStack2.isEmpty()) {
-//                        this.self.equipStack(EquipmentSlot.MAINHAND, itemStack2);
-//                    }
-//
-//                    this.eatingTime = 0;
-//                } else if (this.eatingTime > 560 && this.self.getRandom().nextFloat() < 0.1F) {
-//                    this.self.playSound(this.getEatSound(itemStack), 1.0F, 1.0F);
-//                    this.self.getWorld().sendEntityStatus(this.self, EntityStatuses.CREATE_EATING_PARTICLES);
-//                }
-//            }
-//        }
-//    }
 
     @Unique
     private Vec2f vecFromYaw(final float yaw) {
@@ -1040,10 +943,5 @@ public abstract class WolfEntityMixin implements
             }
         }
     }
-
-    /*@Override
-    public SimpleInventory getInventory() {
-        return inventory;
-    }*/
 }
 
