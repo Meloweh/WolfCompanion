@@ -13,6 +13,7 @@ import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ModelTransformationMode;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RotationAxis;
 
 public class WolfItemFeatureRenderer extends FeatureRenderer<WolfEntityRenderState, WolfEntityModel> {
@@ -25,6 +26,21 @@ public class WolfItemFeatureRenderer extends FeatureRenderer<WolfEntityRenderSta
         final WolfEntityModel model = featureRendererContext.getModel();
         this.wolfHead = ((WolfEntityModelAccessor) model).getHead();
         this.heldItemRenderer = itemRenderer;
+    }
+
+    public float getShakeAnimationProgress(float tickDelta, float f) {
+        float g = (tickDelta + f) / 1.8F;
+        if (g < 0.0F) {
+            g = 0.0F;
+        } else if (g > 1.0F) {
+            g = 1.0F;
+        }
+
+        return MathHelper.sin(g * 3.1415927F) * MathHelper.sin(g * 3.1415927F * 11.0F) * 0.15F * 3.1415927F;
+    }
+
+    public float getBegAnimationProgress(float tickDelta) {
+        return tickDelta * 0.15F * 3.1415927F;
     }
 
     @Override
@@ -44,7 +60,7 @@ public class WolfItemFeatureRenderer extends FeatureRenderer<WolfEntityRenderSta
             }
 
             matrices.translate(wolfHead.pivotX / 16.0F, wolfHead.pivotY / 16.0F, wolfHead.pivotZ / 16.0F);
-            m = state.begAnimationProgress + state.shakeProgress;
+            m = state.begAnimationProgress + getShakeAnimationProgress(state.shakeProgress, 0f);
             //m = state.shakeProgress;
 
             matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(limbAngle));
