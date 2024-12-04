@@ -98,7 +98,7 @@ public class WolfInventoryScreen extends HandledScreen<WolfInventoryScreenHandle
         if (this.wolf.isWearingBodyArmor()) {
             context.drawGuiTexture(RenderLayer::getGuiTextured, SLOT, i + 7, j + 35 - 18, 18, 18);
         } else {
-            context.drawGuiTexture(RenderLayer::getGuiTextured, WOLF_ARMOR_SLOT, i + 7, j + 35 - 18, 18, 18);
+            context.drawTexture(RenderLayer::getGuiTextured, WOLF_ARMOR_SLOT, i + 7, j + 35 - 18, 0, 0, 18, 18, 18, 18);
         }
 
         if (((WolfEntityProvider)this.wolf).hasChestEquipped()) {

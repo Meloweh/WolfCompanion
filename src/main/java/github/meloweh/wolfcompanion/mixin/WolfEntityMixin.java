@@ -145,12 +145,17 @@ public abstract class WolfEntityMixin implements
 
     @Shadow
     private boolean furWet;
+    @Shadow
+    private boolean canShakeWaterOff;
+    @Shadow
+    private float shakeProgress;
 
     @Unique
     private void doWolfShake() {
+        this.furWet = true;
         if (!self.getWorld().isClient) {
-            this.furWet = true;
-            this.self.getWorld().sendEntityStatus(this.self, (byte)56);
+            //this.furWet = true;
+            //this.self.getWorld().sendEntityStatus(this.self, (byte)56);
         }
     }
 
@@ -253,27 +258,32 @@ public abstract class WolfEntityMixin implements
     private void shakeConditions(CallbackInfo ci) {
         if (self.isAlive() && !self.getWorld().isClient) {
              byte shakeReason = 0;
-             if (!self.isWet()) {
+             if (!self.isWet() && getShakeReason() == 0) {
                  if (ConfigManager.config.canShakeOffPoison && isPoisoned(this.self))
                      shakeReason = 1;
 
-                 if (ConfigManager.config.canShakeOffFire && self.isOnFire() && !self.isInLava() && self.isOnGround() && self.prevY <= self.getY())
+                 if (ConfigManager.config.canShakeOffFire && self.isOnFire() && !self.isInLava() && self.isOnGround() && self.prevY <= self.getY()) {
                      shakeReason = 2;
+                 }
 
                  if (getShakeReason() > 0)
                      setShakeReason((byte)0);
 
                  if (shakeReason > 0) {
-                     setShakeReason(shakeReason);
                      doWolfShake();
+                     setShakeReason(shakeReason);
                  }
-             } else if (getShakeReason() > 0){
+             }
+
+             if (getShakeReason() > 0){
                  if (lastShakeProgress >= 1.8f) {
-                     setShakeReason((byte)0);
-                     if (isPoisoned(self))
-                        self.removeStatusEffect(StatusEffects.POISON);
-                     else if (self.isOnFire())
+                     setShakeReason((byte) 0);
+                     if (isPoisoned(self)) {
+                         self.removeStatusEffect(StatusEffects.POISON);
+                     }
+                     else if (self.isOnFire()) {
                          self.setFireTicks(0);
+                     }
                  }
              }
         }

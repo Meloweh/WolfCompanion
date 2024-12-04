@@ -4,6 +4,7 @@ import github.meloweh.wolfcompanion.accessor.MobEntityAccessor;
 import github.meloweh.wolfcompanion.init.InitSound;
 import github.meloweh.wolfcompanion.util.ConfigManager;
 import net.minecraft.entity.EntityType;
+import net.minecraft.entity.passive.WolfEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -12,6 +13,7 @@ import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 public class WhistleItem extends Item {
@@ -74,8 +76,6 @@ public class WhistleItem extends Item {
         }
     }
 
-
-
     @Override
     public ActionResult use(World world, PlayerEntity user, Hand hand) {
         ItemStack itemStack = user.getStackInHand(hand);
@@ -102,7 +102,9 @@ public class WhistleItem extends Item {
                     if (ConfigManager.config.canTeleportSitting)
                         wolf.setSitting(false);
                     //(ServerWorld world, double destX, double destY, double destZ, Set<PositionFlag> flags, float yaw, float pitch, boolean resetCamera) {
-                    wolf.teleport((ServerWorld) wolf.getWorld(), user.getX(), user.getY(), user.getZ(), null, user.getYaw(), user.getPitch(), false);
+                    //wolf.teleport((ServerWorld) wolf.getWorld(), user.getX(), user.getY(), user.getZ(), null, user.getYaw(), user.getPitch(), false);
+                    //wolf.tryTeleportToOwner();
+                    wolf.refreshPositionAndAngles(user.getX(), user.getY(), user.getZ(), user.getYaw(), user.getPitch());
                     ((MobEntityAccessor)wolf).getNavigator__().stop();
                 });
             });
