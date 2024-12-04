@@ -44,8 +44,8 @@ public class WolfItemFeatureRenderer extends FeatureRenderer<WolfEntityRenderSta
             }
 
             matrices.translate(wolfHead.pivotX / 16.0F, wolfHead.pivotY / 16.0F, wolfHead.pivotZ / 16.0F);
-            m = state.begAnimationProgress;
-            m = state.shakeProgress;
+            m = state.begAnimationProgress + state.shakeProgress;
+            //m = state.shakeProgress;
 
             matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(limbAngle));
             matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(limbDistance));
