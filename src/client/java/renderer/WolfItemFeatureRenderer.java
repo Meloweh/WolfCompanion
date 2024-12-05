@@ -8,6 +8,7 @@ import net.minecraft.client.render.entity.feature.FeatureRenderer;
 import net.minecraft.client.render.entity.feature.FeatureRendererContext;
 import net.minecraft.client.render.entity.model.WolfEntityModel;
 import net.minecraft.client.render.entity.state.WolfEntityRenderState;
+import net.minecraft.client.render.item.ItemRenderState;
 import net.minecraft.client.render.item.ItemRenderer;
 import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.util.math.MatrixStack;
@@ -18,14 +19,12 @@ import net.minecraft.util.math.RotationAxis;
 
 public class WolfItemFeatureRenderer extends FeatureRenderer<WolfEntityRenderState, WolfEntityModel> {
     final private ModelPart wolfHead;
-    private final ItemRenderer heldItemRenderer;
 
-    public WolfItemFeatureRenderer(FeatureRendererContext<WolfEntityRenderState, WolfEntityModel> featureRendererContext, ItemRenderer itemRenderer) {
+    public WolfItemFeatureRenderer(FeatureRendererContext<WolfEntityRenderState, WolfEntityModel> featureRendererContext) {
         super(featureRendererContext);
 
         final WolfEntityModel model = featureRendererContext.getModel();
         this.wolfHead = ((WolfEntityModelAccessor) model).getHead();
-        this.heldItemRenderer = itemRenderer;
     }
 
     public float getShakeAnimationProgress(float tickDelta, float f) {
@@ -45,6 +44,7 @@ public class WolfItemFeatureRenderer extends FeatureRenderer<WolfEntityRenderSta
 
     @Override
     public void render(MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, WolfEntityRenderState state, float limbAngle, float limbDistance) {
+        final ItemRenderState itemRenderState = state.itemRenderState;
         final BakedModel bakedModel = state.getMainHandItemModel();
         final ItemStack itemStack = state.getMainHandStack();
 
@@ -83,7 +83,7 @@ public class WolfItemFeatureRenderer extends FeatureRenderer<WolfEntityRenderSta
                 matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(90.0F));
             }
 
-            this.heldItemRenderer.renderItem(itemStack, ModelTransformationMode.GROUND, false, matrices, vertexConsumers, light, OverlayTexture.DEFAULT_UV, bakedModel);
+            itemRenderState.render(itemStack, ModelTransformationMode.GROUND, false, matrices, vertexConsumers, light, OverlayTexture.DEFAULT_UV, bakedModel);
             matrices.pop();
         }
     }

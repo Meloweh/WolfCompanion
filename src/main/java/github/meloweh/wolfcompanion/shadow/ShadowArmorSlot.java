@@ -45,15 +45,14 @@ public class ShadowArmorSlot extends Slot {
     @Override
     public boolean canTakeItems(PlayerEntity playerEntity) {
         ItemStack itemStack = this.getStack();
-        return !itemStack.isEmpty()
-                && !playerEntity.isCreative()
-                && EnchantmentHelper.hasAnyEnchantmentsWith(itemStack, EnchantmentEffectComponentTypes.PREVENT_ARMOR_CHANGE)
-                ? false
-                : super.canTakeItems(playerEntity);
+        return (itemStack.isEmpty()
+                || playerEntity.isCreative()
+                || !EnchantmentHelper.hasAnyEnchantmentsWith(itemStack, EnchantmentEffectComponentTypes.PREVENT_ARMOR_CHANGE)) && super.canTakeItems(playerEntity);
     }
 
+
     @Override
-    public Pair<Identifier, Identifier> getBackgroundSprite() {
-        return this.backgroundSprite != null ? Pair.of(PlayerScreenHandler.BLOCK_ATLAS_TEXTURE, this.backgroundSprite) : super.getBackgroundSprite();
+    public Identifier getBackgroundSprite() {
+        return this.backgroundSprite != null ? this.backgroundSprite : super.getBackgroundSprite();
     }
 }

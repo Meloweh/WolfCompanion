@@ -609,7 +609,7 @@ public abstract class WolfEntityMixin implements
         Optional<EnchantmentEffectContext> optional = EnchantmentHelper.chooseEquipmentWith(EnchantmentEffectComponentTypes.REPAIR_WITH_XP, this.self, ItemStack::isDamaged);
         if (optional.isPresent()) {
             ItemStack itemStack = optional.get().stack();
-            int i = EnchantmentHelper.getRepairWithXp((ServerWorld) this.self.getWorld(), itemStack, amount);
+            int i = EnchantmentHelper.getRepairWithExperience((ServerWorld) this.self.getWorld(), itemStack, amount);
             int j = java.lang.Math.min(i, itemStack.getDamage());
             itemStack.setDamage(itemStack.getDamage() - j);
             if (j > 0) {
