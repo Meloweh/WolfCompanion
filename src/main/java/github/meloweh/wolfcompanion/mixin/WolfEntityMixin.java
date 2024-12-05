@@ -704,7 +704,7 @@ public abstract class WolfEntityMixin implements
 
     @Inject(method = "damage", at = @At("HEAD"), cancellable = true)
     private void cancelPlayerDamage(ServerWorld world, DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
-        if (source.getAttacker() instanceof PlayerEntity) {
+        if (source.getAttacker() instanceof PlayerEntity && this.self.isTamed()) {
             cir.setReturnValue(false);
             cir.cancel();
         }
