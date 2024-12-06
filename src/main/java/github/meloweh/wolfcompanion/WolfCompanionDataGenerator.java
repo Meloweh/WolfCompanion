@@ -4,6 +4,8 @@ import github.meloweh.wolfcompanion.data.provider.*;
 import github.meloweh.wolfcompanion.init.InitItem;
 import net.fabricmc.fabric.api.datagen.v1.DataGeneratorEntrypoint;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
+import net.minecraft.registry.RegistryBuilder;
+import org.jetbrains.annotations.Nullable;
 
 public class WolfCompanionDataGenerator implements DataGeneratorEntrypoint {
 //	@Override
@@ -50,5 +52,21 @@ public class WolfCompanionDataGenerator implements DataGeneratorEntrypoint {
 		pack.addProvider(WolfCompanionBlockTagProvider::new);
 		pack.addProvider(WolfCompanionRecipeProvider::new);
 		WolfCompanion.LOGGER.warn("LOADED onInitializeDataGenerator");
+
+
 	}
+
+	@Override
+	public @Nullable String getEffectiveModId() {
+		return DataGeneratorEntrypoint.super.getEffectiveModId();
+	}
+
+	//	@Override
+//	public void buildRegistry(RegistryBuilder registryBuilder) {
+//		registryBuilder.addRegistry(
+//				TEST_DATAGEN_DYNAMIC_REGISTRY_KEY,
+//				this::bootstrapTestDatagenRegistry
+//		);
+//		// do NOT add TEST_DATAGEN_DYNAMIC_EMPTY_REGISTRY_KEY, should still work without it
+//	}
 }

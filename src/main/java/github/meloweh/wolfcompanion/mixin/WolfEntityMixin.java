@@ -865,7 +865,6 @@ public abstract class WolfEntityMixin implements
 
     @Inject(method = "tickMovement", at = @At("TAIL"))
     private void onTickMovement(CallbackInfo ci) {
-        System.out.println(this.self.canPickUpLoot());
         if(this.targetPickup.isPresent()) {
             if (!this.self.getWorld().isClient
                     && this.self.isAlive()
@@ -930,6 +929,7 @@ public abstract class WolfEntityMixin implements
                 !self.isBaby()
         ) {
             final ItemStack itemStack = player.getStackInHand(hand);
+            System.out.println(itemStack.isOf(InitItem.ITEM_WOLF_BAG));
             if (!this.hasChest() && itemStack.isOf(InitItem.ITEM_WOLF_BAG)) {
                 this.addChest(player, itemStack);
                 final ActionResult result = self.getWorld().isClient ? ActionResult.SUCCESS : ActionResult.SUCCESS_SERVER;
