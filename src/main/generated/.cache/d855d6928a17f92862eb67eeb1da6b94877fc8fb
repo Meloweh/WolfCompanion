@@ -1,4 +1,4 @@
-// 1.21.3	2024-12-04T07:32:16.443456039	Better Wolf Companion Mod/Better Wolf Companion Recipes
+// 1.21.3	2024-12-06T19:45:17.573524767	Better Wolf Companion Mod/Better Wolf Companion Recipes
 1eb8366270a635c838362ff3b694d2f66a739468 data/wolfcompanion/recipe/dog_whistle_item.json
 37726b1932280e7a063695425be3c5c4bf8b8a6c data/wolfcompanion/advancement/recipes/tools/wolf_bag_item.json
 b80719fe55adacbf39fa9e1ac32649e79f529a96 data/wolfcompanion/recipe/wolf_single_bag.json
