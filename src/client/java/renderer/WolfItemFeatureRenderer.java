@@ -1,6 +1,9 @@
 package renderer;
 
 import accessor.WolfEntityModelAccessor;
+import accessor.WolfEntityRenderStateProvider;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.model.ModelPart;
 import net.minecraft.client.render.OverlayTexture;
 import net.minecraft.client.render.VertexConsumerProvider;
@@ -9,21 +12,20 @@ import net.minecraft.client.render.entity.feature.FeatureRendererContext;
 import net.minecraft.client.render.entity.model.WolfEntityModel;
 import net.minecraft.client.render.entity.state.WolfEntityRenderState;
 import net.minecraft.client.render.item.ItemRenderState;
-import net.minecraft.client.render.item.ItemRenderer;
-import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ModelTransformationMode;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RotationAxis;
 
-public class WolfItemFeatureRenderer extends FeatureRenderer<WolfEntityRenderState, WolfEntityModel> {
+import java.util.function.Supplier;
+
+@Environment(EnvType.CLIENT)
+public class WolfItemFeatureRenderer extends FeatureRenderer<WolfEntityRenderState, WolfEntityModel>  {
     final private ModelPart wolfHead;
 
-    public WolfItemFeatureRenderer(FeatureRendererContext<WolfEntityRenderState, WolfEntityModel> featureRendererContext) {
-        super(featureRendererContext);
+    public WolfItemFeatureRenderer(FeatureRendererContext<WolfEntityRenderState, WolfEntityModel> context) {
+        super(context);
 
-        final WolfEntityModel model = featureRendererContext.getModel();
+        final WolfEntityModel model = context.getModel();
         this.wolfHead = ((WolfEntityModelAccessor) model).getHead();
     }
 
@@ -44,11 +46,10 @@ public class WolfItemFeatureRenderer extends FeatureRenderer<WolfEntityRenderSta
 
     @Override
     public void render(MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, WolfEntityRenderState state, float limbAngle, float limbDistance) {
-        final ItemRenderState itemRenderState = state.itemRenderState;
-        final BakedModel bakedModel = state.getMainHandItemModel();
-        final ItemStack itemStack = state.getMainHandStack();
+        final WolfEntityRenderStateProvider customState = (WolfEntityRenderStateProvider) state;
+        final ItemRenderState itemRenderState = customState.getItemRenderState__(); //state.itemRenderState;
 
-        if (bakedModel != null && !itemStack.isEmpty()) {
+        if (itemRenderState.isEmpty()) {
             boolean bl = false;
             boolean bl2 = state.baby;
             matrices.push();
@@ -83,7 +84,7 @@ public class WolfItemFeatureRenderer extends FeatureRenderer<WolfEntityRenderSta
                 matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(90.0F));
             }
 
-            itemRenderState.render(itemStack, ModelTransformationMode.GROUND, false, matrices, vertexConsumers, light, OverlayTexture.DEFAULT_UV, bakedModel);
+            itemRenderState.render(matrices, vertexConsumers, light, OverlayTexture.DEFAULT_UV);
             matrices.pop();
         }
     }

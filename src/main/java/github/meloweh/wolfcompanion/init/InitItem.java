@@ -9,25 +9,31 @@ import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
+import net.minecraft.util.Identifier;
 
 public class InitItem {
 //    public static final Item TOY_ITEM = register("toy_item", new Item(new Item.Settings()));
 //    public static final Item FOOD_ITEM = register("food_item", new Item(
 //            new Item.Settings().food(FoodList.FOOD_FOOD_COMPONENT).maxCount(16)
 //    ));
+
+    public static final Identifier DOG_WHISTLE_ITEM_ID = WolfCompanion.id("dog_whistle_item");
+    public static final Identifier ITEM_SINGLE_WOLF_BAG_ID = WolfCompanion.id("dog_whistle_item");
+    public static final Identifier ITEM_WOLF_BAG_ID = WolfCompanion.id("dog_whistle_item");
+
     public static final Item ITEM_SINGLE_WOLF_BAG = register("wolf_single_bag", new Item(
             new Item.Settings()
-                    .registryKey(RegistryKey.of(RegistryKeys.ITEM, WolfCompanion.id("wolf_single_bag")))
+                    .registryKey(RegistryKey.of(RegistryKeys.ITEM, ITEM_SINGLE_WOLF_BAG_ID))
                     .maxCount(16)
     ));
     public static final Item ITEM_WOLF_BAG = register("wolf_bag_item", new Item(
             new Item.Settings()
-                    .registryKey(RegistryKey.of(RegistryKeys.ITEM, WolfCompanion.id("wolf_bag_item")))
+                    .registryKey(RegistryKey.of(RegistryKeys.ITEM, ITEM_WOLF_BAG_ID))
                     .maxCount(1)
     ));
     public static final Item DOG_WHISTLE_ITEM = register("dog_whistle_item", new WhistleItem(
             new Item.Settings()
-                    .registryKey(RegistryKey.of(RegistryKeys.ITEM, WolfCompanion.id("dog_whistle_item")))
+                    .registryKey(RegistryKey.of(RegistryKeys.ITEM, DOG_WHISTLE_ITEM_ID))
                     .maxCount(1)
     ));
 
