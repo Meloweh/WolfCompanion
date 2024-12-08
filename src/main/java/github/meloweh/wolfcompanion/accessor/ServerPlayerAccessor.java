@@ -3,6 +3,8 @@ package github.meloweh.wolfcompanion.accessor;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.screen.ScreenHandler;
 
+import java.util.List;
+
 public interface ServerPlayerAccessor {
     int getScreenHandlerSyncId();
     void execIncrementScreenHandlerSyncId();
@@ -13,4 +15,5 @@ public interface ServerPlayerAccessor {
     NbtCompound readWolfNbt();
     boolean hasWolfNbt();
     boolean isWolfNbtSaved();
+    List<NbtCompound> getWolfNbts__();
 }

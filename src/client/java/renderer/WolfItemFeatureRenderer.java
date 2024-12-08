@@ -12,7 +12,11 @@ import net.minecraft.client.render.entity.feature.FeatureRendererContext;
 import net.minecraft.client.render.entity.model.WolfEntityModel;
 import net.minecraft.client.render.entity.state.WolfEntityRenderState;
 import net.minecraft.client.render.item.ItemRenderState;
+import net.minecraft.client.render.item.ItemRenderer;
+import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.entity.ItemEntity;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RotationAxis;
 
@@ -49,7 +53,9 @@ public class WolfItemFeatureRenderer extends FeatureRenderer<WolfEntityRenderSta
         final WolfEntityRenderStateProvider customState = (WolfEntityRenderStateProvider) state;
         final ItemRenderState itemRenderState = customState.getItemRenderState__(); //state.itemRenderState;
 
-        if (itemRenderState.isEmpty()) {
+        //final ItemStack itemStack = customState.getWolf__().getMainHandStack();
+
+        if (!itemRenderState.isEmpty()) {
             boolean bl = false;
             boolean bl2 = state.baby;
             matrices.push();
@@ -84,7 +90,11 @@ public class WolfItemFeatureRenderer extends FeatureRenderer<WolfEntityRenderSta
                 matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(90.0F));
             }
 
+
+
+            //heldItemRenderer.renderItem();
             itemRenderState.render(matrices, vertexConsumers, light, OverlayTexture.DEFAULT_UV);
+
             matrices.pop();
         }
     }

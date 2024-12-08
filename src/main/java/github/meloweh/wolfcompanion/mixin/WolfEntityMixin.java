@@ -309,8 +309,6 @@ public abstract class WolfEntityMixin implements
 
             wolfcompanion_template_1_21_1$dropInventoryByButton();
 
-
-
             if (this.self.getOwner() != null) {
                 final ServerPlayerAccessor playerAccessor = (ServerPlayerAccessor) (this.self.getOwner());
 

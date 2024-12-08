@@ -3,12 +3,12 @@
   "category": "equipment",
   "key": {
     "A": "minecraft:armadillo_scute",
-    "C": "wolfcompanion:wolf_bag_item"
+    "C": "minecraft:chest"
   },
   "pattern": [
     " A ",
-    "C C",
-    " A "
+    "ACA",
+    "AAA"
   ],
   "result": {
     "count": 1,
