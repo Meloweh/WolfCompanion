@@ -34,9 +34,6 @@ import java.util.UUID;
 
 @Mixin(ServerPlayerEntity.class)
 public abstract class ServerPlayerEntityMixin implements ServerPlayerAccessor {
-    //@Unique
-    //NbtCompound wolfNbt;
-
     @Unique
     ServerPlayerEntity self;
 
@@ -57,34 +54,15 @@ public abstract class ServerPlayerEntityMixin implements ServerPlayerAccessor {
         return wolfNbts;
     }
 
-    @Unique
-    private NbtCompound preservedData;
-
-    @Inject(method = "onDeath", at = @At("HEAD"))
-    private void capturePlayerDataBeforeDeath(CallbackInfo ci) {
-        ServerPlayerEntity player = (ServerPlayerEntity) (Object) this;
-        preservedData = new NbtCompound();
-
-        // Save specific NBT data you want to preserve
-        player.writeCustomDataToNbt(preservedData);
-    }
-
     @Inject(method = "copyFrom", at = @At("TAIL"))
     private void restorePlayerDataAfterRespawn(ServerPlayerEntity oldPlayer, boolean alive, CallbackInfo ci) {
-        final ServerPlayerAccessor accessor = (ServerPlayerAccessor) oldPlayer;
         this.wolfNbts = ((ServerPlayerAccessor) oldPlayer).getWolfNbts__();
-        System.out.println("copy from: " + this.wolfNbts.size());
-//        if (preservedData != null) {
-//            ((ServerPlayerEntity) (Object) this).readCustomDataFromNbt(preservedData);
-//        }
     }
 
     @Inject(method = "onSpawn", at = @At("TAIL"))
     private void spawnDoggosOnSpawn(CallbackInfo ci) {
         respawnDoggo(null, null);
     }
-
-
 
     @Inject(method = "writeCustomDataToNbt", at = @At("TAIL"))
     public void writeWolfDataToNbt(NbtCompound nbt, CallbackInfo ci) {
@@ -107,17 +85,9 @@ public abstract class ServerPlayerEntityMixin implements ServerPlayerAccessor {
         }
     }
 
-
     @Inject(method = "<init>", at = @At("RETURN"))
     private void onConstructor(CallbackInfo info) {
         this.self = (ServerPlayerEntity) (Object) this;
-//        System.out.println("player init");
-//        if (!self.getWorld().isClient) {
-//            System.out.println("player print");
-//            final File worldDirectory = self.getServer().getSavePath(WorldSavePath.ROOT).toFile();
-//            //modifyPlayerData(new File(worldDirectory, "playerdata"),self.getUuid());
-//        }
-        System.out.println("NEW PLAYER: " + wolfNbts.size());
     }
 
     @Inject(method = "sleep", at = @At("HEAD"))
@@ -153,27 +123,8 @@ public abstract class ServerPlayerEntityMixin implements ServerPlayerAccessor {
         wolfNbts.clear();
     }
 
-    private void loadWolfNbt() {
-
-    }
-
     @Override
     public void queueWolfNbt(NbtCompound nbt) {
         wolfNbts.add(nbt);
-        //this.wolfNbt = nbt;
     }
-
-//    @Override
-//    public NbtCompound readWolfNbt() {
-//        return this.wolfNbt;
-//    }
-//
-//    @Override
-//    public boolean hasWolfNbt() {
-//        return this.wolfNbt != null;
-//    }
-
-    //void execOnScreenHandlerOpened(ScreenHandler screenHandler);
-
-    //this.wolfTorso = ((WolfEntityModelAccessor) model).getTorso();
 }
