@@ -8,50 +8,58 @@
 
 Store food, items, and even unequip wolf armor directly in survival mode.
 
-![Using the Wolf Inventory](https://cdn.modrinth.com/data/cached_images/66aa6507b0512b621c403e61c267b5de80fc0bcf.gif)
+![Using the Wolf Inventory](https://cdn.modrinth.com/data/cached_images/e2d3a9ca568346759023cad6d96343c1c794509b.gif)
 
 ### Self-Feeding And Adorable Item Rendering
 - Wolves can automatically eat from their inventory to heal faster.
 
-When wolves interact with items (currently only with food), they’ll also cutely hold them in their mouths.
+When wolves interact with items, they’ll also cutely hold them in their mouths.
 
-![Self-Feading to Heal](https://cdn.modrinth.com/data/cached_images/4af60e3401c6f15e5f192a3ac769e41b81865456.gif)
+![Eat to Heal](https://cdn.modrinth.com/data/cached_images/459b4aa508a51cce114f3197aa3a4b84e8a0f99f.gif)
 
 ### Shake Off Hazards
 - Wolves are no longer defenseless against poison and fire!
 
 They’ll instinctively shake off fire and poison, keeping them safe from these environmental hazards.
 
-![Shaking off flames](https://cdn.modrinth.com/data/cached_images/59285b4b63d02e563e0784b979b8a8a067bd73a6.gif)
+![Shake off Flames](https://cdn.modrinth.com/data/cached_images/f5a94e476273b889266c2510cbe0baaeab0dc6dc.gif)
 
-![Shake off Poison 1](https://cdn.modrinth.com/data/cached_images/3bd396bb036c7ef496a683e747a9fa6cfe0c8c17.gif)
-
-![Shake off Poison 2](https://cdn.modrinth.com/data/cached_images/80040d5594aa1f733dc8a978ef1e49c7e0da5ed2.gif)
+![Shake off Poison](https://cdn.modrinth.com/data/cached_images/20b321e471fa86db5d88467fc84b75fc333b1b37.gif)
 
 ### Pet Summoning Whistle
-- Never lose track of your loyal companions again!
+- Never lose track of your loyal companions again! 
 
 The Summoning Whistle calls all your pet wolves to your side, even if they are sitting or stuck in tricky places like caves.
 
-![3D Whistle Model](https://cdn.modrinth.com/data/cached_images/ea4ec0a3e93b19d43ff2b1f5ab7e116371be9549.gif)
-
-![Third Person Whistling](https://cdn.modrinth.com/data/cached_images/43376cbe8845a78ea31c1e49684129fd4e448329.gif)
-
-![First Person Whistling](https://cdn.modrinth.com/data/cached_images/f3afe1258dc0333f51faf59ad8222efd81107462.gif)
+![Third Person Whistling](https://cdn.modrinth.com/data/cached_images/ccacee49779b9ffa825c6e14c7cd8c5e41d68b74.gif)
 
 ### Immortal Loyalty
 - Your wolves will never truly leave your side.
 
 Wolves respawn when you sleep. Even if one dies while you’re away, it’ll still be saved for your next adventure.
 
-![Wolf Respawn](https://cdn.modrinth.com/data/cached_images/60db62aea63c04ec3a9311ff9b40da1da5f23ab0.gif)
+![Wolf Respawn](https://cdn.modrinth.com/data/cached_images/ae23daae15c95122fd7ff43ed04777923b53f33b.gif)
 
 ### No More Friendly Fire
-- Accidental hits are a thing of the past!
+- Accidental hits are a thing of the past! 
 
 Wolves no longer take damage from the player’s attacks.
 
-![Taking No Hits](https://cdn.modrinth.com/data/cached_images/7f4362aea4a5a7cda2c5b30db4cb115ccb59d926.gif)
+![No Friendly Fire](https://cdn.modrinth.com/data/cached_images/7284fd0c4534de2184e0031d6e79816e5aa49132.gif)
+
+### Your Friend In Need
+- Wolves will now attempt to rescue the player and themselves with potions
+
+Falling into lava or having critical health triggers the wolf to apply a fire resistance, regeneration or instant health potions.
+
+![Wolf Rescues Player](https://cdn.modrinth.com/data/cached_images/0dbf903ad7569172496001ffcbfcff08a57c92de.gif)
+
+### Stronger With Every Fight
+- The wolves attack damage increases with each level-up. 
+
+The wolf gains xp every time it kills a mob. Similar to the players level system, the wolf will require more and more xp for the next level up and resets upon death.
+
+![Wolves XP Bar](https://cdn.modrinth.com/data/cached_images/6aeaff84c10116611b98adc471ac03828f39b856.png)
 
 ## Crafting Recipes
 ### Single Armadillo Bag
@@ -86,31 +94,40 @@ Ingredients:
 - 6 Iron Ingots
 </details>
 
+## Usage
+
+Press **Right Click** on the wolf pet **while you sneak** to open the wolf inventory.
+
 ## Planned Features
 Keep an eye out for future updates packed with even more exciting features!
 
 - **Summon Far Away Wolves**: An upgraded whistle that retrieves wolves even from unloaded chunks.
 - **Wolf Bed**: A cozy bed to anchor wolf respawning in specific locations.
 - **Second Whistle Mode**: Easily despawn and respawn wolves at will.
-- **Wolf XP System**: Wolves gain experience from battles, increasing their bite damage with time. (XP resets upon death.)
-- **Wolf applying Potions and Totems to the player**: As a life saving effort the wolf tries everything to throw a fire resistance potion if you find yourself in lava or maybe even apply the Totem of Undying to you.
-- Maybe some armor or maybe a dynamic armor adaptation from any player armor.
+- **Wolf XP System (DONE)**: Wolves gain experience from battles, increasing their bite damage with time. (XP resets upon death.)
+- **Fire/Lava rescue (DONE)**: As a life saving effort the wolf tries everything to apply a fire resistance potion on you if you find yourself in lava.
+- **Healing Potions (DONE)**: The wolf tries to apply healing potions while the player is in combat with low health.
+- **Totem of Undying**: If the wolf has a totem of undying, a death cooldown gives the wolf a time window to apply it on you if close to you.
+- **Armor Upgrade (DONE)**: Enabled enchantments like mending and unbreaking for the wolf armor.
+- **Food Seeking Behavior (DONE)**: The wolf may pick up food that is laying around.
+- **Resource Search Skill**: Put an item into another armor slot to let the wolf search for something related in the world.
+- **Better Defense Reaction**: Let wolves attack before the player takes a hit.
 
 ## Bugs
 
 Known:
 - Whistle sound does not fade out stereo by distance.
 - Not a bug but the single bag item is ugly.
-- Not a bug but the items and model textures should follow the same color pallet (depth) pattern as vanilla minecraft usually uses.
+- Not a bug but the items and model textures should follow the same color pallet (depth) pattern as vanilla minecraft usually uses. 
 
 At this development stage of the mod, you could run into bugs. If you noticed some, please feel free to let me know.
 
 If you think there may be anything that would make the mod more enjoyable, please don't hesitate to make suggestions.
 
 ## Source Code
-I plan to release the source code if enough people are interested in it, the mod itself or if the mod has been up for a while.
+I plan to release the source code if enough people are interested or if the mod has been up for a while.
 
 ## Credits
 Since this is my first mod, I would like to thank [@TurtyWurty](https://www.youtube.com/@TurtyWurty) on YouTube for jump-starting me for fabric modding by providing his tutorials.
 
-This mod was inspired by the [Wolf Armor and Storage Mod](https://www.curseforge.com/minecraft/mc-mods/wolf-armor-and-storage) by [saturniidae](https://www.curseforge.com/members/saturniidae/projects) for older Versions of Minecraft (Forge).
+This mod was inspired by the [Wolf Armor and Storage Mod](https://www.curseforge.com/minecraft/mc-mods/wolf-armor-and-storage) by [saturniidae](https://www.curseforge.com/members/saturniidae/projects) for older Versions of Minecraft (Forge). 
