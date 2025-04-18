@@ -24,17 +24,17 @@ public class WolfBagModelV2 extends Model {
 	public static TexturedModelData getTexturedModelData() {
 		ModelData modelData = new ModelData();
 		ModelPartData modelPartData = modelData.getRoot();
-		ModelPartData main = modelPartData.addChild("main", ModelPartBuilder.create(), ModelTransform.pivot(0.0F, 24.0F, 0.0F));
+		ModelPartData main = modelPartData.addChild("main", ModelPartBuilder.create(), ModelTransform.origin(0.0F, 24.0F, 0.0F));
 
 		ModelPartData right = main.addChild("right", ModelPartBuilder.create().uv(23, 4).mirrored().cuboid(-5.0F, 2.0F, -2.0F, 1.0F, 3.0F, 1.0F, new Dilation(0.0F)).mirrored(false)
 				.uv(28, 3).mirrored().cuboid(-4.0F, 2.0F, -3.0F, 1.0F, 3.0F, 1.0F, new Dilation(0.0F)).mirrored(false)
 				.uv(26, 12).mirrored().cuboid(-5.0F, 1.0F, -1.0F, 1.0F, 5.0F, 2.0F, new Dilation(0.0F)).mirrored(false)
-				.uv(22, 19).mirrored().cuboid(-4.0F, 1.0F, -2.0F, 1.0F, 5.0F, 4.0F, new Dilation(0.0F)).mirrored(false), ModelTransform.pivot(0.0F, 0.0F, 0.0F));
+				.uv(22, 19).mirrored().cuboid(-4.0F, 1.0F, -2.0F, 1.0F, 5.0F, 4.0F, new Dilation(0.0F)).mirrored(false), ModelTransform.origin(0.0F, 0.0F, 0.0F));
 
 		ModelPartData left = main.addChild("left", ModelPartBuilder.create().uv(23, 4).cuboid(8.0F, 1.0F, -2.0F, 1.0F, 3.0F, 1.0F, new Dilation(0.0F))
 				.uv(28, 3).cuboid(7.0F, 1.0F, -3.0F, 1.0F, 3.0F, 1.0F, new Dilation(0.0F))
 				.uv(26, 12).cuboid(8.0F, 0.0F, -1.0F, 1.0F, 5.0F, 2.0F, new Dilation(0.0F))
-				.uv(22, 19).cuboid(7.0F, 0.0F, -2.0F, 1.0F, 5.0F, 4.0F, new Dilation(0.0F)), ModelTransform.pivot(-4.0F, 1.0F, 0.0F));
+				.uv(22, 19).cuboid(7.0F, 0.0F, -2.0F, 1.0F, 5.0F, 4.0F, new Dilation(0.0F)), ModelTransform.origin(-4.0F, 1.0F, 0.0F));
 		return TexturedModelData.of(modelData, 32, 32);
 	}
 

@@ -12,15 +12,9 @@ import net.minecraft.client.render.entity.feature.FeatureRendererContext;
 import net.minecraft.client.render.entity.model.WolfEntityModel;
 import net.minecraft.client.render.entity.state.WolfEntityRenderState;
 import net.minecraft.client.render.item.ItemRenderState;
-import net.minecraft.client.render.item.ItemRenderer;
-import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.entity.ItemEntity;
-import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RotationAxis;
-
-import java.util.function.Supplier;
 
 @Environment(EnvType.CLIENT)
 public class WolfItemFeatureRenderer extends FeatureRenderer<WolfEntityRenderState, WolfEntityModel>  {
@@ -66,7 +60,7 @@ public class WolfItemFeatureRenderer extends FeatureRenderer<WolfEntityRenderSta
                 matrices.translate(0.0F, 0.5F, 0.209375F);
             }
 
-            matrices.translate(wolfHead.pivotX / 16.0F, wolfHead.pivotY / 16.0F, wolfHead.pivotZ / 16.0F);
+            matrices.translate(wolfHead.originX / 16.0F, wolfHead.originY / 16.0F, wolfHead.originZ / 16.0F);
             m = state.begAnimationProgress + getShakeAnimationProgress(state.shakeProgress, 0f);
             //m = state.shakeProgress;
 
