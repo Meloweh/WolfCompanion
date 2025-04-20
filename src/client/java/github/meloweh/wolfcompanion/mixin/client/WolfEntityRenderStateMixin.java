@@ -8,7 +8,6 @@ import net.minecraft.client.render.item.ItemRenderState;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.passive.WolfEntity;
 import net.minecraft.item.ItemDisplayContext;
-import net.minecraft.item.ModelTransformationMode;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 

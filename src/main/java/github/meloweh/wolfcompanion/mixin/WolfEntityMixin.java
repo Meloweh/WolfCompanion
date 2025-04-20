@@ -52,6 +52,8 @@ import org.joml.Math;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.gen.Accessor;
+import org.spongepowered.asm.mixin.gen.Invoker;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
@@ -68,7 +70,6 @@ public abstract class WolfEntityMixin implements
         InventoryChangedListener,
         RideableInventory,
         Tameable,
-        Saddleable,
         WolfEntityProvider,
         EntityAccessor,
         MobEntityAccessor,
@@ -203,7 +204,7 @@ public abstract class WolfEntityMixin implements
         }
     }
 
-    @ModifyArg(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;addParticle(Lnet/minecraft/particle/ParticleEffect;DDDDDD)V"))
+    @ModifyArg(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;addParticleClient(Lnet/minecraft/particle/ParticleEffect;DDDDDD)V"))
     private ParticleEffect changeType(ParticleEffect parameters) {
         final byte shakeReason = getShakeReason();
 
@@ -257,11 +258,11 @@ public abstract class WolfEntityMixin implements
     private void shakeConditions(CallbackInfo ci) {
         if (self.isAlive() && !self.getWorld().isClient) {
              byte shakeReason = 0;
-             if (!self.isWet() && getShakeReason() == 0) {
+             if (!furWet && getShakeReason() == 0) {
                  if (ConfigManager.config.canShakeOffPoison && isPoisoned(this.self))
                      shakeReason = 1;
 
-                 if (ConfigManager.config.canShakeOffFire && self.isOnFire() && !self.isInLava() && self.isOnGround() && self.prevY <= self.getY()) {
+                 if (ConfigManager.config.canShakeOffFire && self.isOnFire() && !self.isInLava() && self.isOnGround()) {
                      shakeReason = 2;
                  }
 
@@ -315,7 +316,7 @@ public abstract class WolfEntityMixin implements
                 playerAccessor.queueWolfNbt(wolfNbt);
             } else {
                 if (wolfNbt.contains("Owner")) {
-                    final UUID ownerUUID = wolfNbt.getUuid("Owner");
+                    final UUID ownerUUID = UUID.fromString(wolfNbt.getString("Owner").get());
                     final File worldDirectory = self.getServer().getSavePath(WorldSavePath.ROOT).toFile();
                     final File playerDatFolder = new File(worldDirectory, "playerdata");
 
@@ -742,22 +743,22 @@ public abstract class WolfEntityMixin implements
         }*/
 
         ////////
-        this.setHasChest(nbt.getBoolean("ChestedWolf"));
+        this.setHasChest(nbt.getBoolean("ChestedWolf").get());
         this.onChestedStatusChanged();
         if (this.hasChest()) {
-            NbtList nbtList = nbt.getList("Items", NbtElement.COMPOUND_TYPE);
+            NbtList nbtList = nbt.getList("Items").get();
 
             for (int i = 0; i < nbtList.size(); i++) {
-                NbtCompound nbtCompound = nbtList.getCompound(i);
-                int j = nbtCompound.getByte("Slot") & 255;
+                NbtCompound nbtCompound = nbtList.getCompound(i).get();
+                int j = nbtCompound.getByte("Slot").get() & 255;
                 if (j < this.items.size() - 1) {
                     final ItemStack itemStack = ItemStack.fromNbt(self.getRegistryManager(), nbtCompound).orElse(ItemStack.EMPTY);
                     this.items.setStack(j + 1, itemStack);
                 }
             }
         }
-        if (nbt.contains("CustomName", 8)) {
-            String string = nbt.getString("CustomName");
+        if (nbt.contains("CustomName")) {
+            String string = nbt.getString("CustomName").get();
 
             try {
                 this.self.setCustomName(Text.Serialization.fromJson(string, this.self.getRegistryManager()));
@@ -765,7 +766,7 @@ public abstract class WolfEntityMixin implements
                 WolfCompanion.LOGGER.warn("Failed to parse entity custom name {}", string, var16);
             }
         }
-        this.setXp(nbt.getInt("XP"));
+        this.setXp(nbt.getInt("XP").get());
     }
 
     @Unique
@@ -903,7 +904,7 @@ public abstract class WolfEntityMixin implements
                     Vec3d vec3d = new Vec3d(((double)this.self.getRandom().nextFloat() - 0.5) * 0.1, Math.random() * 0.1 + 0.1, 0.0)
                             .rotateX(-this.self.getPitch() * (float) (Math.PI / 180.0))
                             .rotateY(-this.self.getYaw() * (float) (Math.PI / 180.0));
-                    this.self.getWorld().addParticle(
+                    this.self.getWorld().addParticleClient(
                                     new ItemStackParticleEffect(ParticleTypes.ITEM, itemStack),
                             this.self.getX() + vec.x * 0.6,
                             this.self.getY() + 0.6,

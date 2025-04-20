@@ -1,6 +1,5 @@
 package github.meloweh.wolfcompanion.mixin;
 
-import net.minecraft.item.AnimalArmorItem;
 import net.minecraft.item.Item;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;

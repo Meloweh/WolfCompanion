@@ -21,6 +21,7 @@ import net.minecraft.screen.EnchantmentScreenHandler;
 import net.minecraft.screen.Property;
 import net.minecraft.util.Util;
 import net.minecraft.util.collection.IndexedIterable;
+import net.minecraft.util.collection.Weighted;
 import net.minecraft.util.collection.Weighting;
 import net.minecraft.util.math.MathHelper;
 import org.spongepowered.asm.mixin.Final;
@@ -61,11 +62,11 @@ public class EnchantmentScreenHandlerMixin {
             float f = (random.nextFloat() + random.nextFloat() - 1.0F) * 0.15F;
             level = MathHelper.clamp(Math.round((float)level + (float)level * f), 1, Integer.MAX_VALUE);
             List<EnchantmentLevelEntry> list2 = EnchantmentHelperHelper.getPossibleWolfArmorEntries(level, possibleEnchantments);
-            Optional<EnchantmentLevelEntry> var10000 = Weighting.getRandom(random, list2);
+            Optional<EnchantmentLevelEntry> var10000 = Weighting.getRandom(random, list2, EnchantmentLevelEntry::getWeight);
             var10000.ifPresent(list::add);  // Explicitly using a lambda expression
 
             while (random.nextInt(50) <= level) {
-                var10000 = Weighting.getRandom(random, list2);
+                var10000 = Weighting.getRandom(random, list2, EnchantmentLevelEntry::getWeight);
                 var10000.ifPresent(list::add);
                 level /= 2;
             }

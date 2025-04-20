@@ -20,7 +20,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(MobEntity.class)
 public abstract class MobEntityMixin implements MobEntityAccessor {
-    @Accessor("bodyArmor")
+    @Shadow
     public abstract ItemStack getBodyArmor();
 
     //@Invoker("equipBodyArmor")

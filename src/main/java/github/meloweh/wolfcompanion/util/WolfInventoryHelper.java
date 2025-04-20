@@ -1,8 +1,10 @@
 package github.meloweh.wolfcompanion.util;
 
 import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.AttributeModifierSlot;
 import net.minecraft.component.type.PotionContentsComponent;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffectInstance;
@@ -71,12 +73,23 @@ public class WolfInventoryHelper {
             PlayerEntity p = (PlayerEntity) entity;
             boolean isOk = true;
 
-            for (ItemStack e : p.getArmorItems()) {
+            for(EquipmentSlot equipmentSlot : AttributeModifierSlot.ARMOR) {
+                if (equipmentSlot.getType() == EquipmentSlot.Type.HUMANOID_ARMOR) {
+                    ItemStack e = entity.getEquippedStack(equipmentSlot);
+
+                    if (!e.isOf(Items.NETHERITE_BOOTS) && !e.isOf(Items.NETHERITE_LEGGINGS) && !e.isOf(Items.NETHERITE_CHESTPLATE) && !e.isOf(Items.NETHERITE_HELMET)) {
+                        isOk = false;
+                        break;
+                    }
+                }
+            }
+
+            /*for (ItemStack e : p.getArmorItems()) {
                 if (!e.isOf(Items.NETHERITE_BOOTS) && !e.isOf(Items.NETHERITE_LEGGINGS) && !e.isOf(Items.NETHERITE_CHESTPLATE) && !e.isOf(Items.NETHERITE_HELMET)) {
                     isOk = false;
                     break;
                 }
-            }
+            }*/
 
             hasArmor = isOk;
         }

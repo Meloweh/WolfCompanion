@@ -1,12 +1,11 @@
 package github.meloweh.wolfcompanion.mixin;
 
-import net.minecraft.item.AnimalArmorItem;
 import net.minecraft.item.Item;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 
-@Mixin(AnimalArmorItem.class)
+@Mixin(Item.class)
 public class WolfArmorMixin {
 //    @Inject(method = "isEnchantable", at = @At("RETURN"), cancellable = true)
 //    public void makeWolfArmorEnchantable(ItemStack stack, CallbackInfoReturnable<Boolean> cir) {
