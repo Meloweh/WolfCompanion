@@ -17,11 +17,11 @@ public class WolfArmorMixin {
 //        }
 //    }
 
-    @ModifyArg(method = "<init>(Lnet/minecraft/item/equipment/ArmorMaterial;Lnet/minecraft/item/AnimalArmorItem$Type;Lnet/minecraft/item/Item$Settings;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/item/Item;<init>(Lnet/minecraft/item/Item$Settings;)V"))
+    /*@ModifyArg(method = "<init>(Lnet/minecraft/item/equipment/ArmorMaterial;Lnet/minecraft/item/AnimalArmorItem$Type;Lnet/minecraft/item/Item$Settings;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/item/Item;<init>(Lnet/minecraft/item/Item$Settings;)V"))
     private static Item.Settings makeEnchantable(Item.Settings settings) {
         settings.enchantable(15);
         return settings;
-    }
+    }*/
 
 
 }

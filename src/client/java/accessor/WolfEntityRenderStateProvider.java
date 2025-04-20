@@ -5,8 +5,6 @@ import net.minecraft.client.render.entity.state.ItemHolderEntityRenderState;
 import net.minecraft.client.render.item.ItemRenderState;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.passive.WolfEntity;
-import net.minecraft.item.ModelTransformationMode;
-import org.spongepowered.asm.mixin.Unique;
 
 public interface WolfEntityRenderStateProvider {
     WolfEntity getWolf__();
