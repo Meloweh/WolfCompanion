@@ -312,7 +312,6 @@ public abstract class WolfEntityMixin implements
 
             if (this.self.getOwner() != null) {
                 final ServerPlayerAccessor playerAccessor = (ServerPlayerAccessor) (this.self.getOwner());
-
                 playerAccessor.queueWolfNbt(wolfNbt);
             } else {
                 if (wolfNbt.contains("Owner")) {
@@ -336,6 +335,8 @@ public abstract class WolfEntityMixin implements
     private static final TrackedData<Boolean> CHEST = DataTracker.registerData(WolfEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
     @Unique
     private static final TrackedData<Boolean> DROP_CHEST = DataTracker.registerData(WolfEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
+    @Unique
+    private static final TrackedData<Boolean> RELEASE_WOLF = DataTracker.registerData(WolfEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
     @Unique
     private static final TrackedData<Byte> SHAKE_REASON = DataTracker.registerData(WolfEntity.class, TrackedDataHandlerRegistry.BYTE);
     @Unique
@@ -481,6 +482,7 @@ public abstract class WolfEntityMixin implements
     protected void injectInitDataTracker(DataTracker.Builder builder, CallbackInfo ci) {
         builder.add(CHEST, false);
         builder.add(DROP_CHEST, false);
+        builder.add(RELEASE_WOLF, false);
         builder.add(SHAKE_REASON, (byte)0);
         builder.add(XP, 0);
     }
@@ -542,6 +544,12 @@ public abstract class WolfEntityMixin implements
     }
 
     @Override
+    public boolean shouldReleaseWolf() {
+        return getDataTracker(self).get(RELEASE_WOLF);
+
+    }
+
+    @Override
     public boolean hasChestEquipped() {
         return hasChest();
     }
@@ -554,6 +562,11 @@ public abstract class WolfEntityMixin implements
     @Override
     public void setShouldDropChest(final boolean yes) {
         getDataTracker(self).set(DROP_CHEST, yes);
+    }
+
+    @Override
+    public void setShouldReleaseWolf(final boolean yes) {
+        getDataTracker(self).set(RELEASE_WOLF, yes);
     }
 
     @Unique
@@ -621,6 +634,23 @@ public abstract class WolfEntityMixin implements
             return 0;
         } else {
             return amount;
+        }
+    }
+
+    @Override
+    public void releaseWolfButton() {
+        setShouldDropChest(true);
+        wolfcompanion_template_1_21_1$dropInventoryByButton();
+        if (this.self.getOwner() != null) {
+            this.self.setTamed(false, true);
+            this.self.setOwner((LivingEntity) null);
+            //final NbtCompound wolfNbt = new NbtCompound();
+            //this.self.writeCustomDataToNbt(wolfNbt);
+            //this.self.getUuid()
+            //System.out.println(wolfNbt);
+
+            //final ServerPlayerAccessor playerAccessor = (ServerPlayerAccessor) (this.self.getOwner());
+            //playerAccessor.queueWolfNbt(wolfNbt);
         }
     }
 
@@ -928,7 +958,7 @@ public abstract class WolfEntityMixin implements
                 !self.isBaby()
         ) {
             final ItemStack itemStack = player.getStackInHand(hand);
-            System.out.println(itemStack.isOf(InitItem.ITEM_WOLF_BAG));
+            //System.out.println(itemStack.isOf(InitItem.ITEM_WOLF_BAG));
             if (!this.hasChest() && itemStack.isOf(InitItem.ITEM_WOLF_BAG)) {
                 this.addChest(player, itemStack);
                 final ActionResult result = self.getWorld().isClient ? ActionResult.SUCCESS : ActionResult.SUCCESS_SERVER;

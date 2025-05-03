@@ -4,6 +4,7 @@ import github.meloweh.wolfcompanion.WolfCompanion;
 import github.meloweh.wolfcompanion.accessor.WolfEntityProvider;
 import github.meloweh.wolfcompanion.accessor.WolfXpProvider;
 import github.meloweh.wolfcompanion.network.DropWolfChestC2SPayload;
+import github.meloweh.wolfcompanion.network.ReleaseWolfC2SPayload;
 import github.meloweh.wolfcompanion.screenhandler.WolfInventoryScreenHandler;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.gui.DrawContext;
@@ -38,6 +39,8 @@ public class WolfInventoryScreen extends HandledScreen<WolfInventoryScreenHandle
     private PlayerEntity player;
     private WolfInventoryScreenHandler handler;
 
+    private static final Identifier BUTTON_RELEASE_AVAILABLE = WolfCompanion.id("textures/gui/container/release_available.png");
+    private static final Identifier BUTTON_RELEASE_HIGHLIGHTED = WolfCompanion.id("textures/gui/container/release_highlighted.png");
     private static final Identifier BUTTON_CHEST_AVAILABLE = WolfCompanion.id("textures/gui/container/button_available.png");
     private static final Identifier BUTTON_CHEST_HIGHLIGHTED = WolfCompanion.id("textures/gui/container/button_highlighted.png");
     private static final Identifier BUTTON_CHEST_DISABLED = WolfCompanion.id("textures/gui/container/button_disabled.png");
@@ -74,12 +77,26 @@ public class WolfInventoryScreen extends HandledScreen<WolfInventoryScreenHandle
                 mouseY < j + 35 + 18;
     }
 
+    private boolean clickedReleaseWolf(double mouseX, double mouseY) {
+        int i = (this.width - this.backgroundWidth) / 2;
+        int j = (this.height - this.backgroundHeight) / 2;
+        return mouseX >= i + 7 &&
+                mouseX < i + 7 + 18 &&
+                mouseY >= j + 35        + 18 &&
+                mouseY < j + 35 + 18    + 18;
+    }
+
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (clickedDropChest(mouseX, mouseY)) {
+        if (clickedDropChest(mouseX, mouseY) && ((WolfEntityProvider)this.wolf).hasChestEquipped()) {
             ClientPlayNetworking.send(new DropWolfChestC2SPayload(wolf.getUuid()));
             player.playSound(SoundEvents.UI_BUTTON_CLICK.value(), 0.3f, 0.8f);
         }
+        if (clickedReleaseWolf(mouseX, mouseY) && this.wolf.isTamed()) {
+            ClientPlayNetworking.send(new ReleaseWolfC2SPayload(wolf.getUuid()));
+            player.playSound(SoundEvents.UI_BUTTON_CLICK.value(), 0.3f, 0.8f);
+        }
+
         return super.mouseClicked(mouseX, mouseY, button);
     }
 
@@ -113,6 +130,18 @@ public class WolfInventoryScreen extends HandledScreen<WolfInventoryScreenHandle
             }
         } else {
             //context.drawTexture(BUTTON_CHEST_DISABLED, i + 7, j + 35, 0, 0, 18, 18, 18, 18);
+        }
+
+        if (this.wolf.isTamed()) {
+            if (this.mouseX >= i + 7 &&
+                    this.mouseX < i + 7 + 18 &&
+                    this.mouseY >= j + 35 + 18 &&
+                    this.mouseY < j + 35 + 36) {
+                context.drawTexture(RenderLayer::getGuiTextured, BUTTON_RELEASE_HIGHLIGHTED, i + 7, j + 35 + 18, 0, 0, 18, 18, 18, 18);
+                this.setTooltip(Text.of("Release wolf"));
+            } else {
+                context.drawTexture(RenderLayer::getGuiTextured, BUTTON_RELEASE_AVAILABLE, i + 7, j + 35 + 18, 0, 0, 18, 18, 18, 18);
+            }
         }
 
         InventoryScreen.drawEntity(context, i + 26, j + 18, i + 78, j + 70, 33, 0.25F, this.mouseX, this.mouseY, this.wolf);

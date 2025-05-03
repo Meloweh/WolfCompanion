@@ -12,6 +12,7 @@ public interface ServerPlayerAccessor {
     //void writeWolfDataToNbt(NbtCompound nbt);
     //void readWolfDataToNbt(NbtCompound nbt);
     void queueWolfNbt(NbtCompound nbt);
+    boolean removeWolfNbt(final NbtCompound nbt);
     NbtCompound readWolfNbt();
     boolean hasWolfNbt();
     boolean isWolfNbtSaved();

@@ -127,4 +127,10 @@ public abstract class ServerPlayerEntityMixin implements ServerPlayerAccessor {
     public void queueWolfNbt(NbtCompound nbt) {
         wolfNbts.add(nbt);
     }
+
+    public boolean removeWolfNbt(final NbtCompound nbt) {
+        //System.out.println(wolfNbts.get(0).toString());
+        return false;
+        //return wolfNbts.removeIf(wolf -> wolf.getString("Uuid").get().equals(nbt.getString("Uuid").get()));
+    }
 }

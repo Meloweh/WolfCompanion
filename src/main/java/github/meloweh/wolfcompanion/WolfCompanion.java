@@ -4,6 +4,7 @@ import github.meloweh.wolfcompanion.accessor.WolfEntityProvider;
 import github.meloweh.wolfcompanion.events.WolfEventHandler;
 import github.meloweh.wolfcompanion.init.*;
 import github.meloweh.wolfcompanion.network.DropWolfChestC2SPayload;
+import github.meloweh.wolfcompanion.network.ReleaseWolfC2SPayload;
 import github.meloweh.wolfcompanion.util.ConfigManager;
 import net.fabricmc.api.ModInitializer;
 
@@ -50,6 +51,7 @@ public class WolfCompanion implements ModInitializer {
 		});
 
 		PayloadTypeRegistry.playC2S().register(DropWolfChestC2SPayload.ID, DropWolfChestC2SPayload.PACKET_CODEC);
+		PayloadTypeRegistry.playC2S().register(ReleaseWolfC2SPayload.ID, ReleaseWolfC2SPayload.PACKET_CODEC);
 
 		ServerPlayNetworking.registerGlobalReceiver(DropWolfChestC2SPayload.ID, (payload, context) -> {
 			context.server().execute(() -> {
@@ -68,6 +70,25 @@ public class WolfCompanion implements ModInitializer {
 				});
 			});
 		});
+		ServerPlayNetworking.registerGlobalReceiver(ReleaseWolfC2SPayload.ID, (payload, context) -> {
+			context.server().execute(() -> {
+				context.server().getWorlds().forEach(serverWorld -> {
+					final Entity entity = serverWorld.getEntity(payload.wolfUUID());
+					if (entity != null) {
+						final WolfEntity wolf = (WolfEntity) entity;
+						final WolfEntityProvider provider = (WolfEntityProvider) wolf;
+						provider.setShouldReleaseWolf(true);
+						final LivingEntity owner = wolf.getOwner();
+						if (owner instanceof ServerPlayerEntity) {
+							((ServerPlayerEntity) owner).closeHandledScreen();
+						}
+						provider.releaseWolfButton();
+					}
+				});
+			});
+		});
+
+
 	}
 
 	public static Identifier id(String path) {

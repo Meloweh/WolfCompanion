@@ -10,14 +10,17 @@ import java.util.Optional;
 
 public interface WolfEntityProvider {
     boolean shouldDropChest();
+    boolean shouldReleaseWolf();
 
     //StackReference wolfcompanion_template_1_21_1$getGetStackReference(int mappedIndex);
     boolean hasChestEquipped();
     SimpleInventory getInventory();
 
     void setShouldDropChest(boolean yes);
+    void setShouldReleaseWolf(boolean yes);
 
     void wolfcompanion_template_1_21_1$dropInventoryByButton();
+    void releaseWolfButton();
 
     boolean tryAttack__(ServerWorld serverWorld, Entity target);
 
