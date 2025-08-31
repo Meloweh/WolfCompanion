@@ -22,7 +22,7 @@ public interface WolfEntityProvider {
     void wolfcompanion_template_1_21_1$dropInventoryByButton();
     void releaseWolfButton();
 
-    boolean tryAttack__(ServerWorld serverWorld, Entity target);
+    boolean tryAttack__(Entity target);
 
     Optional<ItemEntity> getTargetPickup__();
 

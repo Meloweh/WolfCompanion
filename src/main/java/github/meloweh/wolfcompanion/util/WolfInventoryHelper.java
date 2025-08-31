@@ -72,8 +72,13 @@ public class WolfInventoryHelper {
         if (entity instanceof PlayerEntity) {
             PlayerEntity p = (PlayerEntity) entity;
             boolean isOk = true;
+            List<EquipmentSlot> equipmentSlots = new ArrayList<>();
+            equipmentSlots.add(EquipmentSlot.BODY);
+            equipmentSlots.add(EquipmentSlot.FEET);
+            equipmentSlots.add(EquipmentSlot.LEGS);
+            equipmentSlots.add(EquipmentSlot.CHEST);
 
-            for(EquipmentSlot equipmentSlot : AttributeModifierSlot.ARMOR) {
+            for(EquipmentSlot equipmentSlot : equipmentSlots) {
                 if (equipmentSlot.getType() == EquipmentSlot.Type.HUMANOID_ARMOR) {
                     ItemStack e = entity.getEquippedStack(equipmentSlot);
 

@@ -14,7 +14,7 @@ public class WolfBagStraps extends Model {
     public static final EntityModelLayer LAYER_LOCATION = new EntityModelLayer(WolfCompanion.id("straps"), "main");
 
     public WolfBagStraps(ModelPart root) {
-        super(root, RenderLayer::getEntitySolid);
+        super(RenderLayer::getEntitySolid);
         this.main = root.getChild("main");
     }
     public static TexturedModelData getTexturedModelData() {
@@ -23,16 +23,13 @@ public class WolfBagStraps extends Model {
         ModelPartData main = modelPartData.addChild("main", ModelPartBuilder.create().uv(0, -3).cuboid(-3.0F, 3.0F, -3.0F, 0.0F, 1.0F, 6.0F, new Dilation(0.0F))
                 .uv(0, -6).cuboid(3.0F, 3.0F, -3.0F, 0.0F, 1.0F, 6.0F, new Dilation(0.0F))
                 .uv(0, 1).cuboid(-3.0F, 3.0F, 3.0F, 6.0F, 1.0F, 0.0F, new Dilation(0.0F))
-                .uv(0, 2).cuboid(-3.0F, 3.0F, -3.0F, 6.0F, 1.0F, 0.0F, new Dilation(0.0F)), ModelTransform.origin(0.0F, 24.0F, 0.0F));
+                .uv(0, 2).cuboid(-3.0F, 3.0F, -3.0F, 6.0F, 1.0F, 0.0F, new Dilation(0.0F)), ModelTransform.pivot(0.0F, 24.0F, 0.0F));
         return TexturedModelData.of(modelData, 16, 8);
     }
-
-
-
-//    @Override
-//    public void render(MatrixStack matrices, VertexConsumer vertexConsumer, int light, int overlay, int color) {
-//        this.main.render(matrices, vertexConsumer, light, overlay, color);
-//    }
+    @Override
+    public void render(MatrixStack matrices, VertexConsumer vertexConsumer, int light, int overlay, int color) {
+        this.main.render(matrices, vertexConsumer, light, overlay, color);
+    }
 
     public void copyTransform(ModelPart part) {
         this.main.copyTransform(part);

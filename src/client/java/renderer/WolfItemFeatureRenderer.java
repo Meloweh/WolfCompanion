@@ -1,5 +1,6 @@
 package renderer;
 
+/*
 import accessor.WolfEntityModelAccessor;
 import accessor.WolfEntityRenderStateProvider;
 import net.fabricmc.api.EnvType;
@@ -93,3 +94,4 @@ public class WolfItemFeatureRenderer extends FeatureRenderer<WolfEntityRenderSta
         }
     }
 }
+*/

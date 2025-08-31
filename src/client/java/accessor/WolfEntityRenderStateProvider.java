@@ -1,5 +1,5 @@
 package accessor;
-
+/*
 import net.minecraft.client.item.ItemModelManager;
 import net.minecraft.client.render.entity.state.ItemHolderEntityRenderState;
 import net.minecraft.client.render.item.ItemRenderState;
@@ -14,4 +14,4 @@ public interface WolfEntityRenderStateProvider {
     void setChestEquipped__(final boolean bl);
     ItemRenderState getItemRenderState__();
     void updateRenderState__(LivingEntity entity, WolfEntityRenderStateProvider state, ItemModelManager itemModelManager);
-}
+}*/

@@ -19,7 +19,6 @@ import net.minecraft.entity.passive.TameableEntity;
 import net.minecraft.entity.passive.WolfEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.thrown.PotionEntity;
-import net.minecraft.entity.projectile.thrown.SplashPotionEntity;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.InventoryChangedListener;
 import net.minecraft.item.ItemStack;
@@ -212,7 +211,7 @@ public class RescueOwnerFromLavaGoal extends Goal implements InventoryChangedLis
 
         RegistryEntry<Potion> registryEntry = itemStack.second;//Potions.FIRE_RESISTANCE;
 
-        PotionEntity potionEntity = new SplashPotionEntity(this.wolf.getWorld(), this.wolf, itemStack.first);
+        PotionEntity potionEntity = new PotionEntity(this.wolf.getWorld(), this.wolf);
         potionEntity.setItem(PotionContentsComponent.createStack(Items.SPLASH_POTION, registryEntry));
         potionEntity.setPitch(potionEntity.getPitch() - -20.0F);
         potionEntity.setVelocity(d, e + g * 0.2, f, 0.75F, 0F);

@@ -1,5 +1,6 @@
 package github.meloweh.wolfcompanion.mixin.client;
 
+/*
 import accessor.WolfEntityRenderStateProvider;
 import net.minecraft.client.item.ItemModelManager;
 import net.minecraft.client.render.entity.state.ItemHolderEntityRenderState;
@@ -55,4 +56,4 @@ public class WolfEntityRenderStateMixin implements WolfEntityRenderStateProvider
         //itemModelManager.updateForLivingEntity(state.getItemRenderState__(), entity.getMainHandStack(), ModelTransformationMode.GROUND, false, entity);
         itemModelManager.updateForLivingEntity(state.getItemRenderState__(), entity.getMainHandStack(), ItemDisplayContext.GROUND, entity);
     }
-}
+}*/

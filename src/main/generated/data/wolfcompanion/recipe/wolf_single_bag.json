@@ -2,8 +2,12 @@
   "type": "minecraft:crafting_shaped",
   "category": "equipment",
   "key": {
-    "A": "minecraft:armadillo_scute",
-    "C": "minecraft:chest"
+    "A": {
+      "item": "minecraft:armadillo_scute"
+    },
+    "C": {
+      "item": "minecraft:chest"
+    }
   },
   "pattern": [
     " A ",

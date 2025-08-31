@@ -112,7 +112,7 @@ public abstract class ServerPlayerEntityMixin implements ServerPlayerAccessor {
 
 
             ServerWorld world = (ServerWorld) this.self.getWorld();
-            final WolfEntity newWolf = EntityType.WOLF.create(world, SpawnReason.MOB_SUMMONED);
+            final WolfEntity newWolf = EntityType.WOLF.create(world);
             newWolf.setHealth(newWolf.getMaxHealth());
             newWolf.clearStatusEffects();
             newWolf.readNbt(wolfNbt);

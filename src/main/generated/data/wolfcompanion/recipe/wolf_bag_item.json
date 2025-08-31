@@ -2,8 +2,12 @@
   "type": "minecraft:crafting_shaped",
   "category": "equipment",
   "key": {
-    "A": "minecraft:armadillo_scute",
-    "C": "wolfcompanion:wolf_single_bag"
+    "A": {
+      "item": "minecraft:armadillo_scute"
+    },
+    "C": {
+      "item": "wolfcompanion:wolf_single_bag"
+    }
   },
   "pattern": [
     " A ",

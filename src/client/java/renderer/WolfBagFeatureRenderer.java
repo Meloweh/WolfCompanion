@@ -1,5 +1,5 @@
 package renderer;
-
+/*
 import accessor.WolfEntityModelAccessor;
 import accessor.WolfEntityRenderStateProvider;
 import github.meloweh.wolfcompanion.accessor.WolfEntityProvider;
@@ -51,3 +51,4 @@ public class WolfBagFeatureRenderer extends FeatureRenderer<WolfEntityRenderStat
         }
     }
 }
+*/

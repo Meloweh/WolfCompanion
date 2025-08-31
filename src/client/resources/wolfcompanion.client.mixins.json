@@ -3,8 +3,7 @@
   "package": "github.meloweh.wolfcompanion.mixin.client",
   "compatibilityLevel": "JAVA_21",
   "client": [
-    "WolfEntityModelMixin",
-    "WolfEntityRenderStateMixin"
+    "WolfEntityModelMixin"
   ],
   "injectors": {
     "defaultRequire": 1

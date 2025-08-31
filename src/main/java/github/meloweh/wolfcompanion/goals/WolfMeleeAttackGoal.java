@@ -125,7 +125,7 @@ public class WolfMeleeAttackGoal extends Goal {
         if (this.canAttack(target)) {
             this.resetCooldown();
             this.mob.swingHand(Hand.MAIN_HAND);
-            this.wolf.tryAttack__(getServerWorld(this.mob), target);
+            this.wolf.tryAttack__(target);
         }
 
     }

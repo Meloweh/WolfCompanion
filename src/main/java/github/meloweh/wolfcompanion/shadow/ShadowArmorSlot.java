@@ -52,7 +52,7 @@ public class ShadowArmorSlot extends Slot {
 
 
     @Override
-    public Identifier getBackgroundSprite() {
-        return this.backgroundSprite != null ? this.backgroundSprite : super.getBackgroundSprite();
+    public Pair<Identifier, Identifier> getBackgroundSprite() {
+        return this.backgroundSprite != null ? Pair.of(PlayerScreenHandler.BLOCK_ATLAS_TEXTURE, this.backgroundSprite) : super.getBackgroundSprite();
     }
 }
