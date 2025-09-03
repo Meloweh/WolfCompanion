@@ -5,6 +5,8 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.goal.Goal;
 import net.minecraft.entity.ai.pathing.Path;
 import net.minecraft.entity.mob.HostileEntity;
+import net.minecraft.entity.mob.MobEntity;
+import net.minecraft.entity.mob.Monster;
 import net.minecraft.entity.passive.WolfEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.predicate.entity.EntityPredicates;
@@ -51,11 +53,10 @@ public class WolfMeleeAttackGoal extends Goal {
         final List<WolfEntity> pack = serverWorld.getEntitiesByClass(WolfEntity.class, playerArea,
                 e -> e.isTamed() && !e.getUuid().equals(this.mob.getUuid()));
         if (!this.mob.isWearingBodyArmor() || pack.stream().anyMatch(e -> !e.isWearingBodyArmor())) return;
-        final List<HostileEntity> attackers = serverWorld.getEntitiesByClass(HostileEntity.class, playerArea,
-                attacker -> attacker.getTarget() != null &&
-                        attacker.getTarget().getUuid() == player.getUuid() &&
-                        pack.stream().noneMatch(w ->
-                                w.getTarget() != null && w.getTarget().getUuid().equals(attacker.getUuid())));
+        final List<MobEntity> attackers = serverWorld.getEntitiesByClass(MobEntity.class, playerArea, attacker ->
+                attacker instanceof Monster &&
+                        attacker.getTarget() != null &&
+                        attacker.getTarget().getUuid() == player.getUuid());
         attackers.sort(Comparator.comparingDouble(e -> e.distanceTo(player)));
         if (attackers.isEmpty()) return;
         this.mob.setTarget(attackers.getFirst());
@@ -71,11 +72,12 @@ public class WolfMeleeAttackGoal extends Goal {
         if (serverWorld == null) return;
         final List<WolfEntity> pack = serverWorld.getEntitiesByClass(WolfEntity.class, playerArea,
                 e -> e.isTamed() && !e.getUuid().equals(this.mob.getUuid()));
-        final List<HostileEntity> attackers = serverWorld.getEntitiesByClass(HostileEntity.class, playerArea,
-                attacker -> attacker.getTarget() != null &&
+        final List<MobEntity> attackers = serverWorld.getEntitiesByClass(MobEntity.class, playerArea, attacker ->
+                attacker instanceof Monster &&
+                        attacker.getTarget() != null &&
                         attacker.getTarget().getUuid() == player.getUuid());
         attackers.sort(Comparator.comparingDouble(e -> e.distanceTo(player)));
-        Optional<HostileEntity> coop = attackers.stream().filter(attacker -> pack.stream().anyMatch(w ->
+        Optional<MobEntity> coop = attackers.stream().filter(attacker -> pack.stream().anyMatch(w ->
                 w.getTarget() != null && w.getTarget().getUuid().equals(attacker.getUuid()))).findFirst();
         if (coop.isPresent()) {
             this.mob.setTarget(coop.get());
