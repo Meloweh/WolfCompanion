@@ -1,15 +1,22 @@
 package github.meloweh.wolfcompanion.goals;
 
 import github.meloweh.wolfcompanion.accessor.WolfEntityProvider;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.goal.Goal;
 import net.minecraft.entity.ai.pathing.Path;
+import net.minecraft.entity.mob.HostileEntity;
 import net.minecraft.entity.passive.WolfEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.predicate.entity.EntityPredicates;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Hand;
+import net.minecraft.util.math.Box;
 
+import java.util.Comparator;
 import java.util.EnumSet;
+import java.util.List;
+import java.util.Optional;
 
 public class WolfMeleeAttackGoal extends Goal {
     protected final WolfEntity mob;
@@ -34,12 +41,60 @@ public class WolfMeleeAttackGoal extends Goal {
         this.setControls(EnumSet.of(Control.MOVE, Control.LOOK));
     }
 
+    private void pickAttackerWithSpread() {
+        if (!this.mob.isTamed()) return;
+        if (this.mob.getTarget() != null) return;
+        final PlayerEntity player = (PlayerEntity) this.mob.getOwner();
+        if (player == null) return;
+        final Box playerArea = player.getBoundingBox().expand(10);
+        final ServerWorld serverWorld = (ServerWorld) player.getWorld();
+        if (serverWorld == null) return;
+        final List<WolfEntity> pack = serverWorld.getEntitiesByClass(WolfEntity.class, playerArea,
+                e -> e.isTamed() && !e.getUuid().equals(this.mob.getUuid()));
+        if (!this.mob.hasArmor() || pack.stream().anyMatch(e -> !e.hasArmor())) return;
+        final List<HostileEntity> attackers = serverWorld.getEntitiesByClass(HostileEntity.class, playerArea,
+                attacker -> attacker.getTarget() != null &&
+                        attacker.getTarget().getUuid() == player.getUuid() &&
+                        pack.stream().noneMatch(w ->
+                                w.getTarget() != null && w.getTarget().getUuid().equals(attacker.getUuid())));
+        attackers.sort(Comparator.comparingDouble(e -> e.distanceTo(player)));
+        if (attackers.isEmpty()) return;
+        this.mob.setTarget(attackers.getFirst());
+    }
+
+    private void pickAttackerWithoutSpread() {
+        if (!this.mob.isTamed()) return;
+        if (this.mob.getTarget() != null) return;
+        final PlayerEntity player = (PlayerEntity) this.mob.getOwner();
+        if (player == null) return;
+        final Box playerArea = player.getBoundingBox().expand(10);
+        final ServerWorld serverWorld = (ServerWorld) player.getWorld();
+        if (serverWorld == null) return;
+        final List<WolfEntity> pack = serverWorld.getEntitiesByClass(WolfEntity.class, playerArea,
+                e -> e.isTamed() && !e.getUuid().equals(this.mob.getUuid()));
+        final List<HostileEntity> attackers = serverWorld.getEntitiesByClass(HostileEntity.class, playerArea,
+                attacker -> attacker.getTarget() != null &&
+                        attacker.getTarget().getUuid() == player.getUuid());
+        attackers.sort(Comparator.comparingDouble(e -> e.distanceTo(player)));
+        Optional<HostileEntity> coop = attackers.stream().filter(attacker -> pack.stream().anyMatch(w ->
+                        w.getTarget() != null && w.getTarget().getUuid().equals(attacker.getUuid()))).findFirst();
+        if (coop.isPresent()) {
+            this.mob.setTarget(coop.get());
+        } else if (!attackers.isEmpty()) {
+            this.mob.setTarget(attackers.getFirst());
+        }
+
+    }
+
+
     public boolean canStart() {
         long l = this.mob.getWorld().getTime();
         if (l - this.lastUpdateTime < 20L) {
             return false;
         } else {
             this.lastUpdateTime = l;
+            pickAttackerWithSpread();
+            pickAttackerWithoutSpread();
             LivingEntity livingEntity = this.mob.getTarget();
             if (livingEntity == null) {
                 return false;
