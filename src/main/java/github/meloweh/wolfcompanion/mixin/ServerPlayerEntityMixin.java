@@ -15,6 +15,8 @@ import net.minecraft.screen.ScreenHandler;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.storage.ReadView;
+import net.minecraft.storage.WriteView;
 import net.minecraft.util.WorldSavePath;
 import net.minecraft.util.math.BlockPos;
 import org.spongepowered.asm.mixin.Mixin;
@@ -30,6 +32,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Mixin(ServerPlayerEntity.class)
@@ -64,24 +67,23 @@ public abstract class ServerPlayerEntityMixin implements ServerPlayerAccessor {
         respawnDoggo(null, null);
     }
 
-    @Inject(method = "writeCustomDataToNbt", at = @At("TAIL"))
-    public void writeWolfDataToNbt(NbtCompound nbt, CallbackInfo ci) {
+    @Inject(method = "writeCustomData", at = @At("TAIL"))
+    public void writeWolfDataToNbt(WriteView view, CallbackInfo ci) {
         if (!wolfNbts.isEmpty()) {
             for (int i = 0; i < wolfNbts.size(); i++) {
                 final NbtCompound wolfNbt = wolfNbts.get(i);
-                nbt.put(WolfEventHandler.Wolf_NBT_KEY + i, wolfNbt);
+                view.put(WolfEventHandler.Wolf_NBT_KEY + i, NbtCompound.CODEC, wolfNbt);
+                view.
             }
         }
     }
 
-    @Inject(method = "readCustomDataFromNbt", at = @At("TAIL"))
-    public void readWolfDataToNbt(NbtCompound nbt, CallbackInfo ci) {
-        for (int i = 0; nbt.contains(WolfEventHandler.Wolf_NBT_KEY + i); i++) {
-            final NbtElement wolfElement = nbt.get(WolfEventHandler.Wolf_NBT_KEY + i);
-            if (!(wolfElement instanceof NbtCompound)) {
-                throw new IllegalStateException("nbt should be compound");
-            }
-            wolfNbts.add((NbtCompound) wolfElement);
+    @Inject(method = "readCustomData", at = @At("TAIL"))
+    public void readWolfDataToNbt(ReadView view, CallbackInfo ci) {
+        for (int i = 0; view.contains(WolfEventHandler.Wolf_NBT_KEY + i); i++) {
+            final Optional<NbtCompound> wolfElement = view.read(WolfEventHandler.Wolf_NBT_KEY + i, NbtCompound.CODEC);
+            wolfNbts.add(wolfElement.get());
+        view.
         }
     }
 
@@ -115,7 +117,7 @@ public abstract class ServerPlayerEntityMixin implements ServerPlayerAccessor {
             final WolfEntity newWolf = EntityType.WOLF.create(world, SpawnReason.MOB_SUMMONED);
             newWolf.setHealth(newWolf.getMaxHealth());
             newWolf.clearStatusEffects();
-            newWolf.readNbt(wolfNbt);
+            newWolf.readData(wolfNbt);
             newWolf.refreshPositionAndAngles(self.getX(), self.getY(), self.getZ(), self.getYaw(), self.getPitch());
             newWolf.playSpawnEffects();
             final boolean result = world.spawnEntity(newWolf);
