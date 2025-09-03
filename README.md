@@ -2,6 +2,8 @@
 
 **Tired of leaving your loyal wolves behind or worrying about their safety in your adventures? The Better Wolf Companion Mod brings a host of thoughtful upgrades to improve your furry friends' functionality, survivability, and charm in Minecraft! Whether you’re exploring caves or defending your base, this mod ensures your wolves are always by your side and ready for anything.**
 
+A gallery can be found [here](https://modrinth.com/mod/better-wolf-companion-mod/gallery)
+
 ## Features
 ### Portable Wolf Inventory
 - Craft a stylish and functional **Wolf Bag** to grant your pet its own personal inventory storage.
