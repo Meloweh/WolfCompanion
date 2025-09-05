@@ -4,6 +4,7 @@ import github.meloweh.wolfcompanion.WolfCompanion;
 import github.meloweh.wolfcompanion.accessor.ServerPlayerAccessor;
 import github.meloweh.wolfcompanion.events.WolfEventHandler;
 import github.meloweh.wolfcompanion.util.ConfigManager;
+import net.minecraft.component.type.NbtComponent;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.passive.WolfEntity;
@@ -11,15 +12,20 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.nbt.NbtSizeTracker;
+import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.storage.NbtReadView;
+import net.minecraft.storage.NbtWriteView;
 import net.minecraft.storage.ReadView;
 import net.minecraft.storage.WriteView;
+import net.minecraft.util.ErrorReporter;
 import net.minecraft.util.WorldSavePath;
 import net.minecraft.util.math.BlockPos;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.gen.Accessor;
 import org.spongepowered.asm.mixin.gen.Invoker;
@@ -37,6 +43,9 @@ import java.util.UUID;
 
 @Mixin(ServerPlayerEntity.class)
 public abstract class ServerPlayerEntityMixin implements ServerPlayerAccessor {
+    @Shadow
+    public abstract ServerWorld getWorld();
+
     @Unique
     ServerPlayerEntity self;
 
@@ -73,7 +82,6 @@ public abstract class ServerPlayerEntityMixin implements ServerPlayerAccessor {
             for (int i = 0; i < wolfNbts.size(); i++) {
                 final NbtCompound wolfNbt = wolfNbts.get(i);
                 view.put(WolfEventHandler.Wolf_NBT_KEY + i, NbtCompound.CODEC, wolfNbt);
-                view.
             }
         }
     }
@@ -83,7 +91,6 @@ public abstract class ServerPlayerEntityMixin implements ServerPlayerAccessor {
         for (int i = 0; view.contains(WolfEventHandler.Wolf_NBT_KEY + i); i++) {
             final Optional<NbtCompound> wolfElement = view.read(WolfEventHandler.Wolf_NBT_KEY + i, NbtCompound.CODEC);
             wolfNbts.add(wolfElement.get());
-        view.
         }
     }
 
@@ -94,14 +101,29 @@ public abstract class ServerPlayerEntityMixin implements ServerPlayerAccessor {
 
     @Inject(method = "sleep", at = @At("HEAD"))
     private void respawnDoggo(BlockPos pos, CallbackInfo ci) {
+        if (pos == null) return;
+        List<NbtCompound> canDelete = new ArrayList<>();
         wolfNbts.forEach(wolfNbt -> {
-            wolfNbt.remove("HurtTime");
-            wolfNbt.remove("HurtByTimestamp");
-            wolfNbt.remove("DeathTime");
+            // TODO: reset instead of deleting
+            //wolfNbt.remove("HurtTime");
+            //wolfNbt.remove("HurtByTimestamp");
+            //wolfNbt.remove("DeathTime");
             wolfNbt.remove("body_armor_item");
             wolfNbt.remove("body_armor_drop_chance");
             wolfNbt.remove("ArmorDropChances");
-            wolfNbt.putFloat("Health", this.self.getMaxHealth());
+            //wolfNbt.remove("fall_distance");
+            //wolfNbt.remove("OnGround");
+            //wolfNbt.remove("Motion");
+            //wolfNbt.remove("Fire");
+            //wolfNbt.remove("Air");
+            //wolfNbt.putFloat("Health", this.self.getMaxHealth());
+
+            wolfNbt.putFloat("Health", 40f);
+            wolfNbt.putShort("HurtTime", (short)0);
+            wolfNbt.putInt("HurtByTimestamp", 0);
+            wolfNbt.putShort("DeathTime", (short)0);
+            wolfNbt.putBoolean("OnGround", true);
+            wolfNbt.putDouble("fall_distance", 0d);
 
             if (!ConfigManager.config.keepWolfInventory) {
                 if (!ConfigManager.config.keepWolfArmor)
@@ -113,16 +135,43 @@ public abstract class ServerPlayerEntityMixin implements ServerPlayerAccessor {
             }
 
 
-            ServerWorld world = (ServerWorld) this.self.getWorld();
-            final WolfEntity newWolf = EntityType.WOLF.create(world, SpawnReason.MOB_SUMMONED);
-            newWolf.setHealth(newWolf.getMaxHealth());
-            newWolf.clearStatusEffects();
-            newWolf.readData(wolfNbt);
-            newWolf.refreshPositionAndAngles(self.getX(), self.getY(), self.getZ(), self.getYaw(), self.getPitch());
-            newWolf.playSpawnEffects();
-            final boolean result = world.spawnEntity(newWolf);
+            ServerWorld world = this.self.getWorld();
+            //final WolfEntity newWolf = EntityType.WOLF.create(world, SpawnReason.MOB_SUMMONED);
+
+            WolfEntity newWolf = EntityType.WOLF.create(
+                    world,
+                    e -> {
+                        final NbtComponent nbtComponent = NbtComponent.of(wolfNbt);
+                        nbtComponent.applyToEntity(e);
+                        //NbtCompound.CODEC.parse(wolfNbt);
+                        //e.writeData(wolfNbt);
+                        //EntityType.loadFromEntityNbt(this.getWorld(), this.self, EntityType.WOLF., NbtComponent.of(wolfNbt)); // see note below
+                    },
+                    pos,
+                    SpawnReason.MOB_SUMMONED,
+                    true,  // align position to center
+                    false  // spawn in water allowed?
+            );
+
+            if (newWolf != null) {
+                //final NbtComponent nbtComponent = NbtComponent.of(wolfNbt);
+                //nbtComponent.applyToEntity(newWolf);
+
+                //System.out.println(wolfNbt.toString());
+                //if (1==1)return;
+                //final ReadView readView = NbtReadView.create(ErrorReporter.EMPTY, RegistryWrapper.WrapperLookup.of(null), wolfNbt);
+            //    EntityType.loadFromEntityNbt(this.getWorld(), this.self, newWolf, NbtComponent.of(wolfNbt));
+
+            //    newWolf.setHealth(newWolf.getMaxHealth());
+            //    newWolf.clearStatusEffects();
+
+            //    newWolf.refreshPositionAndAngles(self.getX(), self.getY(), self.getZ(), self.getYaw(), self.getPitch());
+            //    newWolf.playSpawnEffects();
+                final boolean success = world.spawnNewEntityAndPassengers(newWolf);
+                if (success) canDelete.add(wolfNbt);
+            }
         });
-        wolfNbts.clear();
+        canDelete.forEach(e -> wolfNbts.remove(e));
     }
 
     @Override

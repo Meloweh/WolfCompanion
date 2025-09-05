@@ -1,6 +1,5 @@
 package github.meloweh.wolfcompanion.mixin;
 
-import github.meloweh.wolfcompanion.WolfCompanion;
 import github.meloweh.wolfcompanion.accessor.*;
 import github.meloweh.wolfcompanion.events.WolfEventHandler;
 import github.meloweh.wolfcompanion.goals.*;
@@ -30,13 +29,20 @@ import net.minecraft.inventory.*;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.*;
 import net.minecraft.particle.*;
+import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundEvents;
+import net.minecraft.storage.NbtReadView;
+import net.minecraft.storage.NbtWriteView;
+import net.minecraft.storage.ReadView;
+import net.minecraft.storage.WriteView;
 import net.minecraft.text.Text;
+import net.minecraft.text.TextCodecs;
 import net.minecraft.util.ActionResult;
+import net.minecraft.util.ErrorReporter;
 import net.minecraft.util.Hand;
 import net.minecraft.util.WorldSavePath;
 import net.minecraft.util.math.MathHelper;
@@ -47,6 +53,7 @@ import net.minecraft.util.profiler.Profiler;
 import net.minecraft.util.profiler.Profilers;
 import net.minecraft.world.GameRules;
 import net.minecraft.world.World;
+import org.apache.logging.log4j.spi.LoggerAdapter;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Math;
 import org.spongepowered.asm.mixin.Mixin;
@@ -64,6 +71,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.*;
+
+import static github.meloweh.wolfcompanion.WolfCompanion.LOGGER;
 
 @Mixin(WolfEntity.class)
 public abstract class WolfEntityMixin implements
@@ -211,7 +220,7 @@ public abstract class WolfEntityMixin implements
         //System.out.println(shakeReason + " " + self.getWorld().isClient);
 
         return switch (shakeReason) {
-            case 1 -> EntityEffectParticleEffect.create(ParticleTypes.ENTITY_EFFECT, 0.529f, 0.639f, 0.388f);
+            case 1 -> TintedParticleEffect.create(ParticleTypes.ENTITY_EFFECT, 0.529f, 0.639f, 0.388f);
             case 2 -> ParticleTypes.SMOKE;
             default -> ParticleTypes.SPLASH;
         };
@@ -305,8 +314,10 @@ public abstract class WolfEntityMixin implements
     @Inject(method = "onDeath", at = @At("HEAD"))
     private void cancelDeath(DamageSource damageSource, CallbackInfo ci) {
         if (this.self.isTamed() && !this.self.getWorld().isClient && ConfigManager.config.canRespawn) {
-            final NbtCompound wolfNbt = new NbtCompound();
-            this.self.writeCustomDataToNbt(wolfNbt);
+            NbtWriteView writeView = NbtWriteView.create(ErrorReporter.EMPTY);
+            this.self.writeData(writeView);
+            final NbtCompound wolfNbt = writeView.getNbt();
+            ReadView nbtReadView = NbtReadView.create(ErrorReporter.EMPTY, this.self.getRegistryManager(), wolfNbt);
 
             wolfcompanion_template_1_21_1$dropInventoryByButton();
 
@@ -315,11 +326,23 @@ public abstract class WolfEntityMixin implements
                 playerAccessor.queueWolfNbt(wolfNbt);
             } else {
                 if (wolfNbt.contains("Owner")) {
-                    final UUID ownerUUID = UUID.fromString(wolfNbt.getString("Owner").get());
-                    final File worldDirectory = self.getServer().getSavePath(WorldSavePath.ROOT).toFile();
-                    final File playerDatFolder = new File(worldDirectory, "playerdata");
+                    LazyEntityReference<LivingEntity> lazyEntityReference = LazyEntityReference.fromDataOrPlayerName(nbtReadView, "Owner", this.getWorld());
 
-                    writeToPlayerSaveFile(playerDatFolder, ownerUUID, wolfNbt);
+                    if (lazyEntityReference == null) {
+                        System.out.println("ERROR: Could not retrieve lazyEntityReference for wolf.");
+                    } else {
+                        final UUID ownerUUID = lazyEntityReference.getUuid();
+                        //final UUID ownerUUID = UUID.fromString(wolfNbt.getString("Owner").get());
+                        if (self.getServer() == null) {
+                            System.out.println("ERROR: Server for cancelling wolf deletion not found");
+                        } else {
+                            final File worldDirectory = self.getServer().getSavePath(WorldSavePath.ROOT).toFile();
+                            final File playerDatFolder = new File(worldDirectory, "playerdata");
+                            writeToPlayerSaveFile(playerDatFolder, ownerUUID, wolfNbt);
+                        }
+                    }
+                } else {
+                    System.out.println("What happened? A wolves owner got obscured. Good bye, you have been a good companion :(");
                 }
             }
 
@@ -739,9 +762,10 @@ public abstract class WolfEntityMixin implements
         }
     }
 
-    @Inject(method = "writeCustomDataToNbt", at = @At("TAIL"))
-    private void injectWriteCustomDataToNbt(NbtCompound nbt, CallbackInfo ci) {
-        nbt.putBoolean("ChestedWolf", this.hasChest());
+    @Inject(method = "writeCustomData", at = @At("TAIL"))
+    private void injectWriteCustomDataToNbt(WriteView view, CallbackInfo ci) {
+
+        view.putBoolean("ChestedWolf", this.hasChest());
         if (this.hasChest()) {
             NbtList nbtList = new NbtList();
 
@@ -750,53 +774,71 @@ public abstract class WolfEntityMixin implements
                 if (!itemStack.isEmpty()) {
                     NbtCompound nbtCompound = new NbtCompound();
                     nbtCompound.putByte("Slot", (byte)(i - 1));
-                    nbtList.add(itemStack.toNbt(self.getRegistryManager(), nbtCompound));
+
+                    NbtWriteView nbtWriteView = NbtWriteView.create(ErrorReporter.EMPTY);
+                    nbtWriteView.put(ItemStack.MAP_CODEC, itemStack);
+
+                    NbtCompound tag = nbtWriteView.getNbt();
+
+                    nbtList.add(tag);
                 }
             }
 
-            nbt.put("Items", nbtList);
+            //NbtCompound wrapper = new NbtCompound();
+            //wrapper.put("Items", nbtList);
+            //view.put("Items", NbtCompound.CODEC, wrapper);
+
+            WriteView.ListAppender<NbtCompound> list = view.getListAppender("Items", NbtCompound.CODEC);
+
+            for (NbtElement e : nbtList) {                 // NBT lists are homogeneous
+                list.add((NbtCompound) e);                // if the list holds compounds
+            }
         }
-        Text text = this.self.getCustomName();
-        if (text != null) {
-            nbt.putString("CustomName", Text.Serialization.toJsonString(text, this.self.getRegistryManager()));
+        view.putNullable("CustomName", TextCodecs.CODEC, this.self.getCustomName());
+        if (this.self.isCustomNameVisible()) {
+            view.putBoolean("CustomNameVisible", this.self.isCustomNameVisible());
         }
-        nbt.putInt("XP", this.getXp());
+        view.putInt("XP", this.getXp());
     }
 
-    @Inject(method = "readCustomDataFromNbt", at = @At("TAIL"))
-    private void readCustomDataFromNbt(NbtCompound nbt, CallbackInfo ci) {
-        /*if (nbt.contains("SaddleItem", NbtElement.COMPOUND_TYPE)) {
-            ItemStack itemStack = (ItemStack)ItemStack.fromNbt(self.getRegistryManager(), nbt.getCompound("SaddleItem")).orElse(ItemStack.EMPTY);
-            if (itemStack.isOf(Items.SADDLE)) {
-                this.items.setStack(0, itemStack);
-            }
-        }*/
-
-        ////////
-        this.setHasChest(nbt.getBoolean("ChestedWolf").get());
+    @Inject(method = "readCustomData", at = @At("TAIL"))
+    private void readCustomDataFromNbt(ReadView view, CallbackInfo ci) {
+        this.setHasChest(view.getBoolean("ChestedWolf", false));
         this.onChestedStatusChanged();
         if (this.hasChest()) {
-            NbtList nbtList = nbt.getList("Items").get();
+            final NbtList nbtList = new NbtList();
+
+            var opt = view.getOptionalTypedListView("Items", NbtCompound.CODEC);
+            opt.ifPresent(listView -> {
+                for (NbtCompound tag : listView) {
+                    nbtList.add(tag);
+                }
+            });
 
             for (int i = 0; i < nbtList.size(); i++) {
                 NbtCompound nbtCompound = nbtList.getCompound(i).get();
                 int j = nbtCompound.getByte("Slot").get() & 255;
                 if (j < this.items.size() - 1) {
-                    final ItemStack itemStack = ItemStack.fromNbt(self.getRegistryManager(), nbtCompound).orElse(ItemStack.EMPTY);
+                    //final ItemStack itemStack = ItemStack.fromNbt(self.getRegistryManager(), nbtCompound).orElse(ItemStack.EMPTY);
+
+
+                    RegistryWrapper.WrapperLookup lookup = self.getRegistryManager();
+                    var ops = lookup.getOps(NbtOps.INSTANCE);
+
+                    ItemStack itemStack = ItemStack.CODEC
+                            .parse(ops, nbtCompound)
+                            .result()
+                            .orElse(ItemStack.EMPTY);
+
+
                     this.items.setStack(j + 1, itemStack);
                 }
             }
         }
-        if (nbt.contains("CustomName")) {
-            String string = nbt.getString("CustomName").get();
+        this.self.setCustomName(view.read("CustomName", TextCodecs.CODEC).orElse(null));
+        this.self.setCustomNameVisible(view.getBoolean("CustomNameVisible", false));
 
-            try {
-                this.self.setCustomName(Text.Serialization.fromJson(string, this.self.getRegistryManager()));
-            } catch (Exception var16) {
-                WolfCompanion.LOGGER.warn("Failed to parse entity custom name {}", string, var16);
-            }
-        }
-        this.setXp(nbt.getInt("XP").get());
+        this.setXp(view.getInt("XP", 0));
     }
 
     @Unique

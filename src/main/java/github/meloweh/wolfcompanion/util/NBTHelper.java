@@ -6,15 +6,20 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
+import net.minecraft.storage.NbtWriteView;
+import net.minecraft.storage.WriteView;
+import net.minecraft.util.ErrorReporter;
 
 public class NBTHelper {
     public static NbtCompound getWolfNBT(WolfEntity wolf) {
         if (wolf == null) {
             throw new IllegalArgumentException("Wolf entity cannot be null");
         }
-        NbtCompound nbtData = new NbtCompound();
-        wolf.writeNbt(nbtData);
-        return nbtData;
+
+        //final NbtCompound wolfNbt = writeView.getNbt();
+        final NbtWriteView nbtWriteView = NbtWriteView.create(ErrorReporter.EMPTY);
+        wolf.writeData(nbtWriteView);
+        return nbtWriteView.getNbt();
     }
 
     /*public static SimpleInventory getInventory(NbtCompound nbt, WolfEntity wolf) {
