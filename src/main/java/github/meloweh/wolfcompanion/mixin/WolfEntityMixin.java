@@ -767,31 +767,11 @@ public abstract class WolfEntityMixin implements
 
         view.putBoolean("ChestedWolf", this.hasChest());
         if (this.hasChest()) {
-            NbtList nbtList = new NbtList();
-
-            for (int i = 1; i < this.items.size(); i++) {
+            WriteView.ListAppender<StackWithSlot> listAppender = view.getListAppender("Items", StackWithSlot.CODEC);
+            for (int i = 0; i < this.items.size(); ++i) {
                 ItemStack itemStack = this.items.getStack(i);
-                if (!itemStack.isEmpty()) {
-                    NbtCompound nbtCompound = new NbtCompound();
-                    nbtCompound.putByte("Slot", (byte)(i - 1));
-
-                    NbtWriteView nbtWriteView = NbtWriteView.create(ErrorReporter.EMPTY);
-                    nbtWriteView.put(ItemStack.MAP_CODEC, itemStack);
-
-                    NbtCompound tag = nbtWriteView.getNbt();
-
-                    nbtList.add(tag);
-                }
-            }
-
-            //NbtCompound wrapper = new NbtCompound();
-            //wrapper.put("Items", nbtList);
-            //view.put("Items", NbtCompound.CODEC, wrapper);
-
-            WriteView.ListAppender<NbtCompound> list = view.getListAppender("Items", NbtCompound.CODEC);
-
-            for (NbtElement e : nbtList) {                 // NBT lists are homogeneous
-                list.add((NbtCompound) e);                // if the list holds compounds
+                if (itemStack.isEmpty()) continue;
+                listAppender.add(new StackWithSlot(i, itemStack));
             }
         }
         view.putNullable("CustomName", TextCodecs.CODEC, this.self.getCustomName());
@@ -806,33 +786,9 @@ public abstract class WolfEntityMixin implements
         this.setHasChest(view.getBoolean("ChestedWolf", false));
         this.onChestedStatusChanged();
         if (this.hasChest()) {
-            final NbtList nbtList = new NbtList();
-
-            var opt = view.getOptionalTypedListView("Items", NbtCompound.CODEC);
-            opt.ifPresent(listView -> {
-                for (NbtCompound tag : listView) {
-                    nbtList.add(tag);
-                }
-            });
-
-            for (int i = 0; i < nbtList.size(); i++) {
-                NbtCompound nbtCompound = nbtList.getCompound(i).get();
-                int j = nbtCompound.getByte("Slot").get() & 255;
-                if (j < this.items.size() - 1) {
-                    //final ItemStack itemStack = ItemStack.fromNbt(self.getRegistryManager(), nbtCompound).orElse(ItemStack.EMPTY);
-
-
-                    RegistryWrapper.WrapperLookup lookup = self.getRegistryManager();
-                    var ops = lookup.getOps(NbtOps.INSTANCE);
-
-                    ItemStack itemStack = ItemStack.CODEC
-                            .parse(ops, nbtCompound)
-                            .result()
-                            .orElse(ItemStack.EMPTY);
-
-
-                    this.items.setStack(j + 1, itemStack);
-                }
+            for (StackWithSlot stackWithSlot : view.getTypedListView("Items", StackWithSlot.CODEC)) {
+                if (!stackWithSlot.isValidSlot(this.items.size())) continue;
+                this.items.setStack(stackWithSlot.slot(), stackWithSlot.stack());
             }
         }
         this.self.setCustomName(view.read("CustomName", TextCodecs.CODEC).orElse(null));
