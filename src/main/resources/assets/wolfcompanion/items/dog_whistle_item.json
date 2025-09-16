@@ -1,6 +1,9 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "wolfcompanion:item/dog_whistle_item"
+    "model": "wolfcompanion:item/dog_whistle_item",
+    "sounds": [
+      { "name": "wolfcompanion:whistle", "attenuation_distance": 16, "stream": false }
+    ]
   }
 }

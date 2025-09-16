@@ -184,11 +184,12 @@ public class WolfInventoryScreen extends HandledScreen<WolfInventoryScreenHandle
 
         String xpText = (level < 1) ? "" : level + "";
         int xpTextWidth = textRenderer.getWidth(xpText);
-        context.drawText(textRenderer, xpText, x + WIDTH / 2 - xpTextWidth / 2, y - 4 + 2, 0X7EFC20, true);
 
         context.drawTexture(RenderPipelines.GUI_TEXTURED, EXPERIENCE_BAR_BACKGROUND_TEXTURE, x, y, 0, 0, WIDTH, HEIGHT, WIDTH, HEIGHT);
         final int currentXpBar = WIDTH * (deltaXp / deltaMaxXp);
         context.drawTexture(RenderPipelines.GUI_TEXTURED, EXPERIENCE_BAR_CURRENT_TEXTURE, x, y, 0, 0, WIDTH * deltaXp / deltaMaxXp, HEIGHT, WIDTH, HEIGHT);
+        context.drawText(textRenderer, xpText, x + WIDTH / 2 - xpTextWidth / 2, y - 4 + 2, 0xFF7EFC20, true);
+
     }
 
     @Override

@@ -1,5 +1,8 @@
 package github.meloweh.wolfcompanion.util;
 
+import java.util.ArrayList;
+import java.util.List;
+
 //@Config(name = "wolf-config", wrapperName = "WolfConfig")
 public class WolfConfig {
     public boolean canShakeOffPoison = true;
@@ -14,5 +17,6 @@ public class WolfConfig {
     public boolean pickAllRottenFlesh = true;
     public boolean shouldCarePlayerFood = true;
     public int requiredPlayerFood = 10;
+    public List<String> doNotAttackMobs = new ArrayList<>(List.of());
 
 }

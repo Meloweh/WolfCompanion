@@ -1,41 +1,123 @@
 package github.meloweh.wolfcompanion.util;
 
+import net.minecraft.component.type.NbtComponent;
+import net.minecraft.entity.EntityType;
+import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.passive.WolfEntity;
 import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
+import net.minecraft.particle.ParticleTypes;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.storage.NbtWriteView;
-import net.minecraft.storage.WriteView;
 import net.minecraft.util.ErrorReporter;
 
 public class NBTHelper {
-    public static NbtCompound getWolfNBT(WolfEntity wolf) {
-        if (wolf == null) {
-            throw new IllegalArgumentException("Wolf entity cannot be null");
+        public static NbtCompound getWolfNBT(WolfEntity wolf) {
+            if (wolf == null) {
+                throw new IllegalArgumentException("Wolf entity cannot be null");
+            }
+
+            final NbtWriteView nbtWriteView = NbtWriteView.create(ErrorReporter.EMPTY);
+            wolf.writeData(nbtWriteView);
+            return nbtWriteView.getNbt();
         }
 
-        //final NbtCompound wolfNbt = writeView.getNbt();
-        final NbtWriteView nbtWriteView = NbtWriteView.create(ErrorReporter.EMPTY);
-        wolf.writeData(nbtWriteView);
-        return nbtWriteView.getNbt();
-    }
+        public static void cleanRescueWolfNbt(final NbtCompound wolfNbt, final float health) {
+            wolfNbt.remove("HurtTime");
+            wolfNbt.remove("HurtByTimestamp");
+            wolfNbt.remove("DeathTime");
+            wolfNbt.remove("body_armor_item");
+            wolfNbt.remove("body_armor_drop_chance");
+            wolfNbt.remove("ArmorDropChances");
+            wolfNbt.putFloat("Health", health);
 
-    /*public static SimpleInventory getInventory(NbtCompound nbt, WolfEntity wolf) {
-        NbtList nbtList = nbt.getList("Items").get();
-        final SimpleInventory items = new SimpleInventory(16);
-
-        for (int i = 0; i < nbtList.size(); i++) {
-            NbtCompound nbtCompound = nbtList.getCompound(i).get();
-            int j = nbtCompound.getByte("Slot") & 255;
-            if (j < items.size() - 1) {
-                final ItemStack itemStack = ItemStack.fromNbt(wolf.getRegistryManager(), nbtCompound).orElse(ItemStack.EMPTY);
-                System.out.println("reading ItemStack: " + itemStack.toHoverableText().getString());
-                items.setStack(j + 1, itemStack);
+            if (!ConfigManager.config.keepWolfInventory) {
+                if (!ConfigManager.config.keepWolfArmor)
+                    wolfNbt.remove("ArmorItems");
+                if (!ConfigManager.config.keepWolfBag)
+                    wolfNbt.remove("ChestedWolf");
+                wolfNbt.remove("Items");
+                wolfNbt.putInt("XP", 0);
             }
         }
-        return items;
-    }*/
 
-}
+        /*
+
+            ServerWorld world = this.self.getWorld();
+
+            WolfEntity newWolf = EntityType.WOLF.create(
+                    world,
+                    e -> {
+                        final NbtComponent nbtComponent = NbtComponent.of(wolfNbt);
+                        nbtComponent.applyToEntity(e);
+                    },
+                    pos,
+                    SpawnReason.MOB_SUMMONED,
+                    true,  // align position to center
+                    false  // spawn in water allowed?
+            );
+
+            if (newWolf != null) {
+                final boolean success = world.spawnNewEntityAndPassengers(newWolf);
+                if (success) canDelete.add(wolfNbt);
+            }
+         */
+
+        /*public static boolean spawnWolfFromNbt(final ServerPlayerEntity player, final NbtCompound wolfNbt, final boolean rescue) {
+            final ServerWorld world = (ServerWorld) player.getWorld();
+            final WolfEntity newWolf = EntityType.WOLF.create(world);
+
+            if (rescue) newWolf.setHealth(newWolf.getMaxHealth());
+            newWolf.clearStatusEffects();
+            newWolf.readNbt(wolfNbt);
+            newWolf.refreshPositionAndAngles(player.getX(), player.getY(), player.getZ(), player.getYaw(), player.getPitch());
+            newWolf.playSpawnEffects();
+
+            ServerWorld sw = (ServerWorld) newWolf.getWorld();
+            double x = newWolf.getX(), y = newWolf.getBodyY(0.5), z = newWolf.getZ();
+            sw.spawnParticles(ParticleTypes.POOF,  x, y, z, 9, 0.25, 0.20, 0.25, 0.01);
+            sw.spawnParticles(ParticleTypes.CLOUD, x, y, z,  4, 0.20, 0.10, 0.20, 0.00);
+
+            return world.spawnEntity(newWolf);
+        }*/
+
+        public static boolean spawnWolfFromNbt(final ServerPlayerEntity player, final NbtCompound wolfNbt, final boolean rescue) {
+            final ServerWorld world = (ServerWorld) player.getWorld();
+
+            WolfEntity newWolf = EntityType.WOLF.create(
+                    world,
+                    e -> {
+                        final NbtComponent nbtComponent = NbtComponent.of(wolfNbt);
+                        nbtComponent.applyToEntity(e);
+                    },
+                    player.getBlockPos(),
+                    SpawnReason.MOB_SUMMONED,
+                    true,  // align position to center
+                    true  // spawn in water allowed?
+            );
+
+            if (newWolf == null) {
+                System.out.println("ERROR: New wolf is null.");
+                return false;
+            }
+
+            if (rescue) newWolf.setHealth(newWolf.getMaxHealth());
+            newWolf.refreshPositionAndAngles(player.getX(), player.getY(), player.getZ(), player.getYaw(), player.getPitch());
+            newWolf.clearStatusEffects();
+            newWolf.setOnFire(false);
+            newWolf.setFireTicks(0);
+            newWolf.playSpawnEffects();
+
+            ServerWorld sw = (ServerWorld) newWolf.getWorld();
+            double x = newWolf.getX(), y = newWolf.getBodyY(0.5), z = newWolf.getZ();
+            sw.spawnParticles(ParticleTypes.POOF,  x, y, z, 9, 0.25, 0.20, 0.25, 0.01);
+            sw.spawnParticles(ParticleTypes.CLOUD, x, y, z,  4, 0.20, 0.10, 0.20, 0.00);
+
+            return world.spawnNewEntityAndPassengers(newWolf);
+        }
+
+    }

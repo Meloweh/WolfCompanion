@@ -7,6 +7,7 @@ import github.meloweh.wolfcompanion.init.InitItem;
 import github.meloweh.wolfcompanion.network.UuidPayload;
 import github.meloweh.wolfcompanion.screenhandler.WolfInventoryScreenHandler;
 import github.meloweh.wolfcompanion.util.ConfigManager;
+import github.meloweh.wolfcompanion.util.LineScan;
 import github.meloweh.wolfcompanion.util.NBTHelper;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.component.EnchantmentEffectComponentTypes;
@@ -29,7 +30,6 @@ import net.minecraft.inventory.*;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.*;
 import net.minecraft.particle.*;
-import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -39,7 +39,6 @@ import net.minecraft.storage.NbtReadView;
 import net.minecraft.storage.NbtWriteView;
 import net.minecraft.storage.ReadView;
 import net.minecraft.storage.WriteView;
-import net.minecraft.text.Text;
 import net.minecraft.text.TextCodecs;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.ErrorReporter;
@@ -53,14 +52,11 @@ import net.minecraft.util.profiler.Profiler;
 import net.minecraft.util.profiler.Profilers;
 import net.minecraft.world.GameRules;
 import net.minecraft.world.World;
-import org.apache.logging.log4j.spi.LoggerAdapter;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Math;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
-import org.spongepowered.asm.mixin.gen.Accessor;
-import org.spongepowered.asm.mixin.gen.Invoker;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
@@ -71,8 +67,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.*;
-
-import static github.meloweh.wolfcompanion.WolfCompanion.LOGGER;
 
 @Mixin(WolfEntity.class)
 public abstract class WolfEntityMixin implements
@@ -92,26 +86,10 @@ public abstract class WolfEntityMixin implements
     @Unique
     private Optional<ItemEntity> targetPickup = Optional.empty();
 
-//    @Unique
-//    private static final int EATING_DURATION = 600;
-//    @Unique
-//    private float headRollProgress;
-//    @Unique
-//    private float lastHeadRollProgress;
-//    @Unique
-//    float extraRollingHeight;
-//    @Unique
-//    float lastExtraRollingHeight;
-//    @Unique
-//    private int eatingTime;
-
     @Inject(method = "<init>", at = @At("RETURN"))
     private void onConstructor(CallbackInfo info) {
-        //items.addListener(this);
-        //items.markDirty();
         this.self = (WolfEntity) (Object) this;
         this.onChestedStatusChanged();
-        //this.self.setCanPickUpLoot(true);
     }
 
     @Override
@@ -127,11 +105,6 @@ public abstract class WolfEntityMixin implements
     public Optional<ItemEntity> getTargetPickup__() {
         return this.targetPickup;
     }
-
-//    @Unique
-//    public SoundEvent getEatSound(ItemStack stack) {
-//        return SoundEvents.ENTITY_FOX_EAT;
-//    }
 
     @ModifyArg(method = "initGoals", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/ai/goal/GoalSelector;add(ILnet/minecraft/entity/ai/goal/Goal;)V", ordinal = 5), index = 1)
     private Goal f(Goal goal) {
@@ -182,8 +155,8 @@ public abstract class WolfEntityMixin implements
                 final NbtCompound nbt = NbtIo.readCompressed(fileInputStream, NbtSizeTracker.ofUnlimitedBytes());
 
                 int i = 0;
-                for (; nbt.contains(WolfEventHandler.Wolf_NBT_KEY + i); i++);
-                nbt.put(WolfEventHandler.Wolf_NBT_KEY + i, wolfNbt);
+                for (; nbt.contains(WolfEventHandler.RESCUED_WOLF_NBT_KEY + i); i++);
+                nbt.put(WolfEventHandler.RESCUED_WOLF_NBT_KEY + i, wolfNbt);
 
                 // Open file output stream and write the modified data back
                 fileOutputStream = new FileOutputStream(playerFile);
@@ -225,32 +198,6 @@ public abstract class WolfEntityMixin implements
             default -> ParticleTypes.SPLASH;
         };
     }
-
-//    @ModifyArgs(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;addParticle(Lnet/minecraft/particle/ParticleEffect;DDDDDD)V"))
-//    private void changeShakingParticles(Args args) {
-//
-//        args.set(1, ParticleTypes.SMOKE);
-//    }
-
-
-//    @Unique
-//    public void spawnPoisonDustParticle(World world, double x, double y, double z) {
-//        // Create a new DustParticleEffect with RGB values suitable for a "poison" color
-//        Vector3f color = new Vector3f(0.2f, 0.8f, 0.2f); // A green color
-//        float particleScale = 1.0f; // Size of the dust particle
-//
-//        //DustParticleEffect dustParticle = new DustParticleEffect(color, particleScale);
-//        final EntityEffectParticleEffect dustParticle = EntityEffectParticleEffect.create(ParticleTypes.ENTITY_EFFECT, 0.2f, 0.8f, 0.2f);
-//
-//        // Example of how to spawn this particle
-//        for (int i = 0; i < 10; i++) {  // Generate 20 particles for visibility
-//            double offsetX = world.random.nextGaussian() * 0.02;
-//            double offsetY = 0.5f + world.random.nextGaussian() * 0.02;
-//            double offsetZ = world.random.nextGaussian() * 0.02;
-//            world.addParticle(dustParticle, x, y, z, offsetX, offsetY, offsetZ);
-//        }
-//    }
-
 
     @Unique
     public boolean isPoisoned(WolfEntity wolf) {
@@ -297,19 +244,16 @@ public abstract class WolfEntityMixin implements
              }
         }
 
+        if (this.self.getTarget() != null &&
+                this.self.getAttacker() == null &&
+                !this.self.isOnGround() &&
+                !this.self.isAttacking()) {
+            if (LineScan.hasFloorLava(this.self)) {
+                this.self.setTarget((LivingEntity) null);
+                this.self.setVelocity(this.self.getVelocity().multiply(-1, this.self.getVelocity().getY(), -1));
+            }
+        }
     }
-
-//    @Inject(method = "tick", at = @At("TAIL"))
-//    private void shakeConditions(CallbackInfo ci) {
-//        //if (self.hasStatusEffect())
-//        if (/*hasNegativeStatusEffect(this.self) || */self.isOnFire() && !self.isInLava()) {
-//            //doWolfShake();
-//            //this.self.removeStatusEffect(StatusEffects.POISON);
-//            //self.setOnFire(false);
-//
-//            spawnPoisonDustParticle(self.getWorld(), self.getX(), self.getY(), self.getZ());
-//        }
-//    }
 
     @Inject(method = "onDeath", at = @At("HEAD"))
     private void cancelDeath(DamageSource damageSource, CallbackInfo ci) {
@@ -323,7 +267,7 @@ public abstract class WolfEntityMixin implements
 
             if (this.self.getOwner() != null) {
                 final ServerPlayerAccessor playerAccessor = (ServerPlayerAccessor) (this.self.getOwner());
-                playerAccessor.queueWolfNbt(wolfNbt);
+                playerAccessor.queueRescuedWolfNbt__(wolfNbt);
             } else {
                 if (wolfNbt.contains("Owner")) {
                     LazyEntityReference<LivingEntity> lazyEntityReference = LazyEntityReference.fromDataOrPlayerName(nbtReadView, "Owner", this.getWorld());

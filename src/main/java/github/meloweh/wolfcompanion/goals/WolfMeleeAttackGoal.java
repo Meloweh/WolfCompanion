@@ -1,6 +1,8 @@
 package github.meloweh.wolfcompanion.goals;
 
 import github.meloweh.wolfcompanion.accessor.WolfEntityProvider;
+import github.meloweh.wolfcompanion.util.ConfigManager;
+import github.meloweh.wolfcompanion.util.LineScan;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.goal.Goal;
 import net.minecraft.entity.ai.pathing.Path;
@@ -55,8 +57,9 @@ public class WolfMeleeAttackGoal extends Goal {
         if (!this.mob.isWearingBodyArmor() || pack.stream().anyMatch(e -> !e.isWearingBodyArmor())) return;
         final List<MobEntity> attackers = serverWorld.getEntitiesByClass(MobEntity.class, playerArea, attacker ->
                 attacker instanceof Monster &&
-                        attacker.getTarget() != null &&
-                        attacker.getTarget().getUuid() == player.getUuid());
+                attacker.getTarget() != null &&
+                attacker.getTarget().getUuid() == player.getUuid() &&
+                !ConfigManager.isBlacklisted(attacker));
         attackers.sort(Comparator.comparingDouble(e -> e.distanceTo(player)));
         if (attackers.isEmpty()) return;
         this.mob.setTarget(attackers.getFirst());
@@ -74,8 +77,9 @@ public class WolfMeleeAttackGoal extends Goal {
                 e -> e.isTamed() && !e.getUuid().equals(this.mob.getUuid()));
         final List<MobEntity> attackers = serverWorld.getEntitiesByClass(MobEntity.class, playerArea, attacker ->
                 attacker instanceof Monster &&
-                        attacker.getTarget() != null &&
-                        attacker.getTarget().getUuid() == player.getUuid());
+                attacker.getTarget() != null &&
+                attacker.getTarget().getUuid() == player.getUuid() &&
+                !ConfigManager.isBlacklisted(attacker));
         attackers.sort(Comparator.comparingDouble(e -> e.distanceTo(player)));
         Optional<MobEntity> coop = attackers.stream().filter(attacker -> pack.stream().anyMatch(w ->
                 w.getTarget() != null && w.getTarget().getUuid().equals(attacker.getUuid()))).findFirst();
@@ -98,7 +102,9 @@ public class WolfMeleeAttackGoal extends Goal {
             LivingEntity livingEntity = this.mob.getTarget();
             if (livingEntity == null) {
                 return false;
-            } else if (!livingEntity.isAlive()) {
+            } else if (!livingEntity.isAlive() || livingEntity.isInLava()) {
+                return false;
+            } else if (LineScan.hasFloorLava(this.mob)) {
                 return false;
             } else {
                 this.path = this.mob.getNavigation().findPathTo(livingEntity, 0);
@@ -115,7 +121,7 @@ public class WolfMeleeAttackGoal extends Goal {
         LivingEntity livingEntity = this.mob.getTarget();
         if (livingEntity == null) {
             return false;
-        } else if (!livingEntity.isAlive()) {
+        } else if (!livingEntity.isAlive() || livingEntity.isInLava()) {
             return false;
         } else if (!this.pauseWhenMobIdle) {
             return !this.mob.getNavigation().isIdle();
