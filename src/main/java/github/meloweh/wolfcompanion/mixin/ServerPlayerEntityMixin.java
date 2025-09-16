@@ -1,21 +1,12 @@
 package github.meloweh.wolfcompanion.mixin;
 
-import github.meloweh.wolfcompanion.WolfCompanion;
 import github.meloweh.wolfcompanion.accessor.ServerPlayerAccessor;
 import github.meloweh.wolfcompanion.events.WolfEventHandler;
-import github.meloweh.wolfcompanion.util.ConfigManager;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.SpawnReason;
-import net.minecraft.entity.passive.WolfEntity;
+import github.meloweh.wolfcompanion.util.NBTHelper;
+import github.meloweh.wolfcompanion.util.WolfNbtList;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtIo;
-import net.minecraft.nbt.NbtSizeTracker;
 import net.minecraft.screen.ScreenHandler;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.WorldSavePath;
 import net.minecraft.util.math.BlockPos;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -25,20 +16,15 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-
 @Mixin(ServerPlayerEntity.class)
 public abstract class ServerPlayerEntityMixin implements ServerPlayerAccessor {
     @Unique
     ServerPlayerEntity self;
 
     @Unique
-    List<NbtCompound> wolfNbts = new ArrayList<>();
+    WolfNbtList rescuedWolfNbtList = new WolfNbtList();
+    @Unique
+    WolfNbtList whistleWolfNbtList = new WolfNbtList();
 
     @Accessor("screenHandlerSyncId")
     public abstract int getScreenHandlerSyncId();
@@ -50,39 +36,35 @@ public abstract class ServerPlayerEntityMixin implements ServerPlayerAccessor {
     public abstract void execOnScreenHandlerOpened(ScreenHandler screenHandler);
 
     @Override
-    public List<NbtCompound> getWolfNbts__() {
-        return wolfNbts;
+    public WolfNbtList getRescuedWolfNbts__() {
+        return this.rescuedWolfNbtList;
+    }
+    @Override
+    public WolfNbtList getWhistleWolfNbts__() {
+        return this.whistleWolfNbtList;
     }
 
     @Inject(method = "copyFrom", at = @At("TAIL"))
     private void restorePlayerDataAfterRespawn(ServerPlayerEntity oldPlayer, boolean alive, CallbackInfo ci) {
-        this.wolfNbts = ((ServerPlayerAccessor) oldPlayer).getWolfNbts__();
+        this.rescuedWolfNbtList = ((ServerPlayerAccessor) oldPlayer).getRescuedWolfNbts__();
+        this.whistleWolfNbtList = ((ServerPlayerAccessor) oldPlayer).getWhistleWolfNbts__();
     }
 
     @Inject(method = "onSpawn", at = @At("TAIL"))
     private void spawnDoggosOnSpawn(CallbackInfo ci) {
-        respawnDoggo(null, null);
+        respawnRescuedDoggo(null, null);
     }
 
     @Inject(method = "writeCustomDataToNbt", at = @At("TAIL"))
     public void writeWolfDataToNbt(NbtCompound nbt, CallbackInfo ci) {
-        if (!wolfNbts.isEmpty()) {
-            for (int i = 0; i < wolfNbts.size(); i++) {
-                final NbtCompound wolfNbt = wolfNbts.get(i);
-                nbt.put(WolfEventHandler.Wolf_NBT_KEY + i, wolfNbt);
-            }
-        }
+        this.rescuedWolfNbtList.writeDataToNbt(nbt, WolfEventHandler.RESCUED_WOLF_NBT_KEY);
+        this.whistleWolfNbtList.writeDataToNbt(nbt, WolfEventHandler.WHISTLE_WOLF_NBT_KEY);
     }
 
     @Inject(method = "readCustomDataFromNbt", at = @At("TAIL"))
     public void readWolfDataToNbt(NbtCompound nbt, CallbackInfo ci) {
-        for (int i = 0; nbt.contains(WolfEventHandler.Wolf_NBT_KEY + i); i++) {
-            final NbtElement wolfElement = nbt.get(WolfEventHandler.Wolf_NBT_KEY + i);
-            if (!(wolfElement instanceof NbtCompound)) {
-                throw new IllegalStateException("nbt should be compound");
-            }
-            wolfNbts.add((NbtCompound) wolfElement);
-        }
+        this.rescuedWolfNbtList.readDataToNbt(nbt, WolfEventHandler.RESCUED_WOLF_NBT_KEY);
+        this.whistleWolfNbtList.readDataToNbt(nbt, WolfEventHandler.WHISTLE_WOLF_NBT_KEY);
     }
 
     @Inject(method = "<init>", at = @At("RETURN"))
@@ -90,47 +72,32 @@ public abstract class ServerPlayerEntityMixin implements ServerPlayerAccessor {
         this.self = (ServerPlayerEntity) (Object) this;
     }
 
-    @Inject(method = "sleep", at = @At("HEAD"))
-    private void respawnDoggo(BlockPos pos, CallbackInfo ci) {
-        wolfNbts.forEach(wolfNbt -> {
-            wolfNbt.remove("HurtTime");
-            wolfNbt.remove("HurtByTimestamp");
-            wolfNbt.remove("DeathTime");
-            wolfNbt.remove("body_armor_item");
-            wolfNbt.remove("body_armor_drop_chance");
-            wolfNbt.remove("ArmorDropChances");
-            wolfNbt.putFloat("Health", this.self.getMaxHealth());
-
-            if (!ConfigManager.config.keepWolfInventory) {
-                if (!ConfigManager.config.keepWolfArmor)
-                    wolfNbt.remove("ArmorItems");
-                if (!ConfigManager.config.keepWolfBag)
-                    wolfNbt.remove("ChestedWolf");
-                wolfNbt.remove("Items");
-                wolfNbt.putInt("XP", 0);
-            }
-
-
-            ServerWorld world = (ServerWorld) this.self.getWorld();
-            final WolfEntity newWolf = EntityType.WOLF.create(world);
-            newWolf.setHealth(newWolf.getMaxHealth());
-            newWolf.clearStatusEffects();
-            newWolf.readNbt(wolfNbt);
-            newWolf.refreshPositionAndAngles(self.getX(), self.getY(), self.getZ(), self.getYaw(), self.getPitch());
-            newWolf.playSpawnEffects();
-            final boolean result = world.spawnEntity(newWolf);
+    @Unique
+    private void spawnDoggos(final WolfNbtList wolfNbtList, final boolean rescue) {
+        wolfNbtList.getWolfNbts().forEach(wolfNbt -> {
+            if (rescue) NBTHelper.cleanRescueWolfNbt(wolfNbt, this.self.getMaxHealth());
+            NBTHelper.spawnWolfFromNbt(this.self, wolfNbt, rescue);
         });
-        wolfNbts.clear();
+        wolfNbtList.clear();
+    }
+
+    @Inject(method = "sleep", at = @At("HEAD"))
+    private void respawnRescuedDoggo(BlockPos pos, CallbackInfo ci) {
+        spawnDoggos(this.rescuedWolfNbtList, true);
     }
 
     @Override
-    public void queueWolfNbt(NbtCompound nbt) {
-        wolfNbts.add(nbt);
+    public void queueRescuedWolfNbt__(NbtCompound nbt) {
+        this.rescuedWolfNbtList.queueWolfNbt(nbt);
     }
 
-    public boolean removeWolfNbt(final NbtCompound nbt) {
-        //System.out.println(wolfNbts.get(0).toString());
-        return false;
-        //return wolfNbts.removeIf(wolf -> wolf.getString("Uuid").get().equals(nbt.getString("Uuid").get()));
+    @Override
+    public void queueWhistleWolfNbt__(NbtCompound nbt) {
+        this.whistleWolfNbtList.queueWolfNbt(nbt);
+    }
+
+    @Override
+    public void spawnWhistleWolfNbts__() {
+        spawnDoggos(this.whistleWolfNbtList, false);
     }
 }

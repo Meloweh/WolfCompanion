@@ -9,5 +9,6 @@
   "maxPickupFood": 10,
   "pickAllRottenFlesh": true,
   "shouldCarePlayerFood": true,
-  "requiredPlayerFood": 10
+  "requiredPlayerFood": 10,
+  "doNotAttackMobs": []
 }

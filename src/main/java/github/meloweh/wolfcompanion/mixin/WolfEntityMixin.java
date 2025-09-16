@@ -8,9 +8,12 @@ import github.meloweh.wolfcompanion.init.InitItem;
 import github.meloweh.wolfcompanion.network.UuidPayload;
 import github.meloweh.wolfcompanion.screenhandler.WolfInventoryScreenHandler;
 import github.meloweh.wolfcompanion.util.ConfigManager;
+import github.meloweh.wolfcompanion.util.LineScan;
 import github.meloweh.wolfcompanion.util.NBTHelper;
 import net.fabricmc.fabric.api.entity.FakePlayer;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
 import net.minecraft.component.EnchantmentEffectComponentTypes;
 import net.minecraft.enchantment.EnchantmentEffectContext;
 import net.minecraft.enchantment.EnchantmentHelper;
@@ -29,7 +32,6 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.*;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
 import net.minecraft.nbt.*;
 import net.minecraft.particle.*;
 import net.minecraft.registry.entry.RegistryEntry;
@@ -41,11 +43,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.WorldSavePath;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec2f;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.math.Vec3i;
-import net.minecraft.util.profiler.Profiler;
+import net.minecraft.util.math.*;
 import net.minecraft.world.GameRules;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
@@ -53,8 +51,6 @@ import org.joml.Math;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
-import org.spongepowered.asm.mixin.gen.Accessor;
-import org.spongepowered.asm.mixin.gen.Invoker;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
@@ -88,26 +84,10 @@ public abstract class WolfEntityMixin implements
     @Unique
     private Optional<ItemEntity> targetPickup = Optional.empty();
 
-//    @Unique
-//    private static final int EATING_DURATION = 600;
-//    @Unique
-//    private float headRollProgress;
-//    @Unique
-//    private float lastHeadRollProgress;
-//    @Unique
-//    float extraRollingHeight;
-//    @Unique
-//    float lastExtraRollingHeight;
-//    @Unique
-//    private int eatingTime;
-
     @Inject(method = "<init>", at = @At("RETURN"))
     private void onConstructor(CallbackInfo info) {
-        //items.addListener(this);
-        //items.markDirty();
         this.self = (WolfEntity) (Object) this;
         this.onChestedStatusChanged();
-        //this.self.setCanPickUpLoot(true);
     }
 
     @Override
@@ -123,11 +103,6 @@ public abstract class WolfEntityMixin implements
     public Optional<ItemEntity> getTargetPickup__() {
         return this.targetPickup;
     }
-
-//    @Unique
-//    public SoundEvent getEatSound(ItemStack stack) {
-//        return SoundEvents.ENTITY_FOX_EAT;
-//    }
 
     @ModifyArg(method = "initGoals", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/ai/goal/GoalSelector;add(ILnet/minecraft/entity/ai/goal/Goal;)V", ordinal = 5), index = 1)
     private Goal f(Goal goal) {
@@ -174,8 +149,8 @@ public abstract class WolfEntityMixin implements
                 final NbtCompound nbt = NbtIo.readCompressed(fileInputStream, NbtSizeTracker.ofUnlimitedBytes());
 
                 int i = 0;
-                for (; nbt.contains(WolfEventHandler.Wolf_NBT_KEY + i); i++);
-                nbt.put(WolfEventHandler.Wolf_NBT_KEY + i, wolfNbt);
+                for (; nbt.contains(WolfEventHandler.RESCUED_WOLF_NBT_KEY + i); i++);
+                nbt.put(WolfEventHandler.RESCUED_WOLF_NBT_KEY + i, wolfNbt);
 
                 // Open file output stream and write the modified data back
                 fileOutputStream = new FileOutputStream(playerFile);
@@ -218,32 +193,6 @@ public abstract class WolfEntityMixin implements
         };
     }
 
-//    @ModifyArgs(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;addParticle(Lnet/minecraft/particle/ParticleEffect;DDDDDD)V"))
-//    private void changeShakingParticles(Args args) {
-//
-//        args.set(1, ParticleTypes.SMOKE);
-//    }
-
-
-//    @Unique
-//    public void spawnPoisonDustParticle(World world, double x, double y, double z) {
-//        // Create a new DustParticleEffect with RGB values suitable for a "poison" color
-//        Vector3f color = new Vector3f(0.2f, 0.8f, 0.2f); // A green color
-//        float particleScale = 1.0f; // Size of the dust particle
-//
-//        //DustParticleEffect dustParticle = new DustParticleEffect(color, particleScale);
-//        final EntityEffectParticleEffect dustParticle = EntityEffectParticleEffect.create(ParticleTypes.ENTITY_EFFECT, 0.2f, 0.8f, 0.2f);
-//
-//        // Example of how to spawn this particle
-//        for (int i = 0; i < 10; i++) {  // Generate 20 particles for visibility
-//            double offsetX = world.random.nextGaussian() * 0.02;
-//            double offsetY = 0.5f + world.random.nextGaussian() * 0.02;
-//            double offsetZ = world.random.nextGaussian() * 0.02;
-//            world.addParticle(dustParticle, x, y, z, offsetX, offsetY, offsetZ);
-//        }
-//    }
-
-
     @Unique
     public boolean isPoisoned(WolfEntity wolf) {
         Map<RegistryEntry<StatusEffect>, StatusEffectInstance> effects = wolf.getActiveStatusEffects();
@@ -254,6 +203,91 @@ public abstract class WolfEntityMixin implements
 
     @Shadow
     private float lastShakeProgress; //this.lastShakeProgress >= 2.0F
+
+    @Unique
+    private Direction faceToward(BlockPos origin, BlockPos target) {
+        if (origin.equals(target)) throw new IllegalArgumentException("origin == target");
+
+        Vec3d d = Vec3d.ofCenter(origin).subtract(Vec3d.ofCenter(target)); // target -> origin
+        double ax = java.lang.Math.abs(d.x);
+        double ay = java.lang.Math.abs(d.y);
+        double az = java.lang.Math.abs(d.z);
+
+        if (ax >= ay && ax >= az) return d.x > 0 ? Direction.EAST  : Direction.WEST;  // +X = EAST
+        return d.z > 0 ? Direction.SOUTH : Direction.NORTH; // +Z = SOUTH
+    }
+
+    @Unique
+    private Optional<Direction> faceToward() {
+        final LivingEntity livingEntity = this.self.getTarget();
+        if (livingEntity == null) return Optional.empty();
+
+        final BlockPos originPos = this.self.getBlockPos();
+        final BlockPos targetPos = livingEntity.getBlockPos().down();
+
+        return Optional.of(faceToward(originPos, targetPos));
+    }
+
+    @Unique
+    private boolean isFloorFine() {
+        final LivingEntity livingEntity = this.self.getTarget();
+        if (livingEntity == null) return true;
+
+        final Optional<Direction> optFace = faceToward();
+        if (optFace.isEmpty()) return true;
+        final Direction face1 = optFace.get();
+        final Direction face2 = face1.rotateYClockwise();
+
+        final BlockPos neighbor1 = livingEntity.getBlockPos().down().offset(face1);
+        final BlockPos neighbor2 = neighbor1.offset(face2);
+        final BlockPos neighbor3 = neighbor1.offset(face2.getOpposite());
+
+        for (int i = 0; i < 3; i++) {
+            final World world = this.self.getWorld();
+            final BlockPos mobPos = this.self.getBlockPos();
+            final BlockPos u1 = neighbor1.down(i);
+            final BlockPos u2 = (mobPos.getSquaredDistance(neighbor2) < mobPos.getSquaredDistance(neighbor3)) ? neighbor2.down(i) : neighbor3.down(i);
+            //final BlockPos u3 = neighbor3.down(i);
+
+            final BlockState s1 = world.getBlockState(u1);
+            final BlockState s2 = world.getBlockState(u2);
+            //final BlockState s3 = world.getBlockState(u3);
+
+            if (s1.isSolid() && s2.isSolid()) return true;
+
+            if (s1.isOf(Blocks.LAVA) || s2.isOf(Blocks.LAVA)) return false;
+        }
+        return true;
+    }
+
+    /*@Unique
+    private boolean isLavaBelow(World world, BlockPos origin) {
+        final BlockPos target = origin.down(7);
+
+        Vec3d fromCenter = Vec3d.ofCenter(origin);
+        Vec3d toCenter   = Vec3d.ofCenter(target);
+        Vec3d dir        = toCenter.subtract(fromCenter).normalize();
+
+        // start just outside the origin block to avoid self-hit
+        Vec3d start = fromCenter.add(dir.multiply(0.501));
+        // end at the target center (first hit stops the ray on the target face if visible)
+        Vec3d end   = toCenter;
+
+        BlockHitResult hit = world.raycast(new RaycastContext(
+                start,
+                end,
+                RaycastContext.ShapeType.COLLIDER,
+                RaycastContext.FluidHandling.NONE,
+                (Entity) null
+        ));
+
+        if (hit.getType() == HitResult.Type.BLOCK && hit.getBlockPos().equals(target)) {
+            final BlockPos pos = hit.getBlockPos();
+            final BlockState state = world.getBlockState(pos);
+            return state.isOf(Blocks.LAVA);
+        }
+        return false;
+    }*/
 
     @Inject(method = "tick", at = @At("TAIL"))
     private void shakeConditions(CallbackInfo ci) {
@@ -289,6 +323,30 @@ public abstract class WolfEntityMixin implements
              }
         }
 
+        /*if (this.self.getTarget() != null) {
+            if (!this.self.isOnGround()) {
+                if (!this.self.isAttacking()) {
+                    LivingEntity target = this.self.getTarget();
+                    if (!isFloorFine()) {
+                        //this.self.setTarget((LivingEntity) null);
+                        this.self.setVelocity(this.self.getVelocity().multiply(0, this.self.getVelocity().getY(), 0));
+                        this.self.updatePositionAndAngles(this.self.prevX, this.self.prevY, this.self.prevZ, this.self.getYaw(), this.self.getPitch());
+
+                    }
+                }
+            }
+        }*/
+
+
+        if (this.self.getTarget() != null &&
+            this.self.getAttacker() == null &&
+            !this.self.isOnGround() &&
+            !this.self.isAttacking()) {
+            if (LineScan.hasFloorLava(this.self)) {
+                this.self.setTarget((LivingEntity) null);
+                this.self.setVelocity(this.self.getVelocity().multiply(-1, this.self.getVelocity().getY(), -1));
+            }
+        }
     }
 
 //    @Inject(method = "tick", at = @At("TAIL"))
@@ -313,7 +371,7 @@ public abstract class WolfEntityMixin implements
 
             if (this.self.getOwner() != null) {
                 final ServerPlayerAccessor playerAccessor = (ServerPlayerAccessor) (this.self.getOwner());
-                playerAccessor.queueWolfNbt(wolfNbt);
+                playerAccessor.queueRescuedWolfNbt__(wolfNbt);
             } else {
                 if (wolfNbt.contains("Owner")) {
                     final UUID ownerUUID = wolfNbt.getUuid("Owner");
