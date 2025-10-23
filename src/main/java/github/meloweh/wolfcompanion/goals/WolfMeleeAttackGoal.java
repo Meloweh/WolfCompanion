@@ -44,7 +44,7 @@ public class WolfMeleeAttackGoal extends Goal {
         this.setControls(EnumSet.of(Control.MOVE, Control.LOOK));
     }
 
-    private void pickAttackerWithSpread() {
+    private void pickAttacker() {
         if (!this.mob.isTamed()) return;
         if (this.mob.getTarget() != null) return;
         final PlayerEntity player = (PlayerEntity) this.mob.getOwner();
@@ -54,38 +54,26 @@ public class WolfMeleeAttackGoal extends Goal {
         if (serverWorld == null) return;
         final List<WolfEntity> pack = serverWorld.getEntitiesByClass(WolfEntity.class, playerArea,
                 e -> e.isTamed() && !e.getUuid().equals(this.mob.getUuid()));
-        if (!this.mob.isWearingBodyArmor() || pack.stream().anyMatch(e -> !e.isWearingBodyArmor())) return;
         final List<MobEntity> attackers = serverWorld.getEntitiesByClass(MobEntity.class, playerArea, attacker ->
                 attacker instanceof Monster &&
-                attacker.getTarget() != null &&
-                attacker.getTarget().getUuid() == player.getUuid() &&
-                !ConfigManager.isBlacklisted(attacker));
-        attackers.sort(Comparator.comparingDouble(e -> e.distanceTo(player)));
-        if (attackers.isEmpty()) return;
-        this.mob.setTarget(attackers.getFirst());
-    }
+                        attacker.getTarget() != null &&
+                        attacker.getTarget().getUuid() == player.getUuid() &&
+                        !ConfigManager.isBlacklisted(attacker));
 
-    private void pickAttackerWithoutSpread() {
-        if (!this.mob.isTamed()) return;
-        if (this.mob.getTarget() != null) return;
-        final PlayerEntity player = (PlayerEntity) this.mob.getOwner();
-        if (player == null) return;
-        final Box playerArea = player.getBoundingBox().expand(10);
-        final ServerWorld serverWorld = (ServerWorld) player.getWorld();
-        if (serverWorld == null) return;
-        final List<WolfEntity> pack = serverWorld.getEntitiesByClass(WolfEntity.class, playerArea,
-                e -> e.isTamed() && !e.getUuid().equals(this.mob.getUuid()));
-        final List<MobEntity> attackers = serverWorld.getEntitiesByClass(MobEntity.class, playerArea, attacker ->
-                attacker instanceof Monster &&
-                attacker.getTarget() != null &&
-                attacker.getTarget().getUuid() == player.getUuid() &&
-                !ConfigManager.isBlacklisted(attacker));
+        if (attackers.isEmpty()) return;
         attackers.sort(Comparator.comparingDouble(e -> e.distanceTo(player)));
-        Optional<MobEntity> coop = attackers.stream().filter(attacker -> pack.stream().anyMatch(w ->
-                w.getTarget() != null && w.getTarget().getUuid().equals(attacker.getUuid()))).findFirst();
-        if (coop.isPresent()) {
-            this.mob.setTarget(coop.get());
-        } else if (!attackers.isEmpty()) {
+
+        if (!this.mob.isWearingBodyArmor() || pack.stream().anyMatch(e -> !e.isWearingBodyArmor())) {
+            //Without spread
+            final Optional<MobEntity> coop = attackers.stream().filter(attacker -> pack.stream().anyMatch(w ->
+                    w.getTarget() != null && w.getTarget().getUuid().equals(attacker.getUuid()))).findFirst();
+            if (coop.isPresent()) {
+                this.mob.setTarget(coop.get());
+            } else if (!attackers.isEmpty()) {
+                this.mob.setTarget(attackers.getFirst());
+            }
+        } else {
+            //With spread
             this.mob.setTarget(attackers.getFirst());
         }
 
@@ -97,8 +85,7 @@ public class WolfMeleeAttackGoal extends Goal {
             return false;
         } else {
             this.lastUpdateTime = l;
-            pickAttackerWithSpread();
-            pickAttackerWithoutSpread();
+            pickAttacker();
             LivingEntity livingEntity = this.mob.getTarget();
             if (livingEntity == null) {
                 return false;
