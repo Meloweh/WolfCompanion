@@ -92,9 +92,11 @@ public abstract class ServerPlayerEntityMixin implements ServerPlayerAccessor {
         wolfNbtList.getWolfNbts().removeIf(wolfNbt -> canDelete.getWolfNbts().contains(wolfNbt));
     }
 
-    @Inject(method = "sleep", at = @At("HEAD"))
+    @Inject(method = "sleep", at = @At("TAIL"))
     private void respawnRescuedDoggo(BlockPos pos, CallbackInfo ci) {
-        spawnDoggos(this.rescuedWolfNbtList, true);
+        if (self.isSleeping())
+            spawnDoggos(this.rescuedWolfNbtList, true);
+
     }
 
     @Override

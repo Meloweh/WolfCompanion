@@ -89,8 +89,6 @@ public class WolfBagFeatureRenderer extends FeatureRenderer<WolfEntityRenderStat
                     0,      // outlineColor
                     null    // crumblingOverlay
             );
-        } else {
-            System.out.println(state.bodyArmor.getCustomName());
         }
 
         matrices.pop();

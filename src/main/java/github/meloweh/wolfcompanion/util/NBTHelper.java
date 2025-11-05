@@ -30,13 +30,14 @@ public class NBTHelper {
         }
 
         public static void cleanRescueWolfNbt(final NbtCompound wolfNbt, final float health) {
-            wolfNbt.remove("HurtTime");
-            wolfNbt.remove("HurtByTimestamp");
-            wolfNbt.remove("DeathTime");
+            wolfNbt.remove(WolfEntity.HURT_TIME_KEY);
+            wolfNbt.remove(WolfEntity.HURT_BY_TIMESTAMP_KEY);
+            wolfNbt.remove(WolfEntity.DEATH_TIME_KEY);
             wolfNbt.remove("body_armor_item");
             wolfNbt.remove("body_armor_drop_chance");
-            wolfNbt.remove("ArmorDropChances");
-            wolfNbt.putFloat("Health", health);
+            wolfNbt.remove(WolfEntity.DROP_CHANCES_KEY);
+            wolfNbt.putFloat(WolfEntity.FALL_DISTANCE_KEY, 0f);
+            wolfNbt.putFloat(WolfEntity.HEALTH_KEY, health);
 
             if (!ConfigManager.config.keepWolfInventory) {
                 if (!ConfigManager.config.keepWolfArmor)
