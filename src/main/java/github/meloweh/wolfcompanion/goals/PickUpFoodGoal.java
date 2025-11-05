@@ -79,15 +79,15 @@ public class PickUpFoodGoal extends Goal implements InventoryChangedListener {
     }
 
     private List<ItemEntity> findPickups() {
-        return wolf.getWorld().getEntitiesByClass(ItemEntity.class, wolf.getBoundingBox()
+        return wolf.getEntityWorld().getEntitiesByClass(ItemEntity.class, wolf.getBoundingBox()
                 .expand(8.0, 8.0, 8.0), PICKABLE_DROP_FILTER);
     }
 
     @Override
     public boolean canStart() {
-        if (!wolf.getWorld().isClient && wolf.isAlive() && !wolf.isDead() && ((ServerWorld)wolf.getWorld()).getGameRules().getBoolean(GameRules.DO_MOB_GRIEFING)) {
+        if (!wolf.getEntityWorld().isClient() && wolf.isAlive() && !wolf.isDead() && ((ServerWorld)wolf.getEntityWorld()).getGameRules().getBoolean(GameRules.DO_MOB_GRIEFING)) {
             if (wolf.isTamed()
-                    && !wolf.getWorld().isClient
+                    && !wolf.getEntityWorld().isClient()
                     && !wolf.isSitting()
                     && wolf.getTarget() == null
                     && wolf.getAttacker() == null) {

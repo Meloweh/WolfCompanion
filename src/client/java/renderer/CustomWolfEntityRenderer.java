@@ -22,5 +22,6 @@ public class CustomWolfEntityRenderer extends WolfEntityRenderer {
         final WolfEntityRenderStateProvider provider = (WolfEntityRenderStateProvider) wolfEntityRenderState;
         provider.updateRenderState__(wolfEntity, provider, this.itemModelResolver);
         provider.setChestEquipped__(w.hasChestEquipped());
+        provider.setEntityId__(wolfEntity.getId());
     }
 }

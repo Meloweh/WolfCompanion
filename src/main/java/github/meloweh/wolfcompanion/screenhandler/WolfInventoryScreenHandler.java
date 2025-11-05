@@ -32,7 +32,7 @@ public class WolfInventoryScreenHandler extends ScreenHandler {
     private static WolfEntity getWolfEntity(PlayerInventory playerInventory, UuidPayload payload) {
         final PlayerEntity player = playerInventory.player;
         final Box area = new Box(player.getX() + -20, player.getY() + -20, player.getZ() + -20, player.getX() + 20, player.getY() + 20,  player.getZ() + 20);
-        final List<Entity> entities = playerInventory.player.getWorld().getOtherEntities(playerInventory.player, area);
+        final List<Entity> entities = playerInventory.player.getEntityWorld().getOtherEntities(playerInventory.player, area);
         final List<WolfEntity> wolfes = entities.stream().filter(e -> e instanceof WolfEntity).map(e -> (WolfEntity)e).toList();
         final Optional<WolfEntity> optWolf = wolfes.stream().filter(e -> e.getUuid().equals(payload.uuid())).findFirst();
 
@@ -61,7 +61,7 @@ public class WolfInventoryScreenHandler extends ScreenHandler {
         super(ScreenHandlerTypeInit.WOLF_INVENTORY_SCREEN_HANDLER, syncId);
 
         this.wolf = wolf;
-        this.context = ScreenHandlerContext.create(this.wolf.getWorld(), null);
+        this.context = ScreenHandlerContext.create(this.wolf.getEntityWorld(), null);
 
 //        if (!playerInventory.player.getWorld().isClient)
 //            ServerPlayNetworking.send((ServerPlayerEntity) playerInventory.player,

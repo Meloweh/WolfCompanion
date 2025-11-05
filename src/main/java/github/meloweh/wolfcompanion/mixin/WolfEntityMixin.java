@@ -9,6 +9,7 @@ import github.meloweh.wolfcompanion.screenhandler.WolfInventoryScreenHandler;
 import github.meloweh.wolfcompanion.util.ConfigManager;
 import github.meloweh.wolfcompanion.util.LineScan;
 import github.meloweh.wolfcompanion.util.NBTHelper;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.component.EnchantmentEffectComponentTypes;
 import net.minecraft.enchantment.EnchantmentEffectContext;
@@ -32,6 +33,7 @@ import net.minecraft.nbt.*;
 import net.minecraft.particle.*;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.screen.ScreenHandler;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundEvents;
@@ -135,9 +137,9 @@ public abstract class WolfEntityMixin implements
     @Unique
     private void doWolfShake() {
         this.furWet = true;
-        if (!self.getWorld().isClient) {
+        if (!self.getEntityWorld().isClient()) {
             //this.furWet = true;
-            //this.self.getWorld().sendEntityStatus(this.self, (byte)56);
+            //this.self.getEntityWorld().sendEntityStatus(this.self, (byte)56);
         }
     }
 
@@ -190,7 +192,7 @@ public abstract class WolfEntityMixin implements
     private ParticleEffect changeType(ParticleEffect parameters) {
         final byte shakeReason = getShakeReason();
 
-        //System.out.println(shakeReason + " " + self.getWorld().isClient);
+        //System.out.println(shakeReason + " " + self.getEntityWorld().isClient);
 
         return switch (shakeReason) {
             case 1 -> TintedParticleEffect.create(ParticleTypes.ENTITY_EFFECT, 0.529f, 0.639f, 0.388f);
@@ -212,7 +214,7 @@ public abstract class WolfEntityMixin implements
 
     @Inject(method = "tick", at = @At("TAIL"))
     private void shakeConditions(CallbackInfo ci) {
-        if (self.isAlive() && !self.getWorld().isClient) {
+        if (self.isAlive() && !self.getEntityWorld().isClient()) {
              byte shakeReason = 0;
              if (!furWet && getShakeReason() == 0) {
                  if (ConfigManager.config.canShakeOffPoison && isPoisoned(this.self))
@@ -257,7 +259,7 @@ public abstract class WolfEntityMixin implements
 
     @Inject(method = "onDeath", at = @At("HEAD"))
     private void cancelDeath(DamageSource damageSource, CallbackInfo ci) {
-        if (this.self.isTamed() && !this.self.getWorld().isClient && ConfigManager.config.canRespawn) {
+        if (this.self.isTamed() && !this.self.getEntityWorld().isClient() && ConfigManager.config.canRespawn) {
             NbtWriteView writeView = NbtWriteView.create(ErrorReporter.EMPTY);
             this.self.writeData(writeView);
             final NbtCompound wolfNbt = writeView.getNbt();
@@ -270,17 +272,18 @@ public abstract class WolfEntityMixin implements
                 playerAccessor.queueRescuedWolfNbt__(wolfNbt);
             } else {
                 if (wolfNbt.contains("Owner")) {
-                    LazyEntityReference<LivingEntity> lazyEntityReference = LazyEntityReference.fromDataOrPlayerName(nbtReadView, "Owner", this.getWorld());
+                    LazyEntityReference<LivingEntity> lazyEntityReference = LazyEntityReference.fromDataOrPlayerName(nbtReadView, "Owner", this.getEntityWorld());
 
                     if (lazyEntityReference == null) {
                         System.out.println("ERROR: Could not retrieve lazyEntityReference for wolf.");
                     } else {
                         final UUID ownerUUID = lazyEntityReference.getUuid();
                         //final UUID ownerUUID = UUID.fromString(wolfNbt.getString("Owner").get());
-                        if (self.getServer() == null) {
+
+                        if (WolfEventHandler.getMinecraftServer() == null) {
                             System.out.println("ERROR: Server for cancelling wolf deletion not found");
                         } else {
-                            final File worldDirectory = self.getServer().getSavePath(WorldSavePath.ROOT).toFile();
+                            final File worldDirectory = WolfEventHandler.getMinecraftServer().getSavePath(WorldSavePath.ROOT).toFile();
                             final File playerDatFolder = new File(worldDirectory, "playerdata");
                             writeToPlayerSaveFile(playerDatFolder, ownerUUID, wolfNbt);
                         }
@@ -322,7 +325,7 @@ public abstract class WolfEntityMixin implements
     /*
     @Override
     public void handleStatus(byte status) {
-        self.getWorld().sendEntityStatus(self, EntityStatuses.ADD_POSITIVE_PLAYER_REACTION_PARTICLES);
+        self.getEntityWorld().sendEntityStatus(self, EntityStatuses.ADD_POSITIVE_PLAYER_REACTION_PARTICLES);
         if (status == EntityStatuses.CREATE_EATING_PARTICLES) {
             ItemStack itemStack = this.getEquippedStack(EquipmentSlot.MAINHAND);
             if (!itemStack.isEmpty()) {
@@ -330,7 +333,7 @@ public abstract class WolfEntityMixin implements
                     Vec3d vec3d = new Vec3d(((double)this.random.nextFloat() - 0.5) * 0.1, Math.random() * 0.1 + 0.1, 0.0)
                             .rotateX(-this.getPitch() * (float) (Math.PI / 180.0))
                             .rotateY(-this.getYaw() * (float) (Math.PI / 180.0));
-                    this.getWorld()
+                    this.getEntityWorld()
                             .addParticle(
                                     new ItemStackParticleEffect(ParticleTypes.ITEM, itemStack),
                                     this.getX() + this.getRotationVector().x / 2.0,
@@ -349,8 +352,8 @@ public abstract class WolfEntityMixin implements
 
     /*
     private void updateDataToClients() {
-        if (this.isDirty() && !self.getWorld().isClient) {
-            ServerWorld serverWorld = (ServerWorld) self.getWorld();
+        if (this.isDirty() && !self.getEntityWorld().isClient) {
+            ServerWorld serverWorld = (ServerWorld) self.getEntityWorld();
             EntityS2CPacket packet = new NbtQueryResponseS2CPacket(self.getUuid(), this.customData);
             serverWorld.getPlayers().stream().forEach(player ->
                     serverWorld.getServer().getPlayerManager().sendToAll(packet));
@@ -433,7 +436,7 @@ public abstract class WolfEntityMixin implements
 
     @Override
     public void openInventory(PlayerEntity player) {
-        if (!self.getWorld().isClient) {
+        if (!self.getEntityWorld().isClient()) {
             openWolfInventory((ServerPlayerEntity) player, this, player.getInventory());
         }
     }
@@ -457,7 +460,7 @@ public abstract class WolfEntityMixin implements
     @Unique
     private float getKnockbackAgainst(Entity target, DamageSource damageSource) {
         float f = (float)this.self.getAttributeValue(EntityAttributes.ATTACK_KNOCKBACK);
-        World var5 = this.self.getWorld();
+        World var5 = this.self.getEntityWorld();
         if (var5 instanceof ServerWorld serverWorld) {
             return EnchantmentHelper.modifyKnockback(serverWorld, this.self.getWeaponStack(), target, damageSource, f);
         } else {
@@ -588,7 +591,7 @@ public abstract class WolfEntityMixin implements
         Optional<EnchantmentEffectContext> optional = EnchantmentHelper.chooseEquipmentWith(EnchantmentEffectComponentTypes.REPAIR_WITH_XP, this.self, ItemStack::isDamaged);
         if (optional.isPresent()) {
             ItemStack itemStack = optional.get().stack();
-            int i = EnchantmentHelper.getRepairWithExperience((ServerWorld) this.self.getWorld(), itemStack, amount);
+            int i = EnchantmentHelper.getRepairWithExperience((ServerWorld) this.self.getEntityWorld(), itemStack, amount);
             int j = java.lang.Math.min(i, itemStack.getDamage());
             itemStack.setDamage(itemStack.getDamage() - j);
             if (j > 0) {
@@ -631,7 +634,7 @@ public abstract class WolfEntityMixin implements
                     if (!itemStack.isEmpty()) {
                         if (self.getEquippedStack(EquipmentSlot.BODY) != itemStack) {
                             this.items.removeStack(i);
-                            self.dropStack((ServerWorld) self.getWorld(), itemStack);
+                            self.dropStack((ServerWorld) self.getEntityWorld(), itemStack);
                         }
                     }
                 }
@@ -640,8 +643,8 @@ public abstract class WolfEntityMixin implements
             if (this.hasChest()) {
 
                 if (shouldDropChest() || !ConfigManager.config.keepWolfBag) {
-                    if (!self.getWorld().isClient) {
-                        self.dropItem((ServerWorld) self.getWorld(), InitItem.ITEM_WOLF_BAG);
+                    if (!self.getEntityWorld().isClient()) {
+                        self.dropItem((ServerWorld) self.getEntityWorld(), InitItem.ITEM_WOLF_BAG);
                     }
                     this.setHasChest(false);
                 }
@@ -665,7 +668,7 @@ public abstract class WolfEntityMixin implements
 //        }
 //
 //        if (this.hasChest()) {
-//            if (!self.getWorld().isClient) {
+//            if (!self.getEntityWorld().isClient) {
 //                self.dropItem(InitItem.ITEM_WOLF_BAG);
 //            }
 //
@@ -688,7 +691,7 @@ public abstract class WolfEntityMixin implements
 //            }
 //
 //            if (this.hasChest() && !ConfigManager.config.keepWolfBag) {
-//                if (!self.getWorld().isClient) {
+//                if (!self.getEntityWorld().isClient) {
 //                    self.dropItem(InitItem.ITEM_WOLF_BAG);
 //                }
 //
@@ -777,20 +780,20 @@ public abstract class WolfEntityMixin implements
 
     @Unique
     private void dropItem(ItemStack stack) {
-        ItemEntity itemEntity = new ItemEntity(this.self.getWorld(), this.self.getX(), this.self.getY(), this.self.getZ(), stack);
-        this.self.getWorld().spawnEntity(itemEntity);
+        ItemEntity itemEntity = new ItemEntity(this.self.getEntityWorld(), this.self.getX(), this.self.getY(), this.self.getZ(), stack);
+        this.self.getEntityWorld().spawnEntity(itemEntity);
     }
 
     @Override
     public void spit__(ItemStack stack) {
-        if (!stack.isEmpty() && !this.self.getWorld().isClient) {
+        if (!stack.isEmpty() && !this.self.getEntityWorld().isClient()) {
             ItemEntity itemEntity = new ItemEntity(
-                    this.self.getWorld(), this.self.getX() + this.self.getRotationVector().x, this.self.getY() + 1.0, this.self.getZ() + this.self.getRotationVector().z, stack
+                    this.self.getEntityWorld(), this.self.getX() + this.self.getRotationVector().x, this.self.getY() + 1.0, this.self.getZ() + this.self.getRotationVector().z, stack
             );
             itemEntity.setPickupDelay(40);
             itemEntity.setThrower(this.self);
             this.self.playSound(SoundEvents.ENTITY_FOX_SPIT, 1.0F, 1.0F);
-            this.self.getWorld().spawnEntity(itemEntity);
+            this.self.getEntityWorld().spawnEntity(itemEntity);
         }
     }
 
@@ -837,20 +840,20 @@ public abstract class WolfEntityMixin implements
     @Inject(method = "tickMovement", at = @At("TAIL"))
     private void onTickMovement(CallbackInfo ci) {
         if(this.targetPickup.isPresent()) {
-            if (!this.self.getWorld().isClient
+            if (!this.self.getEntityWorld().isClient()
                     && this.self.isAlive()
                     && !this.self.isDead()
-                    && ((ServerWorld)this.self.getWorld()).getGameRules().getBoolean(GameRules.DO_MOB_GRIEFING)) {
+                    && ((ServerWorld)this.self.getEntityWorld()).getGameRules().getBoolean(GameRules.DO_MOB_GRIEFING)) {
                 final Profiler profiler = Profilers.get();
                 profiler.push("looting");
 
                 Vec3i vec3i = ((MobEntityAccessor) this.self).getItemPickUpRangeExpander__();
-                List<ItemEntity> list = this.getWorld().getNonSpectatingEntities(ItemEntity.class, this.self.getBoundingBox()
+                List<ItemEntity> list = this.getEntityWorld().getNonSpectatingEntities(ItemEntity.class, this.self.getBoundingBox()
                         .expand(vec3i.getX(), vec3i.getY(), vec3i.getZ()))
                         .stream().filter(e -> e == this.targetPickup.get()).toList();
 
                 for (ItemEntity itemEntity : list) {
-                    if (!itemEntity.isRemoved() && !itemEntity.getStack().isEmpty() && !itemEntity.cannotPickup() && this.self.canGather(((ServerWorld)this.self.getWorld()), itemEntity.getStack())) {
+                    if (!itemEntity.isRemoved() && !itemEntity.getStack().isEmpty() && !itemEntity.cannotPickup() && this.self.canGather(((ServerWorld)this.self.getEntityWorld()), itemEntity.getStack())) {
                         this.loot__(itemEntity);
                     }
                 }
@@ -876,7 +879,7 @@ public abstract class WolfEntityMixin implements
                     Vec3d vec3d = new Vec3d(((double)this.self.getRandom().nextFloat() - 0.5) * 0.1, Math.random() * 0.1 + 0.1, 0.0)
                             .rotateX(-this.self.getPitch() * (float) (Math.PI / 180.0))
                             .rotateY(-this.self.getYaw() * (float) (Math.PI / 180.0));
-                    this.self.getWorld().addParticleClient(
+                    this.self.getEntityWorld().addParticleClient(
                                     new ItemStackParticleEffect(ParticleTypes.ITEM, itemStack),
                             this.self.getX() + vec.x * 0.6,
                             this.self.getY() + 0.6,
@@ -893,7 +896,7 @@ public abstract class WolfEntityMixin implements
 
     @Inject(method = "interactMob", at = @At("HEAD"), cancellable = true)
     private void onRightClick(PlayerEntity player, Hand hand, CallbackInfoReturnable<ActionResult> cir) {
-        if (!player.getWorld().isClient() &&
+        if (!player.getEntityWorld().isClient() &&
                 hand == Hand.MAIN_HAND &&
                 self.isTamed() &&
                 self.isOwner(player) &&
@@ -903,12 +906,12 @@ public abstract class WolfEntityMixin implements
             //System.out.println(itemStack.isOf(InitItem.ITEM_WOLF_BAG));
             if (!this.hasChest() && itemStack.isOf(InitItem.ITEM_WOLF_BAG)) {
                 this.addChest(player, itemStack);
-                final ActionResult result = self.getWorld().isClient ? ActionResult.SUCCESS : ActionResult.SUCCESS_SERVER;
+                final ActionResult result = self.getEntityWorld().isClient() ? ActionResult.SUCCESS : ActionResult.SUCCESS_SERVER;
                 cir.setReturnValue(result);
                 cir.cancel();
             } else if (player.isSneaking()) {
                 this.openInventory(player);
-                final ActionResult result = self.getWorld().isClient ? ActionResult.SUCCESS : ActionResult.SUCCESS_SERVER;
+                final ActionResult result = self.getEntityWorld().isClient() ? ActionResult.SUCCESS : ActionResult.SUCCESS_SERVER;
                 cir.setReturnValue(result);
                 cir.cancel();
             }

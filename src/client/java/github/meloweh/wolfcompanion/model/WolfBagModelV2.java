@@ -8,7 +8,7 @@ import net.minecraft.client.render.entity.model.EntityModelLayer;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
 
-public class WolfBagModelV2 extends Model {
+public class WolfBagModelV2 extends Model.SinglePartModel {
 	public static final EntityModelLayer LAYER_LOCATION = new EntityModelLayer(WolfCompanion.id("wb"), "main");
 	public static final Identifier STRAP_LAYER_TEXTURE = WolfCompanion.id("textures/entity/wa.png");
 	public static final Identifier TEXTURE_LOCATION = WolfCompanion.id("textures/entity/wb.png");
@@ -16,7 +16,7 @@ public class WolfBagModelV2 extends Model {
 	private final ModelPart left;
 	private final ModelPart right;
 	public WolfBagModelV2(ModelPart root) {
-		super(root, RenderLayer::getEntitySolid);
+        super(root, RenderLayer::getEntitySolid);
         this.main = root.getChild("main");
 		this.left = this.main.getChild("left");
 		this.right = this.main.getChild("right");
@@ -38,17 +38,13 @@ public class WolfBagModelV2 extends Model {
 		return TexturedModelData.of(modelData, 32, 32);
 	}
 
-
-//	@Override
-//	public void render(MatrixStack matrices, VertexConsumer vertexConsumer, int light, int overlay, int color) {
-//		this.main.render(matrices, vertexConsumer, light, overlay, color);
-//	}
-
 	public void copyTransform(ModelPart part) {
-		this.main.copyTransform(part);
+        this.main.setTransform(part.getTransform());
+		//this.main.copyTransform(part);
 	}
 
-	public RenderLayer getRenderLayer() {
+
+    public RenderLayer getRenderLayer() {
 		return RenderLayer.getEntitySolid(WolfCompanion.id("textures/entity/wb.png"));
 	}
 }

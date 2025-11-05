@@ -41,7 +41,7 @@ public class WhistleItem extends Item {
 
     @Override
     public void usageTick(World world, LivingEntity user, ItemStack stack, int remainingUseTicks) {
-        if (world.isClient) return;
+        if (world.isClient()) return;
         int used = getMaxUseTime(stack, user) - remainingUseTicks;
 
         if (used == SECOND_WHISTLE_TICKS) {          // fires once per hold
@@ -58,7 +58,7 @@ public class WhistleItem extends Item {
             final ServerPlayerAccessor serverPlayerAccessor = (ServerPlayerAccessor) serverPlayer;
 
             if (serverPlayerAccessor.getWhistleWolfNbts__().isEmpty()) {
-                user.getServer().getWorlds().forEach(world2 -> {
+                serverPlayerAccessor.getServer__().getWorlds().forEach(world2 -> {
                     world2.getEntitiesByType(EntityType.WOLF, wolf ->
                             wolf.isTamed() &&
                                     wolf.getOwner() != null &&
@@ -67,7 +67,7 @@ public class WhistleItem extends Item {
                         final NbtCompound nbt = NBTHelper.getWolfNBT(wolf);
                         serverPlayerAccessor.queueWhistleWolfNbt__(nbt);
 
-                        ServerWorld sw = (ServerWorld) wolf.getWorld();
+                        ServerWorld sw = (ServerWorld) wolf.getEntityWorld();
                         sw.spawnParticles(ParticleTypes.POOF,  wolf.getX(), wolf.getBodyY(0.5), wolf.getZ(), 9, 0.25, 0.20, 0.25, 0.01);
                         sw.spawnParticles(ParticleTypes.CLOUD, wolf.getX(), wolf.getBodyY(0.5), wolf.getZ(),  4, 0.20, 0.10, 0.20, 0.00);
 
@@ -85,7 +85,7 @@ public class WhistleItem extends Item {
         ItemStack stack = user.getStackInHand(hand);
         user.setCurrentHand(hand);                    // start “using” on hold
 
-        if (!world.isClient) playWhistle(world, user, stack, 1);
+        if (!world.isClient()) playWhistle(world, user, stack, 1);
         return ActionResult.CONSUME;
     }
 
@@ -103,20 +103,23 @@ public class WhistleItem extends Item {
         //user.setCurrentHand(hand);
 
         if (stage == 1) {
-            user.getServer().getWorlds().forEach(world2 -> {
-                world2.getEntitiesByType(EntityType.WOLF, wolf ->
-                        wolf.isTamed() &&
-                                wolf.getOwner() != null &&
-                                wolf.getOwner().getUuid() == user.getUuid()
-                ).forEach(wolf -> {
-                    if (ConfigManager.config.canTeleportSitting)
-                        wolf.setSitting(false);
+            if (user instanceof ServerPlayerEntity serverPlayer) {
+                final ServerPlayerAccessor serverPlayerAccessor = (ServerPlayerAccessor) serverPlayer;
+                serverPlayerAccessor.getServer__().getWorlds().forEach(world2 -> {
+                    world2.getEntitiesByType(EntityType.WOLF, wolf ->
+                            wolf.isTamed() &&
+                                    wolf.getOwner() != null &&
+                                    wolf.getOwner().getUuid() == user.getUuid()
+                    ).forEach(wolf -> {
+                        if (ConfigManager.config.canTeleportSitting)
+                            wolf.setSitting(false);
 
-                    wolf.refreshPositionAndAngles(user.getX(), user.getY(), user.getZ(), user.getYaw(), user.getPitch());
-                    wolf.setTarget((LivingEntity) null);
-                    ((MobEntityAccessor) wolf).getNavigator__().stop();
+                        wolf.refreshPositionAndAngles(user.getX(), user.getY(), user.getZ(), user.getYaw(), user.getPitch());
+                        wolf.setTarget((LivingEntity) null);
+                        ((MobEntityAccessor) wolf).getNavigator__().stop();
+                    });
                 });
-            });
+            }
         }
     }
 }

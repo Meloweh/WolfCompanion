@@ -16,6 +16,7 @@ public class WolfEntityRenderStateMixin implements WolfEntityRenderStateProvider
 
     private WolfEntity wolf;
     private boolean chestEquipped;
+    private int entityId;
 
     @Override
     public WolfEntity getWolf__() {
@@ -52,7 +53,16 @@ public class WolfEntityRenderStateMixin implements WolfEntityRenderStateProvider
 
     @Override
     public void updateRenderState__(LivingEntity entity, WolfEntityRenderStateProvider state, ItemModelManager itemModelManager) {
-        //itemModelManager.updateForLivingEntity(state.getItemRenderState__(), entity.getMainHandStack(), ModelTransformationMode.GROUND, false, entity);
         itemModelManager.updateForLivingEntity(state.getItemRenderState__(), entity.getMainHandStack(), ItemDisplayContext.GROUND, entity);
+    }
+
+    @Override
+    public void setEntityId__(int id) {
+        entityId = id;
+    }
+
+    @Override
+    public int getEntityId__() {
+        return entityId;
     }
 }

@@ -1,6 +1,9 @@
 package github.meloweh.wolfcompanion.util;
 
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import net.minecraft.command.EntityDataObject;
 import net.minecraft.component.type.NbtComponent;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.passive.WolfEntity;
@@ -47,7 +50,7 @@ public class NBTHelper {
 
         /*
 
-            ServerWorld world = this.self.getWorld();
+            ServerWorld world = this.self.getEntityWorld();
 
             WolfEntity newWolf = EntityType.WOLF.create(
                     world,
@@ -68,7 +71,7 @@ public class NBTHelper {
          */
 
         /*public static boolean spawnWolfFromNbt(final ServerPlayerEntity player, final NbtCompound wolfNbt, final boolean rescue) {
-            final ServerWorld world = (ServerWorld) player.getWorld();
+            final ServerWorld world = (ServerWorld) player.getEntityWorld();
             final WolfEntity newWolf = EntityType.WOLF.create(world);
 
             if (rescue) newWolf.setHealth(newWolf.getMaxHealth());
@@ -77,7 +80,7 @@ public class NBTHelper {
             newWolf.refreshPositionAndAngles(player.getX(), player.getY(), player.getZ(), player.getYaw(), player.getPitch());
             newWolf.playSpawnEffects();
 
-            ServerWorld sw = (ServerWorld) newWolf.getWorld();
+            ServerWorld sw = (ServerWorld) newWolf.getEntityWorld();
             double x = newWolf.getX(), y = newWolf.getBodyY(0.5), z = newWolf.getZ();
             sw.spawnParticles(ParticleTypes.POOF,  x, y, z, 9, 0.25, 0.20, 0.25, 0.01);
             sw.spawnParticles(ParticleTypes.CLOUD, x, y, z,  4, 0.20, 0.10, 0.20, 0.00);
@@ -85,14 +88,24 @@ public class NBTHelper {
             return world.spawnEntity(newWolf);
         }*/
 
-        public static boolean spawnWolfFromNbt(final ServerPlayerEntity player, final NbtCompound wolfNbt, final boolean rescue) {
-            final ServerWorld world = (ServerWorld) player.getWorld();
+    public static void applyEntityNbt(Entity target, NbtCompound nbt) {
+        try {
+            new EntityDataObject(target).setNbt(nbt); // mirrors /data merge entity
+        } catch (CommandSyntaxException e) {
+            throw new RuntimeException("Invalid NBT for entity", e);
+        }
+    }
+
+
+    public static boolean spawnWolfFromNbt(final ServerPlayerEntity player, final NbtCompound wolfNbt, final boolean rescue) {
+            final ServerWorld world = (ServerWorld) player.getEntityWorld();
 
             WolfEntity newWolf = EntityType.WOLF.create(
                     world,
                     e -> {
                         final NbtComponent nbtComponent = NbtComponent.of(wolfNbt);
-                        nbtComponent.applyToEntity(e);
+                        applyEntityNbt(e, nbtComponent.copyNbt());
+                        //nbtComponent.applyToEntity(e);
                     },
                     player.getBlockPos(),
                     SpawnReason.MOB_SUMMONED,
@@ -112,7 +125,7 @@ public class NBTHelper {
             newWolf.setFireTicks(0);
             newWolf.playSpawnEffects();
 
-            ServerWorld sw = (ServerWorld) newWolf.getWorld();
+            ServerWorld sw = (ServerWorld) newWolf.getEntityWorld();
             double x = newWolf.getX(), y = newWolf.getBodyY(0.5), z = newWolf.getZ();
             sw.spawnParticles(ParticleTypes.POOF,  x, y, z, 9, 0.25, 0.20, 0.25, 0.01);
             sw.spawnParticles(ParticleTypes.CLOUD, x, y, z,  4, 0.20, 0.10, 0.20, 0.00);

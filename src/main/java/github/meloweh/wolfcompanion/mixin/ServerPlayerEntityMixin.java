@@ -4,13 +4,16 @@ import github.meloweh.wolfcompanion.accessor.ServerPlayerAccessor;
 import github.meloweh.wolfcompanion.events.WolfEventHandler;
 import github.meloweh.wolfcompanion.util.NBTHelper;
 import github.meloweh.wolfcompanion.util.WolfNbtList;
+import net.minecraft.entity.ai.goal.GoalSelector;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.screen.ScreenHandler;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.storage.ReadView;
 import net.minecraft.storage.WriteView;
 import net.minecraft.util.math.BlockPos;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.gen.Accessor;
 import org.spongepowered.asm.mixin.gen.Invoker;
@@ -27,6 +30,9 @@ public abstract class ServerPlayerEntityMixin implements ServerPlayerAccessor {
     WolfNbtList rescuedWolfNbtList = new WolfNbtList();
     @Unique
     WolfNbtList whistleWolfNbtList = new WolfNbtList();
+
+    @Accessor("server")
+    public abstract MinecraftServer getServer__();
 
     @Accessor("screenHandlerSyncId")
     public abstract int getScreenHandlerSyncId();

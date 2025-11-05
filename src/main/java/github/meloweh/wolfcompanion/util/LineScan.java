@@ -103,7 +103,7 @@ public final class LineScan {
         final Vec3d origin = wolf.getBoundingBox().getCenter();
         final Vec3d target = origin.add(lookDistance);
 
-        final World world = wolf.getWorld();
+        final World world = wolf.getEntityWorld();
 
         ExtrudedResult result = scanSolidsAndLavaExtrudedY(world, origin, target, 10);
 

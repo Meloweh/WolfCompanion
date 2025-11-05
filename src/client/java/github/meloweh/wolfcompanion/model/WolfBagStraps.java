@@ -3,12 +3,10 @@ package github.meloweh.wolfcompanion.model;
 import github.meloweh.wolfcompanion.WolfCompanion;
 import net.minecraft.client.model.*;
 import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.entity.model.EntityModelLayer;
-import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
 
-public class WolfBagStraps extends Model {
+public class WolfBagStraps extends Model.SinglePartModel {
     private final ModelPart main;
     public static final Identifier TEXTURE_LOCATION = WolfCompanion.id("textures/entity/straps.png");
     public static final EntityModelLayer LAYER_LOCATION = new EntityModelLayer(WolfCompanion.id("straps"), "main");
@@ -35,7 +33,8 @@ public class WolfBagStraps extends Model {
 //    }
 
     public void copyTransform(ModelPart part) {
-        this.main.copyTransform(part);
+        this.main.setTransform(part.getTransform());
+        //this.main.copyTransform(part);
     }
 
     public RenderLayer getRenderLayer() {

@@ -50,7 +50,7 @@ public class WolfMeleeAttackGoal extends Goal {
         final PlayerEntity player = (PlayerEntity) this.mob.getOwner();
         if (player == null) return;
         final Box playerArea = player.getBoundingBox().expand(10);
-        final ServerWorld serverWorld = (ServerWorld) player.getWorld();
+        final ServerWorld serverWorld = (ServerWorld) player.getEntityWorld();
         if (serverWorld == null) return;
         final List<WolfEntity> pack = serverWorld.getEntitiesByClass(WolfEntity.class, playerArea,
                 e -> e.isTamed() && !e.getUuid().equals(this.mob.getUuid()));
@@ -80,7 +80,7 @@ public class WolfMeleeAttackGoal extends Goal {
     }
 
     public boolean canStart() {
-        long l = this.mob.getWorld().getTime();
+        long l = this.mob.getEntityWorld().getTime();
         if (l - this.lastUpdateTime < 20L) {
             return false;
         } else {

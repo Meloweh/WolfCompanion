@@ -146,7 +146,7 @@ public class RescueOwnerFromLavaGoal extends Goal implements InventoryChangedLis
     }
 
     public void tick() {
-        if (!this.wolf.getWorld().isClient &&
+        if (!this.wolf.getEntityWorld().isClient() &&
                 this.wolf.isAlive() &&
                 this.wolf.canMoveVoluntarily()) {
             this.wolf.getLookControl().lookAt(this.owner, 10.0F, (float) this.wolf.getMaxLookPitchChange());
@@ -212,16 +212,16 @@ public class RescueOwnerFromLavaGoal extends Goal implements InventoryChangedLis
 
         RegistryEntry<Potion> registryEntry = itemStack.second;//Potions.FIRE_RESISTANCE;
 
-        PotionEntity potionEntity = new SplashPotionEntity(this.wolf.getWorld(), this.wolf, itemStack.first);
+        PotionEntity potionEntity = new SplashPotionEntity(this.wolf.getEntityWorld(), this.wolf, itemStack.first);
         potionEntity.setItem(PotionContentsComponent.createStack(Items.SPLASH_POTION, registryEntry));
         potionEntity.setPitch(potionEntity.getPitch() - -20.0F);
         potionEntity.setVelocity(d, e + g * 0.2, f, 0.75F, 0F);
-        this.wolf.getWorld().playSound(null, this.wolf.getX(), this.wolf.getY(), this.wolf.getZ(), SoundEvents.ENTITY_SPLASH_POTION_THROW, this.wolf.getSoundCategory(), 1.0F, 0.4F + this.wolf.getRandom().nextFloat() * 0.4F);
+        this.wolf.getEntityWorld().playSound(null, this.wolf.getX(), this.wolf.getY(), this.wolf.getZ(), SoundEvents.ENTITY_SPLASH_POTION_THROW, this.wolf.getSoundCategory(), 1.0F, 0.4F + this.wolf.getRandom().nextFloat() * 0.4F);
 
-        this.wolf.getWorld().spawnEntity(potionEntity);
+        this.wolf.getEntityWorld().spawnEntity(potionEntity);
 
         itemStack.first.decrement(1);
-        ItemStack itemStack2 = itemStack.first.finishUsing(this.wolf.getWorld(), this.wolf);
+        ItemStack itemStack2 = itemStack.first.finishUsing(this.wolf.getEntityWorld(), this.wolf);
         if (!itemStack2.isEmpty()) {
             this.wolf.equipStack(EquipmentSlot.MAINHAND, itemStack2);
         }

@@ -8,6 +8,7 @@ import github.meloweh.wolfcompanion.network.ReleaseWolfC2SPayload;
 import github.meloweh.wolfcompanion.screenhandler.WolfInventoryScreenHandler;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.gl.RenderPipelines;
+import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.gui.screen.ingame.InventoryScreen;
@@ -88,6 +89,20 @@ public class WolfInventoryScreen extends HandledScreen<WolfInventoryScreenHandle
     }
 
     @Override
+    public boolean mouseClicked(Click click, boolean doubled) {
+        if (clickedDropChest(click.x(), click.y()) && ((WolfEntityProvider)this.wolf).hasChestEquipped()) {
+            ClientPlayNetworking.send(new DropWolfChestC2SPayload(wolf.getUuid()));
+            player.playSound(SoundEvents.UI_BUTTON_CLICK.value(), 0.3f, 0.8f);
+        }
+        if (clickedReleaseWolf(click.x(), click.y()) && this.wolf.isTamed()) {
+            ClientPlayNetworking.send(new ReleaseWolfC2SPayload(wolf.getUuid()));
+            player.playSound(SoundEvents.UI_BUTTON_CLICK.value(), 0.3f, 0.8f);
+        }
+
+        return super.mouseClicked(click, doubled);
+    }
+
+    /*@Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (clickedDropChest(mouseX, mouseY) && ((WolfEntityProvider)this.wolf).hasChestEquipped()) {
             ClientPlayNetworking.send(new DropWolfChestC2SPayload(wolf.getUuid()));
@@ -99,7 +114,7 @@ public class WolfInventoryScreen extends HandledScreen<WolfInventoryScreenHandle
         }
 
         return super.mouseClicked(mouseX, mouseY, button);
-    }
+    }*/
 
     @Override
     protected void drawBackground(DrawContext context, float deltaTicks, int mouseX, int mouseY) {

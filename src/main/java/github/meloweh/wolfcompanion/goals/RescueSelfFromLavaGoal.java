@@ -109,7 +109,7 @@ public class RescueSelfFromLavaGoal extends Goal implements InventoryChangedList
     }
 
     public void tick() {
-        if (!this.wolf.getWorld().isClient &&
+        if (!this.wolf.getEntityWorld().isClient() &&
                 this.wolf.isAlive() &&
                 this.wolf.canMoveVoluntarily()) {
 
@@ -146,7 +146,7 @@ public class RescueSelfFromLavaGoal extends Goal implements InventoryChangedList
         //RegistryEntry<Potion> registryEntry = Potions.FIRE_RESISTANCE;
 
         // Get the world and the wolf's position
-        World world = this.wolf.getWorld();
+        World world = this.wolf.getEntityWorld();
         double x = this.wolf.getX();
         double y = this.wolf.getY();
         double z = this.wolf.getZ();
@@ -167,7 +167,7 @@ public class RescueSelfFromLavaGoal extends Goal implements InventoryChangedList
         world.spawnEntity(effectCloud);
 
         itemStack.first.decrement(1);
-        ItemStack itemStack2 = itemStack.first.finishUsing(this.wolf.getWorld(), this.wolf);
+        ItemStack itemStack2 = itemStack.first.finishUsing(this.wolf.getEntityWorld(), this.wolf);
         if (!itemStack2.isEmpty()) {
             this.wolf.equipStack(EquipmentSlot.MAINHAND, itemStack2);
         }

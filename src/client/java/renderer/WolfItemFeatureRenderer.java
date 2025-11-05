@@ -2,11 +2,14 @@ package renderer;
 
 import accessor.WolfEntityModelAccessor;
 import accessor.WolfEntityRenderStateProvider;
+import github.meloweh.wolfcompanion.model.WolfBagModelV2;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.model.ModelPart;
 import net.minecraft.client.render.OverlayTexture;
+import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumerProvider;
+import net.minecraft.client.render.command.OrderedRenderCommandQueue;
 import net.minecraft.client.render.entity.feature.FeatureRenderer;
 import net.minecraft.client.render.entity.feature.FeatureRendererContext;
 import net.minecraft.client.render.entity.model.WolfEntityModel;
@@ -43,7 +46,12 @@ public class WolfItemFeatureRenderer extends FeatureRenderer<WolfEntityRenderSta
     }
 
     @Override
-    public void render(MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, WolfEntityRenderState state, float limbAngle, float limbDistance) {
+    public void render(MatrixStack matrices, OrderedRenderCommandQueue queue, int light, WolfEntityRenderState state, float limbAngle, float limbDistance) {
+
+    //}
+
+    //@Override
+    //public void render(MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, WolfEntityRenderState state, float limbAngle, float limbDistance) {
         final WolfEntityRenderStateProvider customState = (WolfEntityRenderStateProvider) state;
         final ItemRenderState itemRenderState = customState.getItemRenderState__(); //state.itemRenderState;
 
@@ -84,10 +92,9 @@ public class WolfItemFeatureRenderer extends FeatureRenderer<WolfEntityRenderSta
                 matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(90.0F));
             }
 
-
-
             //heldItemRenderer.renderItem();
-            itemRenderState.render(matrices, vertexConsumers, light, OverlayTexture.DEFAULT_UV);
+            //itemRenderState.render(matrices, queue, light, OverlayTexture.DEFAULT_UV);
+            itemRenderState.render(matrices, queue, 1, 1, 1);
 
             matrices.pop();
         }

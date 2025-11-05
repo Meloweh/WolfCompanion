@@ -59,7 +59,7 @@ public class EatFoodGoal extends Goal implements InventoryChangedListener {
     public boolean canStart() {
 
         final boolean wouldStart = !this.entity.isInvulnerable()
-                && this.entity.hurtTime == 0 && !this.entity.getWorld().isClient;
+                && this.entity.hurtTime == 0 && !this.entity.getEntityWorld().isClient();
 
         if (!this.armoredWolf.hasChestEquipped() && this.entity.getEquippedStack(EquipmentSlot.MAINHAND).contains(DataComponentTypes.FOOD)) {
             return wouldStart;
@@ -77,7 +77,7 @@ public class EatFoodGoal extends Goal implements InventoryChangedListener {
 
     @Override
     public void start() {
-        if (eatingTime > 0 || this.entity.getTarget() != null || this.entity.getWorld().isClient) return;
+        if (eatingTime > 0 || this.entity.getTarget() != null || this.entity.getEntityWorld().isClient()) return;
 
         ItemStack mostEfficientFood = this.armoredWolf.hasChestEquipped() ? findFood() : this.entity.getEquippedStack(EquipmentSlot.MAINHAND);
 
@@ -113,7 +113,7 @@ public class EatFoodGoal extends Goal implements InventoryChangedListener {
 
     @Override
     public void tick() {
-        if (!this.entity.getWorld().isClient &&
+        if (!this.entity.getEntityWorld().isClient() &&
                 this.entity.isAlive() &&
                 this.entity.canMoveVoluntarily()) {
             if (!this.eatingFood.isEmpty()) {
@@ -138,13 +138,13 @@ public class EatFoodGoal extends Goal implements InventoryChangedListener {
                     }
                     this.entity.heal(foodComponent.nutrition());
                     //itemStack.decrement(1);
-                    ItemStack itemStack2 = itemStack.finishUsing(this.entity.getWorld(), this.entity);
+                    ItemStack itemStack2 = itemStack.finishUsing(this.entity.getEntityWorld(), this.entity);
                     this.entity.equipStack(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
                     this.eatingTime = -1;
                 } else if (this.eatingTime > 0) {
                     if (this.eatingTime % 2 == 0 && this.entity.getRandom().nextFloat() < 0.5F) {
                         this.entity.playSound(this.getEatSound(itemStack), 1.0F, 1.0F);
-                        this.entity.getWorld().sendEntityStatus(this.entity, EntityStatuses.CREATE_EATING_PARTICLES);
+                        this.entity.getEntityWorld().sendEntityStatus(this.entity, EntityStatuses.CREATE_EATING_PARTICLES);
                     }
 
                 }
