@@ -6,7 +6,6 @@ import github.meloweh.wolfcompanion.util.LineScan;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.goal.Goal;
 import net.minecraft.entity.ai.pathing.Path;
-import net.minecraft.entity.mob.HostileEntity;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.entity.mob.Monster;
 import net.minecraft.entity.passive.WolfEntity;
@@ -57,6 +56,8 @@ public class WolfMeleeAttackGoal extends Goal {
         final List<MobEntity> attackers = serverWorld.getEntitiesByClass(MobEntity.class, playerArea, attacker ->
                 attacker instanceof Monster &&
                         attacker.getTarget() != null &&
+                        attacker.isAlive() &&
+                        !attacker.isRemoved() &&
                         attacker.getTarget().getUuid() == player.getUuid() &&
                         !ConfigManager.isBlacklisted(attacker));
 

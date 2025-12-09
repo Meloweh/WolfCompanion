@@ -10,5 +10,6 @@
   "pickAllRottenFlesh": true,
   "shouldCarePlayerFood": true,
   "requiredPlayerFood": 10,
-  "doNotAttackMobs": []
+  "doNotAttackMobs": [],
+  "keepXp": false
 }
