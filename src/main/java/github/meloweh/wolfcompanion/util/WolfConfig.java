@@ -18,4 +18,6 @@ public class WolfConfig {
     public boolean shouldCarePlayerFood = true;
     public int requiredPlayerFood = 10;
     public List<String> doNotAttackMobs = new ArrayList<>(List.of());
+    public boolean keepXp = false;
+    public int extraHealth = 0;
 }

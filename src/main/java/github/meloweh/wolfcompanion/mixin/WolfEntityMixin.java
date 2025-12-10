@@ -19,6 +19,7 @@ import net.minecraft.enchantment.EnchantmentEffectContext;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.goal.Goal;
+import net.minecraft.entity.attribute.DefaultAttributeContainer;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.data.DataTracker;
@@ -27,6 +28,7 @@ import net.minecraft.entity.data.TrackedDataHandlerRegistry;
 import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
+import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.entity.passive.WolfEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -88,6 +90,8 @@ public abstract class WolfEntityMixin implements
     private void onConstructor(CallbackInfo info) {
         this.self = (WolfEntity) (Object) this;
         this.onChestedStatusChanged();
+        //this.self.getAttributeInstance(EntityAttributes.GENERIC_MAX_HEALTH)
+        //        .setBaseValue(50.0D);
     }
 
     @Override
@@ -288,6 +292,30 @@ public abstract class WolfEntityMixin implements
         }
         return false;
     }*/
+
+    /*
+    @Inject(method = "createWolfAttributes", at = @At("TAIL"), cancellable = true)
+    private void changeMaxHealth(CallbackInfoReturnable<DefaultAttributeContainer.Builder> cir) {
+        final DefaultAttributeContainer.Builder builder = MobEntity.createMobAttributes().add(EntityAttributes.GENERIC_MOVEMENT_SPEED, (double)0.3F).add(EntityAttributes.GENERIC_MAX_HEALTH, (double)40.0F).add(EntityAttributes.GENERIC_ATTACK_DAMAGE, (double)4.0F);
+
+        cir.setReturnValue(false);
+        cir.cancel();
+    }*/
+
+    @Inject(method = "updateAttributesForTamed", at = @At("HEAD"), cancellable = true)
+    private void changeMaxHealth(CallbackInfo ci) {
+        if (ConfigManager.config.extraHealth > 0) {
+            final float newHealth = 40.0F + ConfigManager.config.extraHealth;
+            if (this.self.isTamed()) {
+                this.self.getAttributeInstance(EntityAttributes.GENERIC_MAX_HEALTH).setBaseValue((double) newHealth);
+                this.self.setHealth(newHealth);
+            } else {
+                this.self.getAttributeInstance(EntityAttributes.GENERIC_MAX_HEALTH).setBaseValue((double) 8.0F);
+            }
+            ci.cancel();
+        }
+    }
+
 
     @Inject(method = "tick", at = @At("TAIL"))
     private void shakeConditions(CallbackInfo ci) {

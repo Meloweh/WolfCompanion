@@ -53,6 +53,8 @@ public class WolfMeleeAttackGoal extends Goal {
         final List<MobEntity> attackers = serverWorld.getEntitiesByClass(MobEntity.class, playerArea, attacker ->
                 attacker instanceof Monster &&
                         attacker.getTarget() != null &&
+                        attacker.isAlive() &&
+                        !attacker.isRemoved() &&
                         attacker.getTarget().getUuid() == player.getUuid() &&
                         !ConfigManager.isBlacklisted(attacker));
 

@@ -36,7 +36,8 @@ public class NBTHelper {
             if (!ConfigManager.config.keepWolfBag)
                 wolfNbt.remove("ChestedWolf");
             wolfNbt.remove("Items");
-            wolfNbt.putInt("XP", 0);
+            if (!ConfigManager.config.keepXp)
+                wolfNbt.putInt("XP", 0);
         }
     }
 
