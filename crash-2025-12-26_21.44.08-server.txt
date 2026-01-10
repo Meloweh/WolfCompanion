@@ -1,0 +1,475 @@
+---- Minecraft Crash Report ----
+// Daisy, daisy...
+
+Time: 2025-12-26 21:44:08
+Description: Ticking entity
+
+java.lang.AbstractMethodError: Method net/minecraft/class_1493.method_6765()Z is abstract
+	at knot//net.minecraft.class_1493.method_6765(class_1493.java)
+	at knot//net.minecraft.class_2397.method_9549(class_2397.java:1055)
+	at knot//net.minecraft.class_4970$class_4971.method_26194(class_4970.java:1069)
+	at knot//net.caffeinemc.mods.lithium.common.entity.movement.ChunkAwareBlockCollisionSweeper.computeNext(ChunkAwareBlockCollisionSweeper.java:250)
+	at knot//net.caffeinemc.mods.lithium.common.entity.movement.ChunkAwareBlockCollisionSweeper.computeNext(ChunkAwareBlockCollisionSweeper.java:35)
+	at knot//com.google.common.collect.AbstractIterator.tryToComputeNext(AbstractIterator.java:145)
+	at knot//com.google.common.collect.AbstractIterator.hasNext(AbstractIterator.java:140)
+	at knot//net.caffeinemc.mods.lithium.common.util.collections.LazyList.produceToIndex(LazyList.java:23)
+	at knot//net.caffeinemc.mods.lithium.common.util.collections.LazyList$1.hasNext(LazyList.java:53)
+	at knot//net.minecraft.class_259.method_1085(class_259.java:201)
+	at knot//net.minecraft.class_1297.lithium$CollideMovement(class_1297.java:9072)
+	at knot//net.minecraft.class_1297.redirect$cda000$lithium$collideMovementWithPostponedGetEntities(class_1297.java:8962)
+	at knot//net.minecraft.class_1297.method_17835(class_1297.java:1032)
+	at knot//net.minecraft.class_1297.method_5784(class_1297.java:719)
+	at knot//net.minecraft.class_1309.method_26318(class_1309.java:2400)
+	at knot//net.minecraft.class_1309.method_6091(class_1309.java:2322)
+	at knot//net.minecraft.class_1309.method_6007(class_1309.java:2824)
+	at knot//net.minecraft.class_1308.method_6007(class_1308.java:572)
+	at knot//net.minecraft.class_1296.method_6007(class_1296.java:128)
+	at knot//net.minecraft.class_1429.method_6007(class_1429.java:57)
+	at knot//net.minecraft.class_1493.method_6007(class_1493.java:283)
+	at knot//net.minecraft.class_1309.method_5773(class_1309.java:2507)
+	at knot//net.minecraft.class_1308.method_5773(class_1308.java:372)
+	at knot//net.minecraft.class_1493.method_5773(class_1493.java:298)
+	at knot//net.minecraft.class_3218.method_18762(class_3218.java:770)
+	at knot//net.minecraft.class_1937.method_18472(class_1937.java:498)
+	at knot//net.minecraft.class_3218.method_31420(class_3218.java:408)
+	at knot//net.minecraft.class_5574.method_31791(class_5574.java:54)
+	at knot//net.minecraft.class_3218.method_18765(class_3218.java:372)
+	at knot//net.minecraft.server.MinecraftServer.method_3813(MinecraftServer.java:1021)
+	at knot//net.minecraft.server.MinecraftServer.method_3748(MinecraftServer.java:912)
+	at knot//net.minecraft.class_1132.method_3748(class_1132.java:114)
+	at knot//net.minecraft.server.MinecraftServer.method_29741(MinecraftServer.java:697)
+	at knot//net.minecraft.server.MinecraftServer.method_29739(MinecraftServer.java:281)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+
+
+A detailed walkthrough of the error, its code path and all known details is as follows:
+---------------------------------------------------------------------------------------
+
+-- Head --
+Thread: Server thread
+Stacktrace:
+	at knot//net.minecraft.class_1493.method_6765(class_1493.java)
+	at knot//net.minecraft.class_2397.method_9549(class_2397.java:1055)
+	at knot//net.minecraft.class_4970$class_4971.method_26194(class_4970.java:1069)
+	at knot//net.caffeinemc.mods.lithium.common.entity.movement.ChunkAwareBlockCollisionSweeper.computeNext(ChunkAwareBlockCollisionSweeper.java:250)
+	at knot//net.caffeinemc.mods.lithium.common.entity.movement.ChunkAwareBlockCollisionSweeper.computeNext(ChunkAwareBlockCollisionSweeper.java:35)
+	at knot//com.google.common.collect.AbstractIterator.tryToComputeNext(AbstractIterator.java:145)
+	at knot//com.google.common.collect.AbstractIterator.hasNext(AbstractIterator.java:140)
+	at knot//net.caffeinemc.mods.lithium.common.util.collections.LazyList.produceToIndex(LazyList.java:23)
+	at knot//net.caffeinemc.mods.lithium.common.util.collections.LazyList$1.hasNext(LazyList.java:53)
+	at knot//net.minecraft.class_259.method_1085(class_259.java:201)
+	at knot//net.minecraft.class_1297.lithium$CollideMovement(class_1297.java:9072)
+	at knot//net.minecraft.class_1297.redirect$cda000$lithium$collideMovementWithPostponedGetEntities(class_1297.java:8962)
+	at knot//net.minecraft.class_1297.method_17835(class_1297.java:1032)
+	at knot//net.minecraft.class_1297.method_5784(class_1297.java:719)
+	at knot//net.minecraft.class_1309.method_26318(class_1309.java:2400)
+	at knot//net.minecraft.class_1309.method_6091(class_1309.java:2322)
+	at knot//net.minecraft.class_1309.method_6007(class_1309.java:2824)
+	at knot//net.minecraft.class_1308.method_6007(class_1308.java:572)
+	at knot//net.minecraft.class_1296.method_6007(class_1296.java:128)
+	at knot//net.minecraft.class_1429.method_6007(class_1429.java:57)
+	at knot//net.minecraft.class_1493.method_6007(class_1493.java:283)
+	at knot//net.minecraft.class_1309.method_5773(class_1309.java:2507)
+	at knot//net.minecraft.class_1308.method_5773(class_1308.java:372)
+	at knot//net.minecraft.class_1493.method_5773(class_1493.java:298)
+	at knot//net.minecraft.class_3218.method_18762(class_3218.java:770)
+	at knot//net.minecraft.class_1937.method_18472(class_1937.java:498)
+	at knot//net.minecraft.class_3218.method_31420(class_3218.java:408)
+	at knot//net.minecraft.class_5574.method_31791(class_5574.java:54)
+Mixins in Stacktrace:
+	net.minecraft.class_1493:
+		github.meloweh.wolfcompanion.mixin.WolfEntityMixin (wolfcompanion.mixins.json)
+	net.minecraft.class_2397:
+		ca.fxco.moreculling.mixin.blocks.LeavesBlock_typesMixin (moreculling.mixins.json)
+		com.vanillastar.vshorses.mixin.block.LeavesBlockMixin (vshorses.mixins.json)
+		net.caffeinemc.mods.sodium.mixin.features.options.render_layers.LeavesBlockMixin (sodium-common.mixins.json)
+	net.minecraft.class_4970$class_4971:
+		malte0811.ferritecore.mixin.blockstatecache.BlockStateBaseMixin (ferritecore.blockstatecache.mixin.json)
+		foundationgames.enhancedblockentities.mixin.AbstractBlockStateMixin (enhancedblockentities.mixins.json)
+		ca.fxco.moreculling.mixin.blockstates.BlockStateBase_moreMixin (moreculling.mixins.json)
+		net.irisshaders.iris.mixin.MixinBlockStateBehavior (mixins.iris.json)
+		ca.fxco.moreculling.mixin.models.cullshape.BlockStateBase_cullShapeMixin (moreculling.mixins.json)
+		snownee.snow.mixin.BlockStateMixin (snowrealmagic.mixins.json)
+	net.minecraft.class_259:
+		net.caffeinemc.mods.lithium.mixin.shapes.optimized_matching.ShapesMixin (lithium.mixins.json)
+		net.caffeinemc.mods.lithium.mixin.shapes.shape_merging.ShapesMixin (lithium.mixins.json)
+		net.caffeinemc.mods.lithium.mixin.shapes.specialized_shapes.ShapesMixin (lithium.mixins.json)
+	net.minecraft.class_1297:
+		net.fabricmc.fabric.mixin.entity.event.EntityMixin (fabric-entity-events-v1.mixins.json)
+		net.fabricmc.fabric.mixin.attachment.EntityMixin (fabric-data-attachment-api-v1.mixins.json)
+		net.caffeinemc.mods.lithium.mixin.alloc.deep_passengers.EntityMixin (lithium.mixins.json)
+		net.caffeinemc.mods.lithium.mixin.block.hopper.EntityAccessor (lithium.mixins.json)
+		net.caffeinemc.mods.lithium.mixin.collections.fluid_submersion.EntityMixin (lithium.mixins.json)
+		toni.sodiumdynamiclights.mixin.lightsource.EntityMixin (mixins.sodiumdynamiclights.json)
+		net.caffeinemc.mods.lithium.mixin.entity.sprinting_particles.EntityMixin (lithium.mixins.json)
+		dev.tr7zw.transition.mixin.EntityAccessor (transition.mixins.json)
+		io.github.mortuusars.horseman.mixin.fits_in_boat.EntityMixin (horseman-common.mixins.json)
+		github.meloweh.wolfcompanion.mixin.EntityMixin (wolfcompanion.mixins.json)
+		dev.tr7zw.transition.mixin.ExtensionMixin (transition.mixins.json)
+		io.github.mortuusars.horseman.mixin.attribute_modifiers.EntityMixin (horseman-common.mixins.json)
+		net.caffeinemc.mods.lithium.mixin.entity.collisions.unpushable_cramming.EntityMixin (lithium.mixins.json)
+		net.fabricmc.fabric.mixin.attachment.AttachmentTargetsMixin (fabric-data-attachment-api-v1.mixins.json)
+		dev.tr7zw.entityculling.mixin.CullableMixin (entityculling.mixins.json)
+		io.github.mortuusars.horseman.mixin.fix_running_back.EntityMixin (horseman-common.mixins.json)
+		net.caffeinemc.mods.lithium.mixin.entity.collisions.movement.EntityMixin (lithium.mixins.json)
+	net.minecraft.class_1309:
+		cn.foggyhillside.ends_delight.mixin.LivingEntityMixin (ends_delight.mixins.json)
+		net.fabricmc.fabric.mixin.block.LivingEntityMixin (fabric-block-api-v1.mixins.json)
+		net.fabricmc.fabric.mixin.item.LivingEntityMixin (fabric-item-api-v1.mixins.json)
+		net.caffeinemc.mods.lithium.mixin.entity.fast_powder_snow_check.LivingEntityMixin (lithium.mixins.json)
+		umpaz.brewinandchewin.fabric.mixin.LivingEntityMixin (brewinandchewin.fabric.mixins.json)
+		net.fabricmc.fabric.mixin.entity.event.LivingEntityMixin (fabric-entity-events-v1.mixins.json)
+		umpaz.brewinandchewin.common.mixin.LivingEntityAccessor (brewinandchewin.mixins.json)
+		net.caffeinemc.mods.lithium.mixin.entity.equipment_tracking.equipment_changes.LivingEntityMixin (lithium.mixins.json)
+		net.caffeinemc.mods.lithium.mixin.entity.fast_hand_swing.LivingEntityMixin (lithium.mixins.json)
+		io.github.mortuusars.horseman.mixin.momentum.LivingEntityMixin (horseman-common.mixins.json)
+		github.meloweh.wolfcompanion.mixin.LivingEntityMixin (wolfcompanion.mixins.json)
+		net.caffeinemc.mods.lithium.mixin.entity.collisions.unpushable_cramming.LivingEntityMixin (lithium.mixins.json)
+		toni.sodiumdynamiclights.mixin.lightsource.LivingEntityMixin (mixins.sodiumdynamiclights.json)
+		net.caffeinemc.mods.lithium.mixin.entity.equipment_tracking.enchantment_ticking.LivingEntityMixin (lithium.mixins.json)
+		net.caffeinemc.mods.lithium.mixin.entity.fast_elytra_check.LivingEntityMixin (lithium.mixins.json)
+		com.soytutta.mynethersdelight.core.mixin.refabricated.LivingEntityMixin (mynethersdelight.mixins.json)
+		net.fabricmc.fabric.mixin.entity.event.elytra.LivingEntityMixin (fabric-entity-events-v1.mixins.json)
+		net.caffeinemc.mods.lithium.mixin.entity.inactive_navigations.LivingEntityMixin (lithium.mixins.json)
+		com.vanillastar.vshorses.mixin.entity.LivingEntityMixin (vshorses.mixins.json)
+		vectorwing.farmersdelight.common.mixin.refabricated.LivingEntityMixin (farmersdelight.mixins.json)
+		net.fabricmc.fabric.mixin.event.lifecycle.LivingEntityMixin (fabric-lifecycle-events-v1.mixins.json)
+		umpaz.brewinandchewin.common.mixin.LivingEntityMixin (brewinandchewin.mixins.json)
+		net.caffeinemc.mods.lithium.mixin.entity.equipment_tracking.LivingEntityMixin (lithium.mixins.json)
+	net.minecraft.class_1308:
+		io.github.mortuusars.horseman.mixin.hitching.MobMixin (horseman-common.mixins.json)
+		github.meloweh.wolfcompanion.mixin.MobEntityMixin (wolfcompanion.mixins.json)
+		com.soytutta.mynethersdelight.core.mixin.refabricated.MobAccessor (mynethersdelight.mixins.json)
+		net.fabricmc.fabric.mixin.entity.event.MobEntityMixin (fabric-entity-events-v1.mixins.json)
+		net.caffeinemc.mods.lithium.mixin.entity.inactive_navigations.MobMixin (lithium.mixins.json)
+		net.caffeinemc.mods.lithium.mixin.entity.equipment_tracking.MobMixin (lithium.mixins.json)
+	net.minecraft.class_1296:
+		net.caffeinemc.mods.lithium.mixin.ai.useless_sensors.parent_animal_sensor.AgeableMobMixin (lithium.mixins.json)
+	net.minecraft.class_1429:
+		io.github.lucaargolo.seasons.mixin.AnimalEntityMixin (seasons.mixins.json)
+	net.minecraft.class_3218:
+		net.caffeinemc.mods.lithium.mixin.world.block_entity_ticking.sleeping.ServerLevelMixin (lithium.mixins.json)
+		net.caffeinemc.mods.lithium.mixin.minimal_nonvanilla.spawning.ServerLevelAccessor (lithium.mixins.json)
+		net.fabricmc.fabric.mixin.lookup.ServerWorldMixin (fabric-api-lookup-api-v1.mixins.json)
+		net.fabricmc.fabric.mixin.event.lifecycle.ServerWorldMixin (fabric-lifecycle-events-v1.mixins.json)
+		net.caffeinemc.mods.lithium.mixin.entity.inactive_navigations.ServerLevelMixin (lithium.mixins.json)
+		io.github.lucaargolo.seasons.mixin.ServerWorldMixin (seasons.mixins.json)
+		net.caffeinemc.mods.lithium.mixin.util.accessors.ServerLevelAccessor (lithium.mixins.json)
+		net.caffeinemc.mods.lithium.mixin.alloc.chunk_random.ServerLevelMixin (lithium.mixins.json)
+		net.fabricmc.fabric.mixin.attachment.ServerWorldMixin (fabric-data-attachment-api-v1.mixins.json)
+		net.caffeinemc.mods.lithium.mixin.util.entity_movement_tracking.ServerLevelAccessor (lithium.mixins.json)
+		snownee.snow.mixin.ServerLevelMixin (snowrealmagic.mixins.json)
+	net.minecraft.class_1937:
+		toni.sodiumdynamiclights.mixin.LevelMixin (mixins.sodiumdynamiclights.json)
+		net.caffeinemc.mods.lithium.mixin.world.block_entity_ticking.chunk_tickable.LevelMixin (lithium.mixins.json)
+		net.caffeinemc.mods.lithium.mixin.world.block_entity_ticking.sleeping.LevelMixin (lithium.mixins.json)
+		net.fabricmc.fabric.mixin.attachment.WorldMixin (fabric-data-attachment-api-v1.mixins.json)
+		net.caffeinemc.mods.lithium.mixin.util.data_storage.LevelMixin (lithium.mixins.json)
+		net.caffeinemc.mods.lithium.mixin.entity.collisions.intersection.LevelMixin (lithium.mixins.json)
+		net.caffeinemc.mods.lithium.fabric.mixin.block.hopper.LevelMixin (lithium-fabric.mixins.json)
+		net.caffeinemc.mods.lithium.mixin.util.block_entity_retrieval.LevelMixin (lithium.mixins.json)
+		net.fabricmc.fabric.mixin.attachment.AttachmentTargetsMixin (fabric-data-attachment-api-v1.mixins.json)
+		net.caffeinemc.mods.lithium.mixin.world.inline_block_access.LevelMixin (lithium.mixins.json)
+		net.caffeinemc.mods.lithium.mixin.world.chunk_access.LevelMixin (lithium.mixins.json)
+		net.fabricmc.fabric.mixin.event.lifecycle.WorldMixin (fabric-lifecycle-events-v1.mixins.json)
+		net.caffeinemc.mods.lithium.mixin.minimal_nonvanilla.collisions.empty_space.LevelMixin (lithium.mixins.json)
+		net.caffeinemc.mods.lithium.mixin.alloc.chunk_random.LevelMixin (lithium.mixins.json)
+		net.caffeinemc.mods.lithium.mixin.util.accessors.LevelAccessor (lithium.mixins.json)
+	net.minecraft.class_5574:
+		net.caffeinemc.mods.lithium.mixin.collections.entity_ticking.EntityTickListMixin (lithium.mixins.json)
+
+-- Entity being ticked --
+Details:
+	Entity Type: minecraft:wolf (net.minecraft.class_1493)
+	Entity ID: 132
+	Entity Name: Wolf
+	Entity's Exact location: 3.90, 113.00, -153.34
+	Entity's Block location: World: (3,113,-154), Section: (at 3,1,6 in 0,7,-10; chunk contains blocks 0,-64,-160 to 15,319,-145), Region: (0,-1; contains chunks 0,-32 to 31,-1, blocks 0,-64,-512 to 511,319,-1)
+	Entity's Momentum: -0.12, -0.08, 0.07
+	Entity's Passengers: []
+	Entity's Vehicle: null
+Stacktrace:
+	at knot//net.minecraft.class_1937.method_18472(class_1937.java:498)
+	at knot//net.minecraft.class_3218.method_31420(class_3218.java:408)
+	at knot//net.minecraft.class_5574.method_31791(class_5574.java:54)
+	at knot//net.minecraft.class_3218.method_18765(class_3218.java:372)
+	at knot//net.minecraft.server.MinecraftServer.method_3813(MinecraftServer.java:1021)
+	at knot//net.minecraft.server.MinecraftServer.method_3748(MinecraftServer.java:912)
+	at knot//net.minecraft.class_1132.method_3748(class_1132.java:114)
+	at knot//net.minecraft.server.MinecraftServer.method_29741(MinecraftServer.java:697)
+	at knot//net.minecraft.server.MinecraftServer.method_29739(MinecraftServer.java:281)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+Mixins in Stacktrace:
+	net.minecraft.class_1937:
+		toni.sodiumdynamiclights.mixin.LevelMixin (mixins.sodiumdynamiclights.json)
+		net.caffeinemc.mods.lithium.mixin.world.block_entity_ticking.chunk_tickable.LevelMixin (lithium.mixins.json)
+		net.caffeinemc.mods.lithium.mixin.world.block_entity_ticking.sleeping.LevelMixin (lithium.mixins.json)
+		net.fabricmc.fabric.mixin.attachment.WorldMixin (fabric-data-attachment-api-v1.mixins.json)
+		net.caffeinemc.mods.lithium.mixin.util.data_storage.LevelMixin (lithium.mixins.json)
+		net.caffeinemc.mods.lithium.mixin.entity.collisions.intersection.LevelMixin (lithium.mixins.json)
+		net.caffeinemc.mods.lithium.fabric.mixin.block.hopper.LevelMixin (lithium-fabric.mixins.json)
+		net.caffeinemc.mods.lithium.mixin.util.block_entity_retrieval.LevelMixin (lithium.mixins.json)
+		net.fabricmc.fabric.mixin.attachment.AttachmentTargetsMixin (fabric-data-attachment-api-v1.mixins.json)
+		net.caffeinemc.mods.lithium.mixin.world.inline_block_access.LevelMixin (lithium.mixins.json)
+		net.caffeinemc.mods.lithium.mixin.world.chunk_access.LevelMixin (lithium.mixins.json)
+		net.fabricmc.fabric.mixin.event.lifecycle.WorldMixin (fabric-lifecycle-events-v1.mixins.json)
+		net.caffeinemc.mods.lithium.mixin.minimal_nonvanilla.collisions.empty_space.LevelMixin (lithium.mixins.json)
+		net.caffeinemc.mods.lithium.mixin.alloc.chunk_random.LevelMixin (lithium.mixins.json)
+		net.caffeinemc.mods.lithium.mixin.util.accessors.LevelAccessor (lithium.mixins.json)
+	net.minecraft.class_3218:
+		net.caffeinemc.mods.lithium.mixin.world.block_entity_ticking.sleeping.ServerLevelMixin (lithium.mixins.json)
+		net.caffeinemc.mods.lithium.mixin.minimal_nonvanilla.spawning.ServerLevelAccessor (lithium.mixins.json)
+		net.fabricmc.fabric.mixin.lookup.ServerWorldMixin (fabric-api-lookup-api-v1.mixins.json)
+		net.fabricmc.fabric.mixin.event.lifecycle.ServerWorldMixin (fabric-lifecycle-events-v1.mixins.json)
+		net.caffeinemc.mods.lithium.mixin.entity.inactive_navigations.ServerLevelMixin (lithium.mixins.json)
+		io.github.lucaargolo.seasons.mixin.ServerWorldMixin (seasons.mixins.json)
+		net.caffeinemc.mods.lithium.mixin.util.accessors.ServerLevelAccessor (lithium.mixins.json)
+		net.caffeinemc.mods.lithium.mixin.alloc.chunk_random.ServerLevelMixin (lithium.mixins.json)
+		net.fabricmc.fabric.mixin.attachment.ServerWorldMixin (fabric-data-attachment-api-v1.mixins.json)
+		net.caffeinemc.mods.lithium.mixin.util.entity_movement_tracking.ServerLevelAccessor (lithium.mixins.json)
+		snownee.snow.mixin.ServerLevelMixin (snowrealmagic.mixins.json)
+	net.minecraft.class_5574:
+		net.caffeinemc.mods.lithium.mixin.collections.entity_ticking.EntityTickListMixin (lithium.mixins.json)
+	net.minecraft.server.MinecraftServer:
+		net.fabricmc.fabric.mixin.event.lifecycle.MinecraftServerMixin (fabric-lifecycle-events-v1.mixins.json)
+		net.fabricmc.fabric.mixin.resource.loader.MinecraftServerMixin (fabric-resource-loader-v0.mixins.json)
+		net.fabricmc.fabric.mixin.biome.modification.MinecraftServerMixin (fabric-biome-api-v1.mixins.json)
+		net.fabricmc.fabric.mixin.message.MinecraftServerMixin (fabric-message-api-v1.mixins.json)
+	net.minecraft.class_1132:
+		dev.worldgen.lithostitched.mixin.client.IntegratedServerMixin (lithostitched.mixins.json)
+
+-- Affected level --
+Details:
+	All players: 1 total; [class_3222['zealousValkyrie'/96, l='ServerLevel[Simple Life]', x=-0.50, y=91.00, z=-33.50]]
+	Chunk stats: 2601
+	Level dimension: minecraft:overworld
+	Level spawn location: World: (0,86,-32), Section: (at 0,6,0 in 0,5,-2; chunk contains blocks 0,-64,-32 to 15,319,-17), Region: (0,-1; contains chunks 0,-32 to 31,-1, blocks 0,-64,-512 to 511,319,-1)
+	Level time: 480 game time, 480 day time
+	Level name: Simple Life
+	Level game mode: Game mode: survival (ID 0). Hardcore: false. Commands: false
+	Level weather: Rain time: 160873 (now: false), thunder time: 117311 (now: false)
+	Known server brands: fabric
+	Removed feature flags: 
+	Level was modded: true
+	Level storage version: 0x04ABD - Anvil
+	Loaded entity count: 267
+Stacktrace:
+	at knot//net.minecraft.class_3218.method_8538(class_3218.java:1693)
+	at knot//net.minecraft.server.MinecraftServer.method_3813(MinecraftServer.java:1024)
+	at knot//net.minecraft.server.MinecraftServer.method_3748(MinecraftServer.java:912)
+	at knot//net.minecraft.class_1132.method_3748(class_1132.java:114)
+	at knot//net.minecraft.server.MinecraftServer.method_29741(MinecraftServer.java:697)
+	at knot//net.minecraft.server.MinecraftServer.method_29739(MinecraftServer.java:281)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+Mixins in Stacktrace:
+	net.minecraft.class_3218:
+		net.caffeinemc.mods.lithium.mixin.world.block_entity_ticking.sleeping.ServerLevelMixin (lithium.mixins.json)
+		net.caffeinemc.mods.lithium.mixin.minimal_nonvanilla.spawning.ServerLevelAccessor (lithium.mixins.json)
+		net.fabricmc.fabric.mixin.lookup.ServerWorldMixin (fabric-api-lookup-api-v1.mixins.json)
+		net.fabricmc.fabric.mixin.event.lifecycle.ServerWorldMixin (fabric-lifecycle-events-v1.mixins.json)
+		net.caffeinemc.mods.lithium.mixin.entity.inactive_navigations.ServerLevelMixin (lithium.mixins.json)
+		io.github.lucaargolo.seasons.mixin.ServerWorldMixin (seasons.mixins.json)
+		net.caffeinemc.mods.lithium.mixin.util.accessors.ServerLevelAccessor (lithium.mixins.json)
+		net.caffeinemc.mods.lithium.mixin.alloc.chunk_random.ServerLevelMixin (lithium.mixins.json)
+		net.fabricmc.fabric.mixin.attachment.ServerWorldMixin (fabric-data-attachment-api-v1.mixins.json)
+		net.caffeinemc.mods.lithium.mixin.util.entity_movement_tracking.ServerLevelAccessor (lithium.mixins.json)
+		snownee.snow.mixin.ServerLevelMixin (snowrealmagic.mixins.json)
+	net.minecraft.server.MinecraftServer:
+		net.fabricmc.fabric.mixin.event.lifecycle.MinecraftServerMixin (fabric-lifecycle-events-v1.mixins.json)
+		net.fabricmc.fabric.mixin.resource.loader.MinecraftServerMixin (fabric-resource-loader-v0.mixins.json)
+		net.fabricmc.fabric.mixin.biome.modification.MinecraftServerMixin (fabric-biome-api-v1.mixins.json)
+		net.fabricmc.fabric.mixin.message.MinecraftServerMixin (fabric-message-api-v1.mixins.json)
+	net.minecraft.class_1132:
+		dev.worldgen.lithostitched.mixin.client.IntegratedServerMixin (lithostitched.mixins.json)
+
+-- System Details --
+Details:
+	Minecraft Version: 1.21.1
+	Minecraft Version ID: 1.21.1
+	Operating System: Windows 11 (amd64) version 10.0
+	Java Version: 21.0.7, Microsoft
+	Java VM Version: OpenJDK 64-Bit Server VM (mixed mode), Microsoft
+	Memory: 365372592 bytes (348 MiB) / 1610612736 bytes (1536 MiB) up to 3221225472 bytes (3072 MiB)
+	CPUs: 16
+	Processor Vendor: GenuineIntel
+	Processor Name: 12th Gen Intel(R) Core(TM) i7-12650H
+	Identifier: Intel64 Family 6 Model 154 Stepping 3
+	Microarchitecture: Alder Lake
+	Frequency (GHz): 2.69
+	Number of physical packages: 1
+	Number of physical CPUs: 10
+	Number of logical CPUs: 16
+	Graphics card #0 name: NVIDIA GeForce RTX 3050 Ti Laptop GPU
+	Graphics card #0 vendor: NVIDIA
+	Graphics card #0 VRAM (MiB): 4096.00
+	Graphics card #0 deviceId: VideoController1
+	Graphics card #0 versionInfo: 32.0.15.7703
+	Graphics card #1 name: Intel(R) UHD Graphics
+	Graphics card #1 vendor: Intel Corporation
+	Graphics card #1 VRAM (MiB): 2048.00
+	Graphics card #1 deviceId: VideoController2
+	Graphics card #1 versionInfo: 32.0.101.5542
+	Memory slot #0 capacity (MiB): 8192.00
+	Memory slot #0 clockSpeed (GHz): 3.20
+	Memory slot #0 type: DDR4
+	Memory slot #1 capacity (MiB): 8192.00
+	Memory slot #1 clockSpeed (GHz): 3.20
+	Memory slot #1 type: DDR4
+	Virtual memory max (MiB): 25779.31
+	Virtual memory used (MiB): 17914.49
+	Swap memory total (MiB): 9728.00
+	Swap memory used (MiB): 355.90
+	Space in storage for jna.tmpdir (MiB): available: 689702.81, total: 953020.00
+	Space in storage for org.lwjgl.system.SharedLibraryExtractPath (MiB): available: 689702.81, total: 953020.00
+	Space in storage for io.netty.native.workdir (MiB): available: 689702.81, total: 953020.00
+	Space in storage for java.io.tmpdir (MiB): available: 689702.81, total: 953020.00
+	Space in storage for workdir (MiB): available: 689702.81, total: 953020.00
+	JVM Flags: 9 total; -XX:HeapDumpPath=MojangTricksIntelDriversForPerformance_javaw.exe_minecraft.exe.heapdump -Xss1M -Xmx3G -XX:+UnlockExperimentalVMOptions -XX:+UseG1GC -XX:G1NewSizePercent=20 -XX:G1ReservePercent=20 -XX:MaxGCPauseMillis=50 -XX:G1HeapRegionSize=32M
+	Fabric Mods: 
+		betteradvancements: Better Advancements 0.4.3.21
+		betterf3: BetterF3 11.0.3
+			cloth-config: Cloth Config v15 15.0.127
+				cloth-basic-math: cloth-basic-math 0.6.1
+		brewinandchewin: Brewin' And Chewin' 4.4.1
+			greenhouseconfig: Greenhouse Config 2.2.0+1.21.1
+			greenhouseconfig_toml: Greenhouse Config - TOML 1.1.0
+				greenhouseconfig_night_config: Greenhouse Config - Night Config 1.1.0
+		corndelight: Corn Delight 1.21-1.0.0
+		cratedelight: Crate Delight 25.9.22-1.21-fabric
+		dynamic_fps: Dynamic FPS 3.9.5
+			net_lostluma_battery: battery 1.3.0
+		ends_delight: End's Delight 2.5.2+refabricated.1.21.1
+		enhancedblockentities: Enhanced Block Entities 0.10.2+1.21
+		entityculling: EntityCulling 1.9.4
+			transition: TRansition 1.0.11
+			trender: TRender 1.0.10
+		fabric-api: Fabric API 0.116.7+1.21.1
+			fabric-api-base: Fabric API Base 0.4.42+6573ed8c19
+			fabric-api-lookup-api-v1: Fabric API Lookup API (v1) 1.6.71+b559734419
+			fabric-biome-api-v1: Fabric Biome API (v1) 13.0.31+d527f9fd19
+			fabric-block-api-v1: Fabric Block API (v1) 1.1.0+0bc3503219
+			fabric-block-view-api-v2: Fabric BlockView API (v2) 1.0.11+ebb2264e19
+			fabric-blockrenderlayer-v1: Fabric BlockRenderLayer Registration (v1) 1.1.52+0af3f5a719
+			fabric-client-tags-api-v1: Fabric Client Tags 1.1.15+6573ed8c19
+			fabric-command-api-v1: Fabric Command API (v1) 1.2.49+f71b366f19
+			fabric-command-api-v2: Fabric Command API (v2) 2.2.28+6ced4dd919
+			fabric-commands-v0: Fabric Commands (v0) 0.2.66+df3654b319
+			fabric-content-registries-v0: Fabric Content Registries (v0) 8.0.19+b559734419
+			fabric-convention-tags-v1: Fabric Convention Tags 2.1.5+7f945d5b19
+			fabric-convention-tags-v2: Fabric Convention Tags (v2) 2.11.1+a406e79519
+			fabric-crash-report-info-v1: Fabric Crash Report Info (v1) 0.2.29+0af3f5a719
+			fabric-data-attachment-api-v1: Fabric Data Attachment API (v1) 1.4.5+6116a37819
+			fabric-data-generation-api-v1: Fabric Data Generation API (v1) 20.2.34+37516cd619
+			fabric-dimensions-v1: Fabric Dimensions API (v1) 4.0.1+65213ef819
+			fabric-entity-events-v1: Fabric Entity Events (v1) 1.8.0+2b27e0a419
+			fabric-events-interaction-v0: Fabric Events Interaction (v0) 0.7.13+ba9dae0619
+			fabric-game-rule-api-v1: Fabric Game Rule API (v1) 1.0.53+6ced4dd919
+			fabric-item-api-v1: Fabric Item API (v1) 11.2.0+3b3cb2e819
+			fabric-item-group-api-v1: Fabric Item Group API (v1) 4.1.7+def88e3a19
+			fabric-key-binding-api-v1: Fabric Key Binding API (v1) 1.0.47+0af3f5a719
+			fabric-keybindings-v0: Fabric Key Bindings (v0) 0.2.45+df3654b319
+			fabric-lifecycle-events-v1: Fabric Lifecycle Events (v1) 2.6.0+0865547519
+			fabric-loot-api-v2: Fabric Loot API (v2) 3.0.15+3f89f5a519
+			fabric-loot-api-v3: Fabric Loot API (v3) 1.0.3+3f89f5a519
+			fabric-message-api-v1: Fabric Message API (v1) 6.0.14+8aaf3aca19
+			fabric-model-loading-api-v1: Fabric Model Loading API (v1) 2.1.0+b4d813fc19
+			fabric-networking-api-v1: Fabric Networking API (v1) 4.3.0+c7469b2119
+			fabric-object-builder-api-v1: Fabric Object Builder API (v1) 15.2.1+40875a9319
+			fabric-particles-v1: Fabric Particles (v1) 4.0.2+6573ed8c19
+			fabric-recipe-api-v1: Fabric Recipe API (v1) 5.0.15+2475392c19
+			fabric-registry-sync-v0: Fabric Registry Sync (v0) 5.3.1+e3eddc2119
+			fabric-renderer-api-v1: Fabric Renderer API (v1) 3.4.1+b4d813fc19
+			fabric-renderer-indigo: Fabric Renderer - Indigo 1.7.1+c705a49c19
+			fabric-renderer-registries-v1: Fabric Renderer Registries (v1) 3.2.69+df3654b319
+			fabric-rendering-data-attachment-v1: Fabric Rendering Data Attachment (v1) 0.3.49+73761d2e19
+			fabric-rendering-fluids-v1: Fabric Rendering Fluids (v1) 3.1.6+1daea21519
+			fabric-rendering-v0: Fabric Rendering (v0) 1.1.72+df3654b319
+			fabric-rendering-v1: Fabric Rendering (v1) 5.1.0+ab4c25a019
+			fabric-resource-conditions-api-v1: Fabric Resource Conditions API (v1) 4.3.0+8dc279b119
+			fabric-resource-loader-v0: Fabric Resource Loader (v0) 1.3.1+5b5275af19
+			fabric-screen-api-v1: Fabric Screen API (v1) 2.0.25+8b68f1c719
+			fabric-screen-handler-api-v1: Fabric Screen Handler API (v1) 1.3.90+b559734419
+			fabric-sound-api-v1: Fabric Sound API (v1) 1.0.23+6573ed8c19
+			fabric-transfer-api-v1: Fabric Transfer API (v1) 5.4.3+c24bd99419
+			fabric-transitive-access-wideners-v1: Fabric Transitive Access Wideners (v1) 6.2.0+45b9699719
+		fabric-language-kotlin: Fabric Language Kotlin 1.12.3+kotlin.2.0.21
+			org_jetbrains_kotlin_kotlin-reflect: kotlin-reflect 2.0.21
+			org_jetbrains_kotlin_kotlin-stdlib: kotlin-stdlib 2.0.21
+			org_jetbrains_kotlin_kotlin-stdlib-jdk7: kotlin-stdlib-jdk7 2.0.21
+			org_jetbrains_kotlin_kotlin-stdlib-jdk8: kotlin-stdlib-jdk8 2.0.21
+			org_jetbrains_kotlinx_atomicfu-jvm: atomicfu-jvm 0.25.0
+			org_jetbrains_kotlinx_kotlinx-coroutines-core-jvm: kotlinx-coroutines-core-jvm 1.9.0
+			org_jetbrains_kotlinx_kotlinx-coroutines-jdk8: kotlinx-coroutines-jdk8 1.9.0
+			org_jetbrains_kotlinx_kotlinx-datetime-jvm: kotlinx-datetime-jvm 0.6.1
+			org_jetbrains_kotlinx_kotlinx-io-bytestring-jvm: kotlinx-io-bytestring-jvm 0.5.4
+			org_jetbrains_kotlinx_kotlinx-io-core-jvm: kotlinx-io-core-jvm 0.5.4
+			org_jetbrains_kotlinx_kotlinx-serialization-cbor-jvm: kotlinx-serialization-cbor-jvm 1.7.3
+			org_jetbrains_kotlinx_kotlinx-serialization-core-jvm: kotlinx-serialization-core-jvm 1.7.3
+			org_jetbrains_kotlinx_kotlinx-serialization-json-jvm: kotlinx-serialization-json-jvm 1.7.3
+		fabricloader: Fabric Loader 0.18.4
+			mixinextras: MixinExtras 0.5.0
+		farmersdelight: Farmer's Delight 1.21.1-3.2.2+refabricated
+			mm: Manningham Mills 2.3
+		ferritecore: FerriteCore 7.0.2-hotfix
+		geophilic: Geophilic 3.4.4
+		horseman: Horseman 1.5.6
+		immediatelyfast: ImmediatelyFast 1.6.8+1.21.1
+			net_lenni0451_reflect: Reflect 1.3.4
+		iris: Iris 1.8.8+mc1.21.1
+			io_github_douira_glsl-transformer: glsl-transformer 2.0.1
+			org_anarres_jcpp: jcpp 1.4.14
+			org_antlr_antlr4-runtime: antlr4-runtime 4.13.1
+		java: OpenJDK 64-Bit Server VM 21
+		jei: Just Enough Items 19.25.1.332
+		kiwi: Kiwi Library 15.1.3+fabric
+		krypton: Krypton 0.2.8
+			com_velocitypowered_velocity-native: velocity-native 3.3.0-SNAPSHOT
+		lazydfu: lazyDFU [UNOFFICIAL PORT] 0
+		lithium: Lithium 0.15.1+mc1.21.1
+		lithostitched: Lithostitched 1.4
+		mes: MoogsEndStructures 2.0.0
+		minecraft: Minecraft 1.21.1
+		mixintrace: MixinTrace 1.1.1+1.17
+		mns: MoogsNetherStructures 2.0.31
+		modelfix: Model Gap Fix 1.21-1.6
+		modmenu: Mod Menu 11.0.3
+			placeholder-api: Placeholder API 2.4.0-pre.2+1.21
+		moogs_structures: Moog's Structure Lib 1.1.0-1.21-1.21.1-fabric
+		moreculling: More Culling 1.0.6
+			conditional-mixin: conditional mixin 0.6.3
+			mixinsquared: MixinSquared 0.2.0
+		moredelight: More Delight 25.7.28-1.21-fabric
+		mvs: MoogsVoyagerStructures 5.0.3
+		mynethersdelight: My Nether's Delight 1.21.1-2.0.3+1.7.8.refabricated
+		nochatreports: No Chat Reports 1.21.1-v2.9.1
+		oceansdelight: Ocean's Delight fdrf-fabric-1.0.2-1.21
+		pineapple_delight: Pineapple Delight 1.1.1-1.21.1-fabric
+		pumpkin_pie: Pumpkin Pie Delight 1.0.2+1.21
+		reeses-sodium-options: Reese's Sodium Options 1.8.3+mc1.21.4
+		rusticdelight: Rustic Delight 1.4.2
+		seasons: Fabric Seasons 2.4.2-BETA+1.21
+		seasonsdelightrefabcompat: Fabric Seasons: Delight Refabricated Compat 1.0-1.21.1-2.2.2+refabricated
+		seasonsextras: Fabric Seasons: Extras 1.3.2-BETA+1.21
+		snowrealmagic: Snow! Real Magic! 12.1.2+fabric
+		sodium: Sodium 0.6.13+mc1.21.1
+		sodiumdynamiclights: Sodium Dynamic Lights 1.0.9
+			forgeconfigapiport: Forge Config API Port 21.1.0
+				com_electronwill_night-config_core: core 3.8.0
+				com_electronwill_night-config_toml: toml 3.8.0
+		storagedelight: Storage Delight 25.12.9-1.21-fabric
+		ubesdelight: Ube's Delight 0.4.7
+			midnightlib: MidnightLib 1.7.5
+		vshorses: Vanilla* Horses 1.0.2+1.21.1
+		wolfcompanion: Better Wolf Companion Mod 1.0.1
+	Loaded Shaderpack: ComplementaryReimagined_r5.6.1.zip
+		Profile: HIGH (+0 options changed by user)
+	Server Running: true
+	Player Count: 1 / 8; [class_3222['zealousValkyrie'/96, l='ServerLevel[Simple Life]', x=-0.50, y=91.00, z=-33.50]]
+	Active Data Packs: vanilla, fabric, brewinandchewin (incompatible), corndelight, cratedelight, ends_delight, fabric-convention-tags-v2, farmersdelight, geophilic, horseman, lithostitched, mes (incompatible), mns (incompatible), moredelight, mvs, mynethersdelight (incompatible), oceansdelight, pineapple_delight, pumpkin_pie, rusticdelight, seasons, seasonsdelightrefabcompat, seasonsextras, snowrealmagic (incompatible), storagedelight, ubesdelight, vshorses, wolfcompanion
+	Available Data Packs: brewinandchewin (incompatible), bundle, corndelight, cratedelight, ends_delight, fabric, fabric-convention-tags-v2, farmersdelight, geophilic, horseman, lithostitched, mes (incompatible), mns (incompatible), moredelight, mvs, mynethersdelight (incompatible), oceansdelight, pineapple_delight, pumpkin_pie, rusticdelight, seasons, seasonsdelightrefabcompat, seasonsextras, snowrealmagic (incompatible), storagedelight, trade_rebalance, ubesdelight, vanilla, vshorses, wolfcompanion
+	Enabled Feature Flags: minecraft:vanilla
+	World Generation: Stable
+	World Seed: 2321619634344368932
+	Type: Integrated Server (map_client.txt)
+	Is Modded: Definitely; Client brand changed to 'fabric'; Server brand changed to 'fabric'
+	Launched Version: fabric-loader-0.18.4-1.21.1
