@@ -92,9 +92,7 @@ public class WolfItemFeatureRenderer extends FeatureRenderer<WolfEntityRenderSta
                 matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(90.0F));
             }
 
-            //heldItemRenderer.renderItem();
-            //itemRenderState.render(matrices, queue, light, OverlayTexture.DEFAULT_UV);
-            itemRenderState.render(matrices, queue, 1, 1, 1);
+            itemRenderState.render(matrices, queue, light, OverlayTexture.DEFAULT_UV, state.outlineColor);
 
             matrices.pop();
         }
