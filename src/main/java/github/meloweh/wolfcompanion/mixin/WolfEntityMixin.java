@@ -1,5 +1,6 @@
 package github.meloweh.wolfcompanion.mixin;
 
+import com.mojang.serialization.DynamicOps;
 import github.meloweh.wolfcompanion.accessor.*;
 import github.meloweh.wolfcompanion.events.WolfEventHandler;
 import github.meloweh.wolfcompanion.goals.*;
@@ -29,6 +30,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.*;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.nbt.*;
 import net.minecraft.particle.*;
 import net.minecraft.registry.entry.RegistryEntry;
@@ -654,53 +656,6 @@ public abstract class WolfEntityMixin implements
 
     }
 
-    public void dropInventory() {
-//        if (this.items != null) {
-//            for (int i = this.items.size(); i >= 0; i--) {
-//                final ItemStack itemStack = this.items.getStack(i);
-//                if (!itemStack.isEmpty()) {
-//                    if (self.getEquippedStack(EquipmentSlot.BODY) != itemStack) {
-//                        this.items.removeStack(i);
-//                        self.dropStack(itemStack);
-//                    }
-//                }
-//            }
-//        }
-//
-//        if (this.hasChest()) {
-//            if (!self.getEntityWorld().isClient) {
-//                self.dropItem(InitItem.ITEM_WOLF_BAG);
-//            }
-//
-//            this.setHasChest(false);
-//        }
-//        setShouldDropChest(false);
-    }
-
-//    @Unique
-//    private void dropEverything() {
-//        if (!ConfigManager.config.keepWolfInventory) {
-//            if (this.items != null) {
-//                this.items.clearToList().forEach(itemStack -> {
-//                    if (!itemStack.isEmpty()) {
-//                        if (self.getEquippedStack(EquipmentSlot.BODY) != itemStack || !ConfigManager.config.keepWolfArmor) {
-//                            self.dropStack(itemStack);
-//                        }
-//                    }
-//                });
-//            }
-//
-//            if (this.hasChest() && !ConfigManager.config.keepWolfBag) {
-//                if (!self.getEntityWorld().isClient) {
-//                    self.dropItem(InitItem.ITEM_WOLF_BAG);
-//                }
-//
-//                this.setHasChest(false);
-//            }
-//        }
-//        setShouldDropChest(false);
-//    }
-
     @Inject(method = "damage", at = @At("HEAD"), cancellable = true)
     private void cancelPlayerDamage(ServerWorld world, DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
         if (source.getAttacker() instanceof PlayerEntity && this.self.isTamed()) {
@@ -711,14 +666,23 @@ public abstract class WolfEntityMixin implements
 
     @Inject(method = "writeCustomData", at = @At("TAIL"))
     private void injectWriteCustomDataToNbt(WriteView view, CallbackInfo ci) {
-
         view.putBoolean("ChestedWolf", this.hasChest());
-        if (this.hasChest()) {
-            WriteView.ListAppender<StackWithSlot> listAppender = view.getListAppender("Items", StackWithSlot.CODEC);
-            for (int i = 0; i < this.items.size(); ++i) {
-                ItemStack itemStack = this.items.getStack(i);
-                if (itemStack.isEmpty()) continue;
-                listAppender.add(new StackWithSlot(i, itemStack));
+        if (this.hasChest() && this.self.getEntityWorld() instanceof ServerWorld serverWorld) {
+            DynamicOps<NbtElement> ops =
+                    serverWorld.getRegistryManager().getOps(NbtOps.INSTANCE); // registry-aware ops
+
+            WriteView.ListView list = view.getList("WolfBagItems");
+
+            for (int slot = 0; slot < this.items.size(); slot++) {
+                ItemStack stack = this.items.getStack(slot);
+                if (stack.isEmpty()) continue;
+
+                NbtElement encoded = ItemStack.CODEC.encodeStart(ops, stack)
+                        .getOrThrow(msg -> new IllegalStateException("Failed to encode ItemStack: " + msg));
+
+                WriteView entry = list.add();
+                entry.putInt("Slot", slot);
+                entry.putString("Stack", encoded.toString()); // SNBT
             }
         }
         view.putNullable("CustomName", TextCodecs.CODEC, this.self.getCustomName());
@@ -732,10 +696,31 @@ public abstract class WolfEntityMixin implements
     private void readCustomDataFromNbt(ReadView view, CallbackInfo ci) {
         this.setHasChest(view.getBoolean("ChestedWolf", false));
         this.onChestedStatusChanged();
-        if (this.hasChest()) {
-            for (StackWithSlot stackWithSlot : view.getTypedListView("Items", StackWithSlot.CODEC)) {
-                if (!stackWithSlot.isValidSlot(this.items.size())) continue;
-                this.items.setStack(stackWithSlot.slot(), stackWithSlot.stack());
+        if (this.hasChest() && this.getEntityWorld() instanceof ServerWorld serverWorld) {
+            DynamicOps<NbtElement> ops =
+                    serverWorld.getRegistryManager().getOps(NbtOps.INSTANCE);
+
+            for (ReadView entry : view.getListReadView("WolfBagItems")) {
+                int slot = entry.getInt("Slot", -1);
+                if (slot < 0 || slot >= this.items.size()) continue;
+
+                String snbt = entry.getString("Stack", "");
+                if (snbt.isEmpty()) continue;
+
+                try {
+                    NbtElement parsed = StringNbtReader.readCompound(snbt);
+
+                    ItemStack stack = ItemStack.CODEC.parse(ops, parsed)
+                            .getOrThrow(msg -> new IllegalStateException("Failed to decode ItemStack: " + msg));
+
+                    if (slot == 0) {
+                        this.self.equipBodyArmor(stack);
+                    } else {
+                        this.items.setStack(slot, stack);
+                    }
+                } catch (Exception ignored) {
+                    // optionally log
+                }
             }
         }
         this.self.setCustomName(view.read("CustomName", TextCodecs.CODEC).orElse(null));

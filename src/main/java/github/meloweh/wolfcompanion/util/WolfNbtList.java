@@ -13,12 +13,6 @@ import java.util.Optional;
 public class WolfNbtList {
     final private List<NbtCompound> wolfNbts = new ArrayList<>();
 
-    /*
-    view.put(WolfEventHandler.Wolf_NBT_KEY + i, NbtCompound.CODEC, wolfNbt);
-    view.read(WolfEventHandler.Wolf_NBT_KEY + i, NbtCompound.CODEC);
-
-     */
-
     public void writeDataToNbt(final WriteView nbt, final String KEY) {
         if (!this.wolfNbts.isEmpty()) {
             for (int i = 0; i < this.wolfNbts.size(); i++) {

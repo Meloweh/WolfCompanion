@@ -19,77 +19,37 @@ import net.minecraft.storage.NbtWriteView;
 import net.minecraft.util.ErrorReporter;
 
 public class NBTHelper {
-        public static NbtCompound getWolfNBT(WolfEntity wolf) {
-            if (wolf == null) {
-                throw new IllegalArgumentException("Wolf entity cannot be null");
-            }
-
-            final NbtWriteView nbtWriteView = NbtWriteView.create(ErrorReporter.EMPTY);
-            wolf.writeData(nbtWriteView);
-            return nbtWriteView.getNbt();
+    public static NbtCompound getWolfNBT(WolfEntity wolf) {
+        if (wolf == null) {
+            throw new IllegalArgumentException("Wolf entity cannot be null");
         }
 
-        public static void cleanRescueWolfNbt(final NbtCompound wolfNbt, final float health) {
-            wolfNbt.remove(WolfEntity.HURT_TIME_KEY);
-            wolfNbt.remove(WolfEntity.HURT_BY_TIMESTAMP_KEY);
-            wolfNbt.remove(WolfEntity.DEATH_TIME_KEY);
-            wolfNbt.remove("body_armor_item");
-            wolfNbt.remove("body_armor_drop_chance");
-            wolfNbt.remove(WolfEntity.DROP_CHANCES_KEY);
-            wolfNbt.putFloat(WolfEntity.FALL_DISTANCE_KEY, 0f);
-            wolfNbt.putFloat(WolfEntity.HEALTH_KEY, health);
+        final NbtWriteView nbtWriteView = NbtWriteView.create(ErrorReporter.EMPTY);
+        wolf.writeData(nbtWriteView);
+        return nbtWriteView.getNbt();
+    }
 
-            if (!ConfigManager.config.keepWolfInventory) {
-                if (!ConfigManager.config.keepWolfArmor)
-                    wolfNbt.remove("ArmorItems");
-                if (!ConfigManager.config.keepWolfBag)
-                    wolfNbt.remove("ChestedWolf");
-                wolfNbt.remove("Items");
+    public static void cleanRescueWolfNbt(final NbtCompound wolfNbt, final float health) {
+        wolfNbt.remove(WolfEntity.HURT_TIME_KEY);
+        wolfNbt.remove(WolfEntity.HURT_BY_TIMESTAMP_KEY);
+        wolfNbt.remove(WolfEntity.DEATH_TIME_KEY);
+        wolfNbt.remove("body_armor_item");
+        wolfNbt.remove("body_armor_drop_chance");
+        wolfNbt.remove(WolfEntity.DROP_CHANCES_KEY);
+        wolfNbt.putFloat(WolfEntity.FALL_DISTANCE_KEY, 0f);
+        wolfNbt.putFloat(WolfEntity.HEALTH_KEY, health);
 
-                if (!ConfigManager.config.keepXp)
-                    wolfNbt.putInt("XP", 0);
-            }
+        if (!ConfigManager.config.keepWolfInventory) {
+            if (!ConfigManager.config.keepWolfArmor)
+                wolfNbt.remove("ArmorItems");
+            if (!ConfigManager.config.keepWolfBag)
+                wolfNbt.remove("ChestedWolf");
+            wolfNbt.remove("Items");
+
+            if (!ConfigManager.config.keepXp)
+                wolfNbt.putInt("XP", 0);
         }
-
-        /*
-
-            ServerWorld world = this.self.getEntityWorld();
-
-            WolfEntity newWolf = EntityType.WOLF.create(
-                    world,
-                    e -> {
-                        final NbtComponent nbtComponent = NbtComponent.of(wolfNbt);
-                        nbtComponent.applyToEntity(e);
-                    },
-                    pos,
-                    SpawnReason.MOB_SUMMONED,
-                    true,  // align position to center
-                    false  // spawn in water allowed?
-            );
-
-            if (newWolf != null) {
-                final boolean success = world.spawnNewEntityAndPassengers(newWolf);
-                if (success) canDelete.add(wolfNbt);
-            }
-         */
-
-        /*public static boolean spawnWolfFromNbt(final ServerPlayerEntity player, final NbtCompound wolfNbt, final boolean rescue) {
-            final ServerWorld world = (ServerWorld) player.getEntityWorld();
-            final WolfEntity newWolf = EntityType.WOLF.create(world);
-
-            if (rescue) newWolf.setHealth(newWolf.getMaxHealth());
-            newWolf.clearStatusEffects();
-            newWolf.readNbt(wolfNbt);
-            newWolf.refreshPositionAndAngles(player.getX(), player.getY(), player.getZ(), player.getYaw(), player.getPitch());
-            newWolf.playSpawnEffects();
-
-            ServerWorld sw = (ServerWorld) newWolf.getEntityWorld();
-            double x = newWolf.getX(), y = newWolf.getBodyY(0.5), z = newWolf.getZ();
-            sw.spawnParticles(ParticleTypes.POOF,  x, y, z, 9, 0.25, 0.20, 0.25, 0.01);
-            sw.spawnParticles(ParticleTypes.CLOUD, x, y, z,  4, 0.20, 0.10, 0.20, 0.00);
-
-            return world.spawnEntity(newWolf);
-        }*/
+    }
 
     public static void applyEntityNbt(Entity target, NbtCompound nbt) {
         try {

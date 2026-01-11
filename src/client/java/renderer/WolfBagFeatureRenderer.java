@@ -4,24 +4,16 @@ import accessor.WolfEntityModelAccessor;
 import accessor.WolfEntityRenderStateProvider;
 import github.meloweh.wolfcompanion.model.WolfBagModelV2;
 import net.minecraft.client.model.ModelPart;
-import net.minecraft.client.model.ModelTransform;
 import net.minecraft.client.render.OverlayTexture;
-import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.RenderLayers;
 import net.minecraft.client.render.command.ModelCommandRenderer;
 import net.minecraft.client.render.command.OrderedRenderCommandQueue;
-import net.minecraft.client.render.entity.LivingEntityRenderer;
 import net.minecraft.client.render.entity.feature.FeatureRenderer;
 import net.minecraft.client.render.entity.feature.FeatureRendererContext;
 import net.minecraft.client.render.entity.model.WolfEntityModel;
-import net.minecraft.client.render.entity.state.HorseEntityRenderState;
 import net.minecraft.client.render.entity.state.WolfEntityRenderState;
 import net.minecraft.client.texture.Sprite;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.entity.passive.WolfEntity;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.RotationAxis;
-import org.jspecify.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -47,31 +39,6 @@ public class WolfBagFeatureRenderer extends FeatureRenderer<WolfEntityRenderStat
     private WolfBagModelV2 getBagModel(long entityId) {
         return cache.computeIfAbsent(entityId, id -> new WolfBagModelV2(WolfBagModelV2.getTexturedModelData().createModel())); // build from baked root
     }
-
-    /*@Override
-    public void render(MatrixStack matrixStack,
-                       OrderedRenderCommandQueue orderedRenderCommandQueue,
-                       int i,
-                       WolfEntityRenderState state,
-                       float f, float g) {
-        Identifier identifierBag = WolfBagModelV2.TEXTURE_LOCATION;//(Identifier)TEXTURES.get(state.marking);
-        //if (identifier != INVISIBLE_ID && !state.invisible) {
-
-        final WolfEntityRenderStateProvider provider = (WolfEntityRenderStateProvider) state;
-        if (!provider.hasChestEquipped__()) return;
-
-        final WolfBagModelV2 bag = getBagModel(provider.getEntityId__());
-
-        orderedRenderCommandQueue.submitModelPart(
-                bag.getRootPart(),
-                matrixStack,
-                RenderLayers.entitySolid(identifierBag),
-                i,
-                OverlayTexture.DEFAULT_UV, // correct overlay
-                null                       // Sprite (none)
-        );
-    }*/
-
 
     @Override
     public void render(MatrixStack matrices,
@@ -108,19 +75,6 @@ public class WolfBagFeatureRenderer extends FeatureRenderer<WolfEntityRenderStat
 
         if (state.bodyArmor.isEmpty()) {
             // 2) Straps overlay on the wolf (full EntityModel with current pose)
-            /*final RenderLayer strapLayer = RenderLayer.getEntityDecal(WolfBagModelV2.STRAP_LAYER_TEXTURE);
-            // Use the default overload: (model, state, matrices, layer, light, overlay, outlineColor, crumblingOverlay)
-            queue.submitModel(
-                    this.getContextModel(),
-                    state,
-                    matrices,
-                    strapLayer,
-                    light,
-                    OverlayTexture.DEFAULT_UV,
-                    0,      // outlineColor
-                    null    // crumblingOverlay
-            );*/
-
             queue.getBatchingQueue(1)
                     .submitModel(
                             this.getContextModel(),
