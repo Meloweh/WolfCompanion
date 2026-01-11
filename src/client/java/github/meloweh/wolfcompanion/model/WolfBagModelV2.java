@@ -3,12 +3,16 @@ package github.meloweh.wolfcompanion.model;
 import github.meloweh.wolfcompanion.WolfCompanion;
 import net.minecraft.client.model.*;
 import net.minecraft.client.render.RenderLayer;
+import net.minecraft.client.render.TexturedRenderLayers;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.entity.model.EntityModelLayer;
+import net.minecraft.client.render.entity.state.LivingEntityRenderState;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
 
-public class WolfBagModelV2 extends Model.SinglePartModel {
+import java.util.function.Function;
+
+public class WolfBagModelV2 extends Model<LivingEntityRenderState> {
 	public static final EntityModelLayer LAYER_LOCATION = new EntityModelLayer(WolfCompanion.id("wb"), "main");
 	public static final Identifier STRAP_LAYER_TEXTURE = WolfCompanion.id("textures/entity/wa.png");
 	public static final Identifier TEXTURE_LOCATION = WolfCompanion.id("textures/entity/wb.png");
@@ -16,7 +20,7 @@ public class WolfBagModelV2 extends Model.SinglePartModel {
 	private final ModelPart left;
 	private final ModelPart right;
 	public WolfBagModelV2(ModelPart root) {
-        super(root, RenderLayer::getEntitySolid);
+        super(root, textureId -> TexturedRenderLayers.getEntitySolid());
         this.main = root.getChild("main");
 		this.left = this.main.getChild("left");
 		this.right = this.main.getChild("right");
@@ -38,13 +42,12 @@ public class WolfBagModelV2 extends Model.SinglePartModel {
 		return TexturedModelData.of(modelData, 32, 32);
 	}
 
-	public void copyTransform(ModelPart part) {
+    public void copyTransform(ModelPart part) {
         this.main.setTransform(part.getTransform());
 		//this.main.copyTransform(part);
 	}
 
-
-    public RenderLayer getRenderLayer() {
+    /*public RenderLayer getRenderLayer() {
 		return RenderLayer.getEntitySolid(WolfCompanion.id("textures/entity/wb.png"));
-	}
+	}*/
 }

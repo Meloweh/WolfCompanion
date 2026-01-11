@@ -52,8 +52,8 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3i;
 import net.minecraft.util.profiler.Profiler;
 import net.minecraft.util.profiler.Profilers;
-import net.minecraft.world.GameRules;
 import net.minecraft.world.World;
+import net.minecraft.world.rule.GameRules;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Math;
 import org.spongepowered.asm.mixin.Mixin;
@@ -843,7 +843,7 @@ public abstract class WolfEntityMixin implements
             if (!this.self.getEntityWorld().isClient()
                     && this.self.isAlive()
                     && !this.self.isDead()
-                    && ((ServerWorld)this.self.getEntityWorld()).getGameRules().getBoolean(GameRules.DO_MOB_GRIEFING)) {
+                    && ((ServerWorld)this.self.getEntityWorld()).getGameRules().getValue(GameRules.DO_MOB_GRIEFING)) {
                 final Profiler profiler = Profilers.get();
                 profiler.push("looting");
 

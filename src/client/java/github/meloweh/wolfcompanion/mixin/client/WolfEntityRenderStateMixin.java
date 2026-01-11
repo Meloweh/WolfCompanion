@@ -19,11 +19,6 @@ public class WolfEntityRenderStateMixin implements WolfEntityRenderStateProvider
     private int entityId;
 
     @Override
-    public WolfEntity getWolf__() {
-        return null;
-    }
-
-    @Override
     public boolean hasWolf__() {
         return wolf != null;
     }

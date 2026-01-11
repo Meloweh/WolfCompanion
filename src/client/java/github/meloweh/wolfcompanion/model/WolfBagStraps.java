@@ -3,16 +3,18 @@ package github.meloweh.wolfcompanion.model;
 import github.meloweh.wolfcompanion.WolfCompanion;
 import net.minecraft.client.model.*;
 import net.minecraft.client.render.RenderLayer;
+import net.minecraft.client.render.TexturedRenderLayers;
 import net.minecraft.client.render.entity.model.EntityModelLayer;
+import net.minecraft.client.render.entity.state.LivingEntityRenderState;
 import net.minecraft.util.Identifier;
 
-public class WolfBagStraps extends Model.SinglePartModel {
+public class WolfBagStraps extends Model<LivingEntityRenderState> {
     private final ModelPart main;
     public static final Identifier TEXTURE_LOCATION = WolfCompanion.id("textures/entity/straps.png");
     public static final EntityModelLayer LAYER_LOCATION = new EntityModelLayer(WolfCompanion.id("straps"), "main");
 
     public WolfBagStraps(ModelPart root) {
-        super(root, RenderLayer::getEntitySolid);
+        super(root, textureId -> TexturedRenderLayers.getEntitySolid());
         this.main = root.getChild("main");
     }
     public static TexturedModelData getTexturedModelData() {
@@ -37,7 +39,7 @@ public class WolfBagStraps extends Model.SinglePartModel {
         //this.main.copyTransform(part);
     }
 
-    public RenderLayer getRenderLayer() {
+    /*public RenderLayer getRenderLayer() {
         return RenderLayer.getEntitySolid(WolfCompanion.id("textures/entity/wb.png"));
-    }
+    }*/
 }

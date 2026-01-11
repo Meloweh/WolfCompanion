@@ -13,6 +13,8 @@ This issue probably arises from the lava avoidance routine
 ...and instead place it at the upper right corner of the GUI as a smaller Button with the letter "R"
 The angry wolf face should be set if wolves are offensive and the normal one if defensive
 
+- Replace respawn on sleep with a new status effect timer as a cooldown until the whistle allows to respawn the wolves
+
 - decrease wolf teleport rate
 
 disable or decrease the ability of wolves to low key teleport to you all the time

@@ -14,7 +14,7 @@ import net.minecraft.inventory.InventoryChangedListener;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.world.GameRules;
+import net.minecraft.world.rule.GameRules;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -85,7 +85,9 @@ public class PickUpFoodGoal extends Goal implements InventoryChangedListener {
 
     @Override
     public boolean canStart() {
-        if (!wolf.getEntityWorld().isClient() && wolf.isAlive() && !wolf.isDead() && ((ServerWorld)wolf.getEntityWorld()).getGameRules().getBoolean(GameRules.DO_MOB_GRIEFING)) {
+        //if (!wolf.getEntityWorld().isClient() && wolf.isAlive() && !wolf.isDead() && ((ServerWorld)wolf.getEntityWorld()).getGameRules().getBoolean(GameRules.DO_MOB_GRIEFING)) {
+        final boolean can_mob_grief = ((ServerWorld)wolf.getEntityWorld()).getGameRules().getValue(GameRules.DO_MOB_GRIEFING);
+        if (!wolf.getEntityWorld().isClient() && wolf.isAlive() && !wolf.isDead() && can_mob_grief) {
             if (wolf.isTamed()
                     && !wolf.getEntityWorld().isClient()
                     && !wolf.isSitting()
