@@ -313,6 +313,10 @@ public abstract class WolfEntityMixin implements
     private static final TrackedData<Byte> SHAKE_REASON = DataTracker.registerData(WolfEntity.class, TrackedDataHandlerRegistry.BYTE);
     @Unique
     private static final TrackedData<Integer> XP = DataTracker.registerData(WolfEntity.class, TrackedDataHandlerRegistry.INTEGER);
+    @Unique
+    private static final TrackedData<Boolean> AGGRESSIVE = DataTracker.registerData(WolfEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
+    @Unique
+    private static final TrackedData<Boolean> LOCK = DataTracker.registerData(WolfEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
 
 //    private boolean isDirty = false;
 //
@@ -457,6 +461,8 @@ public abstract class WolfEntityMixin implements
         builder.add(RELEASE_WOLF, false);
         builder.add(SHAKE_REASON, (byte)0);
         builder.add(XP, 0);
+        builder.add(AGGRESSIVE, false);
+        builder.add(LOCK, false);
     }
 
     @Unique
@@ -529,6 +535,26 @@ public abstract class WolfEntityMixin implements
     @Unique
     public void setHasChest(boolean hasChest) {
         getDataTracker(self).set(CHEST, hasChest);
+    }
+
+    @Override
+    public void setAggressive__(boolean aggressive) {
+        getDataTracker(self).set(AGGRESSIVE, aggressive);
+    }
+
+    @Override
+    public boolean isAggressive__() {
+        return getDataTracker(self).get(AGGRESSIVE);
+    }
+
+    @Override
+    public void setLock__(boolean lock) {
+        getDataTracker(self).set(LOCK, lock);
+    }
+
+    @Override
+    public boolean isLock__() {
+        return getDataTracker(self).get(LOCK);
     }
 
     @Override
