@@ -46,6 +46,7 @@ public class WolfMeleeAttackGoal extends Goal {
     private void pickAttacker() {
         if (!this.mob.isTamed()) return;
         if (this.mob.getTarget() != null) return;
+        if (!this.wolf.isAggressive__()) return;
         final PlayerEntity player = (PlayerEntity) this.mob.getOwner();
         if (player == null) return;
         final Box playerArea = player.getBoundingBox().expand(10);
