@@ -36,6 +36,9 @@ public class NBTHelper {
         wolfNbt.remove("body_armor_item");
         wolfNbt.remove("body_armor_drop_chance");
         wolfNbt.remove(WolfEntity.DROP_CHANCES_KEY);
+        wolfNbt.remove("RescueTimeout");
+
+
         wolfNbt.putFloat(WolfEntity.FALL_DISTANCE_KEY, 0f);
         wolfNbt.putFloat(WolfEntity.HEALTH_KEY, health);
 

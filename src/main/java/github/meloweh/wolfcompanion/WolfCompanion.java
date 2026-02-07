@@ -1,6 +1,7 @@
 package github.meloweh.wolfcompanion;
 
 import github.meloweh.wolfcompanion.accessor.WolfEntityProvider;
+import github.meloweh.wolfcompanion.effects.ModEffects;
 import github.meloweh.wolfcompanion.events.WolfEventHandler;
 import github.meloweh.wolfcompanion.init.*;
 import github.meloweh.wolfcompanion.network.AggressionWolfC2SPayload;
@@ -47,6 +48,7 @@ public class WolfCompanion implements ModInitializer {
 		//BlockEntityTypeInit.load();
 		ScreenHandlerTypeInit.load();
 		WolfEventHandler.init();
+		ModEffects.register();
 
 		ServerLifecycleEvents.SERVER_STARTED.register(minecraftServer -> {
 			dynamicRegistryManager = minecraftServer.getRegistryManager();

@@ -2,6 +2,7 @@ package github.meloweh.wolfcompanion.item;
 
 import github.meloweh.wolfcompanion.accessor.MobEntityAccessor;
 import github.meloweh.wolfcompanion.accessor.ServerPlayerAccessor;
+import github.meloweh.wolfcompanion.accessor.WolfEntityProvider;
 import github.meloweh.wolfcompanion.init.InitSound;
 import github.meloweh.wolfcompanion.util.ConfigManager;
 import github.meloweh.wolfcompanion.util.NBTHelper;
@@ -57,12 +58,13 @@ public class WhistleItem extends Item {
         if (user instanceof ServerPlayerEntity serverPlayer) {
             final ServerPlayerAccessor serverPlayerAccessor = (ServerPlayerAccessor) serverPlayer;
 
-            if (serverPlayerAccessor.getWhistleWolfNbts__().isEmpty()) {
+            if (serverPlayerAccessor.getWhistleWolfNbts__().isEmpty() && !serverPlayerAccessor.hasElapsed__() ) {
                 serverPlayerAccessor.getServer__().getWorlds().forEach(world2 -> {
                     world2.getEntitiesByType(EntityType.WOLF, wolf ->
                             wolf.isTamed() &&
                                     wolf.getOwner() != null &&
-                                    wolf.getOwner().getUuid() == user.getUuid()
+                                    wolf.getOwner().getUuid() == user.getUuid() &&
+                                    !((WolfEntityProvider) wolf).isLock__()
                     ).forEach(wolf -> {
                         final NbtCompound nbt = NBTHelper.getWolfNBT(wolf);
                         serverPlayerAccessor.queueWhistleWolfNbt__(nbt);
@@ -76,6 +78,7 @@ public class WhistleItem extends Item {
                 });
             } else {
                 serverPlayerAccessor.spawnWhistleWolfNbts__();
+                serverPlayerAccessor.spawnElapsedRescueWolfNbts__();
             }
         }
     }
@@ -109,7 +112,8 @@ public class WhistleItem extends Item {
                     world2.getEntitiesByType(EntityType.WOLF, wolf ->
                             wolf.isTamed() &&
                                     wolf.getOwner() != null &&
-                                    wolf.getOwner().getUuid() == user.getUuid()
+                                    wolf.getOwner().getUuid() == user.getUuid() &&
+                                    !((WolfEntityProvider) wolf).isLock__()
                     ).forEach(wolf -> {
                         if (ConfigManager.config.canTeleportSitting)
                             wolf.setSitting(false);

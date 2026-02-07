@@ -265,6 +265,9 @@ public abstract class WolfEntityMixin implements
             NbtWriteView writeView = NbtWriteView.create(ErrorReporter.EMPTY);
             this.self.writeData(writeView);
             final NbtCompound wolfNbt = writeView.getNbt();
+
+            wolfNbt.putInt("RescueTimeout", 20 * 60 * 10);
+
             ReadView nbtReadView = NbtReadView.create(ErrorReporter.EMPTY, this.self.getRegistryManager(), wolfNbt);
 
             wolfcompanion_template_1_21_1$dropInventoryByButton();
@@ -693,6 +696,8 @@ public abstract class WolfEntityMixin implements
     @Inject(method = "writeCustomData", at = @At("TAIL"))
     private void injectWriteCustomDataToNbt(WriteView view, CallbackInfo ci) {
         view.putBoolean("ChestedWolf", this.hasChest());
+        view.putBoolean("wcm_IsAggressive", this.isAggressive__());
+        view.putBoolean("wcm_IsLock", this.isLock__());
         if (this.hasChest() && this.self.getEntityWorld() instanceof ServerWorld serverWorld) {
             DynamicOps<NbtElement> ops =
                     serverWorld.getRegistryManager().getOps(NbtOps.INSTANCE); // registry-aware ops
@@ -721,6 +726,8 @@ public abstract class WolfEntityMixin implements
     @Inject(method = "readCustomData", at = @At("TAIL"))
     private void readCustomDataFromNbt(ReadView view, CallbackInfo ci) {
         this.setHasChest(view.getBoolean("ChestedWolf", false));
+        this.setAggressive__(view.getBoolean("wcm_IsAggressive", false));
+        this.setLock__(view.getBoolean("wcm_IsLock", false));
         this.onChestedStatusChanged();
         if (this.hasChest() && this.getEntityWorld() instanceof ServerWorld serverWorld) {
             DynamicOps<NbtElement> ops =

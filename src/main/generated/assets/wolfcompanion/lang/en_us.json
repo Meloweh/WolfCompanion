@@ -1,5 +1,16 @@
 {
   "item.wolfcompanion.dog_whistle_item": "Pet Whistle",
   "item.wolfcompanion.wolf_bag_item": "Wolf Bag",
-  "item.wolfcompanion.wolf_single_bag": "Single Wolf Bag"
+  "item.wolfcompanion.wolf_single_bag": "Single Wolf Bag",
+  "effect.wolfcompanion.defeated_wolves_1": "Defeated Wolves I",
+  "effect.wolfcompanion.defeated_wolves_2": "Defeated Wolves II",
+  "effect.wolfcompanion.defeated_wolves_3": "Defeated Wolves III",
+  "effect.wolfcompanion.defeated_wolves_4": "Defeated Wolves IV",
+  "effect.wolfcompanion.defeated_wolves_5": "Defeated Wolves V",
+  "effect.wolfcompanion.defeated_wolves_6": "Defeated Wolves VI",
+  "effect.wolfcompanion.defeated_wolves_7": "Defeated Wolves VII",
+  "effect.wolfcompanion.defeated_wolves_8": "Defeated Wolves VIII",
+  "effect.wolfcompanion.defeated_wolves_9": "Defeated Wolves IX",
+  "effect.wolfcompanion.defeated_wolves_10": "Defeated Wolves X",
+  "effect.wolfcompanion.defeated_wolves_11": "Defeated Wolves X+"
 }
