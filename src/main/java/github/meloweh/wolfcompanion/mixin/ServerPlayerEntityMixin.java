@@ -85,10 +85,12 @@ public abstract class ServerPlayerEntityMixin implements ServerPlayerAccessor {
     private void spawnDoggos(final WolfNbtList wolfNbtList) {
         final WolfNbtList canDelete = new WolfNbtList();
         wolfNbtList.getWolfNbts().forEach(wolfNbt -> {
-            final boolean rescue = wolfNbt.getInt("RescueTimeout", -1) == 0;
-            if (rescue) NBTHelper.cleanRescueWolfNbt(wolfNbt, this.self.getMaxHealth());
-            final boolean success = NBTHelper.spawnWolfFromNbt(this.self, wolfNbt, rescue);
-            if (success) canDelete.queueWolfNbt(wolfNbt);
+            final int rescueTimeout = wolfNbt.getInt("RescueTimeout", -1);
+            if (!(rescueTimeout > 0)) {
+                if (rescueTimeout == 0) NBTHelper.cleanRescueWolfNbt(wolfNbt, this.self.getMaxHealth());
+                final boolean success = NBTHelper.spawnWolfFromNbt(this.self, wolfNbt, rescueTimeout == 0);
+                if (success) canDelete.queueWolfNbt(wolfNbt);
+            }
         });
         wolfNbtList.getWolfNbts().removeIf(wolfNbt -> canDelete.getWolfNbts().contains(wolfNbt));
     }
