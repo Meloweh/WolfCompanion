@@ -11,5 +11,9 @@
   "shouldCarePlayerFood": true,
   "requiredPlayerFood": 10,
   "doNotAttackMobs": [],
-  "keepXp": false
+  "keepXp": false,
+  "allowTeleport": true,
+  "teleportAtDistance": 3300,
+  "attackAcceleration": 1.2,
+  "maxSpeed": 3
 }

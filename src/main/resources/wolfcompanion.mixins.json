@@ -12,6 +12,7 @@
     "LivingEntityMixin",
     "MobEntityMixin",
     "ServerPlayerEntityMixin",
+    "TameableEntityMixin",
     "WolfArmorMixin",
     "WolfEntityMixin"
   ],

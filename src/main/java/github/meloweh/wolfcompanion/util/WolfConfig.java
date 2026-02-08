@@ -18,5 +18,9 @@ public class WolfConfig {
     public int requiredPlayerFood = 10;
     public List<String> doNotAttackMobs = new ArrayList<>(List.of());
     public boolean keepXp = false;
-
+    public boolean allowTeleport = true;
+    public double teleportAtDistance = 544f;
+    public double attackAcceleration = 1.2f;
+    public double maxSpeed = 3f;
+    public boolean allowRespawn = true;
 }

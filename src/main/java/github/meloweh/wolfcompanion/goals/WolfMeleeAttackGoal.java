@@ -162,9 +162,8 @@ public class WolfMeleeAttackGoal extends Goal {
                     this.updateCountdownTicks += 5;
                 }
 
-                this.speed *= 1.2f;
-                this.speed = Math.min(3f, this.speed);
-                System.out.println(this.speed + " --- " + this.ORIGINAL_SPEED);
+                this.speed *= ConfigManager.config.attackAcceleration;
+                this.speed = Math.min(ConfigManager.config.maxSpeed, this.speed);
 
                 if (!this.mob.getNavigation().startMovingTo(livingEntity, this.speed)) {
                     this.updateCountdownTicks += 15;

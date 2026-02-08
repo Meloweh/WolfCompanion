@@ -19,28 +19,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(Item.Settings.class)
 public class ItemMixin {
-    /*@Redirect(
-            method = "wolfArmor", // The method that contains the call to wolfArmor()
-            at = @At(
-                    value = "INVOKE"
-            )
-    )
-    private Item.Settings redirectWolfArmor(ArmorMaterial material) {
-        Item.Settings settings = ((Item.Settings) (Object) this)
-                .maxDamage(EquipmentType.BODY.getMaxDamage(material.durability()))
-                .attributeModifiers(material.createAttributeModifiers(EquipmentType.BODY))
-                .repairable(material.repairIngredient())
-                .component(DataComponentTypes.EQUIPPABLE, EquippableComponent.builder(EquipmentSlot.BODY)
-                        .equipSound(material.equipSound())
-                        .model(material.assetId())
-                        .allowedEntities(RegistryEntryList.of(EntityType.WOLF.getRegistryEntry()))
-                        .build())
-                .component(DataComponentTypes.BREAK_SOUND, SoundEvents.ITEM_WOLF_ARMOR_BREAK)
-                .maxCount(1);
-
-        settings.enchantable(15); // Your custom logic
-        return settings;
-    }*/
     @Inject(method = "wolfArmor", at = @At("TAIL"), cancellable = true)
     private void makeEnchantable(ArmorMaterial material, CallbackInfoReturnable<Item.Settings> cir) {
         final Item.Settings settings = ((Item.Settings) (Object) this).maxDamage(EquipmentType.BODY.getMaxDamage(material.durability())).attributeModifiers(material.createAttributeModifiers(EquipmentType.BODY)).repairable(material.repairIngredient()).component(DataComponentTypes.EQUIPPABLE, EquippableComponent.builder(EquipmentSlot.BODY).equipSound(material.equipSound()).model(material.assetId()).allowedEntities(RegistryEntryList.of(new RegistryEntry[]{EntityType.WOLF.getRegistryEntry()})).build()).component(DataComponentTypes.BREAK_SOUND, SoundEvents.ITEM_WOLF_ARMOR_BREAK).maxCount(1);
@@ -49,22 +27,4 @@ public class ItemMixin {
         cir.setReturnValue(settings);
         cir.cancel();
     }
-//    @Inject(method = "enchantable", at = @At("HEAD"), cancellable = true)
-//    public void increaseWolfArmorEnchantability(CallbackInfoReturnable<Integer> cir) {
-//        final Item self = (Item) (Object) this;
-//
-//        self.ench
-//
-//        if (self instanceof AnimalArmorItem) {
-//            final AnimalArmorItem animalItem = (AnimalArmorItem) self;
-//
-//
-//            if (animalItem.getType().equals(AnimalArmorItem.Type.CANINE)) {
-//                cir.setReturnValue(15);
-//                cir.cancel();
-//            }
-//        }
-//
-//    }
-
 }

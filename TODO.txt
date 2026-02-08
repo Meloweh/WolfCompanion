@@ -1,13 +1,3 @@
-- if whistling while looking at a visible reachable monster, attack instead of teleport
-
-- decrease teleportation frequency
-
-- add teleport trigger radius config
-
-- add no-teleport config
-
-- add no-respawn config
-
 - add in-game config menu
 
 - maybe remove or update lava avoidance routine
