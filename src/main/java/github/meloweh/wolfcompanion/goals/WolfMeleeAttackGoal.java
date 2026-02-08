@@ -23,7 +23,7 @@ import java.util.Optional;
 public class WolfMeleeAttackGoal extends Goal {
     protected final WolfEntity mob;
     private final WolfEntityProvider wolf;
-    private final double speed;
+    private double speed;
     private final boolean pauseWhenMobIdle;
     private Path path;
     private double targetX;
@@ -34,11 +34,12 @@ public class WolfMeleeAttackGoal extends Goal {
     private final int attackIntervalTicks = 20;
     private long lastUpdateTime;
     private static final long MAX_ATTACK_TIME = 20L;
+    private final double ORIGINAL_SPEED;
 
     public WolfMeleeAttackGoal(WolfEntity mob, double speed, boolean pauseWhenMobIdle) {
         this.mob = mob;
         this.wolf = (WolfEntityProvider) this.mob;
-        this.speed = speed;
+        this.ORIGINAL_SPEED = speed;
         this.pauseWhenMobIdle = pauseWhenMobIdle;
         this.setControls(EnumSet.of(Control.MOVE, Control.LOOK));
     }
@@ -122,6 +123,8 @@ public class WolfMeleeAttackGoal extends Goal {
     }
 
     public void start() {
+        this.speed = this.ORIGINAL_SPEED;
+
         this.mob.getNavigation().startMovingAlong(this.path, this.speed);
         this.mob.setAttacking(true);
         this.updateCountdownTicks = 0;
@@ -158,6 +161,10 @@ public class WolfMeleeAttackGoal extends Goal {
                 } else if (d > 256.0) {
                     this.updateCountdownTicks += 5;
                 }
+
+                this.speed *= 1.2f;
+                this.speed = Math.min(3f, this.speed);
+                System.out.println(this.speed + " --- " + this.ORIGINAL_SPEED);
 
                 if (!this.mob.getNavigation().startMovingTo(livingEntity, this.speed)) {
                     this.updateCountdownTicks += 15;

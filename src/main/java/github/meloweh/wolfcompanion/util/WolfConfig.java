@@ -3,7 +3,6 @@ package github.meloweh.wolfcompanion.util;
 import java.util.ArrayList;
 import java.util.List;
 
-//@Config(name = "wolf-config", wrapperName = "WolfConfig")
 public class WolfConfig {
     public boolean canShakeOffPoison = true;
     public boolean canShakeOffFire = true;

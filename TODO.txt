@@ -1,7 +1,3 @@
-- Replace respawn on sleep with a new status effect timer as a cooldown until the whistle allows to respawn the wolves
-
-- make wolf track targets faster
-
 - if whistling while looking at a visible reachable monster, attack instead of teleport
 
 - decrease teleportation frequency
@@ -15,5 +11,3 @@
 - add in-game config menu
 
 - maybe remove or update lava avoidance routine
-
-- add config: whistle resistant sitting
