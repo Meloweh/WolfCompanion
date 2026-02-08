@@ -22,5 +22,6 @@ public class WolfConfig {
     public double teleportAtDistance = 544f;
     public double attackAcceleration = 1.2f;
     public double maxSpeed = 3f;
-    public boolean allowRespawn = true;
+    public boolean allowPassiveRegeneration = true;
+    public int passiveRegenerationRate = 15;
 }

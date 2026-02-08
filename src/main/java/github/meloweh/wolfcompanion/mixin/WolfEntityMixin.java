@@ -194,8 +194,6 @@ public abstract class WolfEntityMixin implements
     private ParticleEffect changeType(ParticleEffect parameters) {
         final byte shakeReason = getShakeReason();
 
-        //System.out.println(shakeReason + " " + self.getEntityWorld().isClient);
-
         return switch (shakeReason) {
             case 1 -> TintedParticleEffect.create(ParticleTypes.ENTITY_EFFECT, 0.529f, 0.639f, 0.388f);
             case 2 -> ParticleTypes.SMOKE;
@@ -213,10 +211,23 @@ public abstract class WolfEntityMixin implements
 
     @Shadow
     private float lastShakeProgress; //this.lastShakeProgress >= 2.0F
+    @Unique
+    private int restingTicks = 0;
 
     @Inject(method = "tick", at = @At("TAIL"))
     private void shakeConditions(CallbackInfo ci) {
         if (self.isAlive() && !self.getEntityWorld().isClient()) {
+
+            if (ConfigManager.config.allowPassiveRegeneration
+                    && this.self.isSitting()
+                    && this.self.getHealth() < this.self.getMaxHealth()) {
+                restingTicks++;
+                if (restingTicks > 20 * ConfigManager.config.passiveRegenerationRate) {
+                    restingTicks = 0;
+                    this.self.heal(1);
+                }
+            }
+
              byte shakeReason = 0;
              if (!furWet && getShakeReason() == 0) {
                  if (ConfigManager.config.canShakeOffPoison && isPoisoned(this.self))
