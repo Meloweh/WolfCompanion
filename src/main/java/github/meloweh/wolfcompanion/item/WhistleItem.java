@@ -9,6 +9,7 @@ import github.meloweh.wolfcompanion.util.NBTHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.mob.Angerable;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.ProjectileUtil;
 import net.minecraft.item.Item;
@@ -129,7 +130,7 @@ public class WhistleItem extends Item {
                                 wolf.setSitting(false);
 
                             wolf.refreshPositionAndAngles(user.getX(), user.getY(), user.getZ(), user.getYaw(), user.getPitch());
-                            wolf.setTarget((LivingEntity) null);
+                            wolf.stopAnger();
                             ((MobEntityAccessor) wolf).getNavigator__().stop();
                         });
                     });
@@ -141,7 +142,7 @@ public class WhistleItem extends Item {
                                         wolf.getOwner().getUuid() == user.getUuid() &&
                                         !((WolfEntityProvider) wolf).isLock__()
                         ).forEach(wolf -> {
-                            if (!wolf.isSitting()) {
+                            if (!wolf.isSitting() && target.get() != wolf) {
                                 wolf.setTarget(target.get());
                             }
                         });
