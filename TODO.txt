@@ -1,0 +1,3 @@
+- add in-game config menu
+
+- maybe remove or update lava avoidance routine
