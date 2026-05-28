@@ -2,13 +2,15 @@ package github.meloweh.wolfcompanion.item;
 
 import github.meloweh.wolfcompanion.accessor.MobEntityAccessor;
 import github.meloweh.wolfcompanion.accessor.ServerPlayerAccessor;
+import github.meloweh.wolfcompanion.accessor.WolfEntityProvider;
 import github.meloweh.wolfcompanion.init.InitSound;
 import github.meloweh.wolfcompanion.util.ConfigManager;
 import github.meloweh.wolfcompanion.util.NBTHelper;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.passive.WolfEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.projectile.ProjectileUtil;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
@@ -23,11 +25,12 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.util.UseAction;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.hit.EntityHitResult;
+import net.minecraft.util.math.Box;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.Optional;
 
 public class WhistleItem extends Item {
     private static final int SECOND_WHISTLE_TICKS = 30; // 20
@@ -65,12 +68,13 @@ public class WhistleItem extends Item {
         if (user instanceof ServerPlayerEntity serverPlayer) {
             final ServerPlayerAccessor serverPlayerAccessor = (ServerPlayerAccessor) serverPlayer;
 
-            if (serverPlayerAccessor.getWhistleWolfNbts__().isEmpty()) {
-                user.getServer().getWorlds().forEach(world2 -> {
+            if (serverPlayerAccessor.getWhistleWolfNbts__().isEmpty() && !serverPlayerAccessor.hasElapsed__() ) {
+                serverPlayerAccessor.getServer__().getWorlds().forEach(world2 -> {
                     world2.getEntitiesByType(EntityType.WOLF, wolf ->
                             wolf.isTamed() &&
                                     wolf.getOwner() != null &&
-                                    wolf.getOwner().getUuid() == user.getUuid()
+                                    wolf.getOwner().getUuid() == user.getUuid() &&
+                                    !((WolfEntityProvider) wolf).isLock__()
                     ).forEach(wolf -> {
                         final NbtCompound nbt = NBTHelper.getWolfNBT(wolf);
                         serverPlayerAccessor.queueWhistleWolfNbt__(nbt);
@@ -85,6 +89,7 @@ public class WhistleItem extends Item {
                 });
             } else {
                 serverPlayerAccessor.spawnWhistleWolfNbts__();
+                serverPlayerAccessor.spawnElapsedRescueWolfNbts__();
             }
         }
     }
@@ -112,20 +117,76 @@ public class WhistleItem extends Item {
         //user.setCurrentHand(hand);
 
         if (stage == 1) {
-            user.getServer().getWorlds().forEach(world2 -> {
-                world2.getEntitiesByType(EntityType.WOLF, wolf ->
-                        wolf.isTamed() &&
-                                wolf.getOwner() != null &&
-                                wolf.getOwner().getUuid() == user.getUuid()
-                ).forEach(wolf -> {
-                    if (ConfigManager.config.canTeleportSitting)
-                        wolf.setSitting(false);
+            if (user instanceof ServerPlayerEntity serverPlayer) {
+                final Optional<LivingEntity> target = getLookedAtEntity(serverPlayer);
+                final ServerPlayerAccessor serverPlayerAccessor = (ServerPlayerAccessor) serverPlayer;
 
-                    wolf.refreshPositionAndAngles(user.getX(), user.getY(), user.getZ(), user.getYaw(), user.getPitch());
-                    wolf.setTarget((LivingEntity) null);
-                    ((MobEntityAccessor) wolf).getNavigator__().stop();
-                });
-            });
+                if (target.isEmpty()) {
+                    serverPlayerAccessor.getServer__().getWorlds().forEach(world2 -> {
+                        world2.getEntitiesByType(EntityType.WOLF, wolf ->
+                                wolf.isTamed() &&
+                                        wolf.getOwner() != null &&
+                                        wolf.getOwner().getUuid() == user.getUuid() &&
+                                        !((WolfEntityProvider) wolf).isLock__()
+                        ).forEach(wolf -> {
+                            if (ConfigManager.config.canTeleportSitting)
+                                wolf.setSitting(false);
+
+                            wolf.refreshPositionAndAngles(user.getX(), user.getY(), user.getZ(), user.getYaw(), user.getPitch());
+                            wolf.stopAnger();
+                            ((MobEntityAccessor) wolf).getNavigator__().stop();
+                        });
+                    });
+                } else {
+                    serverPlayerAccessor.getServer__().getWorlds().forEach(world2 -> {
+                        world2.getEntitiesByType(EntityType.WOLF, wolf ->
+                                wolf.isTamed() &&
+                                        wolf.getOwner() != null &&
+                                        wolf.getOwner().getUuid() == user.getUuid() &&
+                                    !((WolfEntityProvider) wolf).isLock__()
+                        ).forEach(wolf -> {
+                            if (!wolf.isSitting() && target.get() != wolf) {
+                                wolf.setTarget(target.get());
+                            }
+                        });
+                    });
+                }
+            }
         }
     }
+
+    public static Optional<LivingEntity> getLookedAtEntity(ServerPlayerEntity player) {
+        float tickDelta = 1.0F;
+
+        // Camera position
+        Vec3d cameraPos = player.getCameraPosVec(tickDelta);
+
+        // Look direction
+        Vec3d rotationVec = player.getRotationVec(tickDelta);
+
+        // End of ray
+        Vec3d endPos = cameraPos.add(rotationVec.multiply(ConfigManager.config.teleportAtDistance));
+
+        // Expand search box along ray
+        Box searchBox = player.getBoundingBox()
+                .stretch(rotationVec.multiply(ConfigManager.config.teleportAtDistance))
+                .expand(1.0D);
+
+        // Perform entity raycast
+        EntityHitResult entityHit = ProjectileUtil.raycast(
+                player,
+                cameraPos,
+                endPos,
+                searchBox,
+                entity -> !entity.isSpectator() && entity.canHit() && entity instanceof LivingEntity && entity.isAlive(),
+                ConfigManager.config.teleportAtDistance * ConfigManager.config.teleportAtDistance
+        );
+
+        if (entityHit != null) {
+            return Optional.ofNullable((LivingEntity) entityHit.getEntity());
+        }
+
+        return Optional.empty();
+    }
+
 }

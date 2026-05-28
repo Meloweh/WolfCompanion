@@ -1,9 +1,12 @@
 package github.meloweh.wolfcompanion;
 
 import github.meloweh.wolfcompanion.accessor.WolfEntityProvider;
+import github.meloweh.wolfcompanion.effects.ModEffects;
 import github.meloweh.wolfcompanion.events.WolfEventHandler;
 import github.meloweh.wolfcompanion.init.*;
+import github.meloweh.wolfcompanion.network.AggressionWolfC2SPayload;
 import github.meloweh.wolfcompanion.network.DropWolfChestC2SPayload;
+import github.meloweh.wolfcompanion.network.LockWolfC2SPayload;
 import github.meloweh.wolfcompanion.network.ReleaseWolfC2SPayload;
 import github.meloweh.wolfcompanion.util.ConfigManager;
 import net.fabricmc.api.ModInitializer;
@@ -45,6 +48,7 @@ public class WolfCompanion implements ModInitializer {
 		//BlockEntityTypeInit.load();
 		ScreenHandlerTypeInit.load();
 		WolfEventHandler.init();
+		ModEffects.register();
 
 		ServerLifecycleEvents.SERVER_STARTED.register(minecraftServer -> {
 			dynamicRegistryManager = minecraftServer.getRegistryManager();
@@ -52,6 +56,8 @@ public class WolfCompanion implements ModInitializer {
 
 		PayloadTypeRegistry.playC2S().register(DropWolfChestC2SPayload.ID, DropWolfChestC2SPayload.PACKET_CODEC);
 		PayloadTypeRegistry.playC2S().register(ReleaseWolfC2SPayload.ID, ReleaseWolfC2SPayload.PACKET_CODEC);
+		PayloadTypeRegistry.playC2S().register(AggressionWolfC2SPayload.ID, AggressionWolfC2SPayload.PACKET_CODEC);
+		PayloadTypeRegistry.playC2S().register(LockWolfC2SPayload.ID, LockWolfC2SPayload.PACKET_CODEC);
 
 		ServerPlayNetworking.registerGlobalReceiver(DropWolfChestC2SPayload.ID, (payload, context) -> {
 			context.server().execute(() -> {
@@ -87,7 +93,30 @@ public class WolfCompanion implements ModInitializer {
 				});
 			});
 		});
-
+		ServerPlayNetworking.registerGlobalReceiver(AggressionWolfC2SPayload.ID, (payload, context) -> {
+			context.server().execute(() -> {
+				context.server().getWorlds().forEach(serverWorld -> {
+					final Entity entity = serverWorld.getEntity(payload.wolfUUID());
+					if (entity != null) {
+						final WolfEntity wolf = (WolfEntity) entity;
+						final WolfEntityProvider provider = (WolfEntityProvider) wolf;
+						provider.setAggressive__(!provider.isAggressive__());
+					}
+				});
+			});
+		});
+		ServerPlayNetworking.registerGlobalReceiver(LockWolfC2SPayload.ID, (payload, context) -> {
+			context.server().execute(() -> {
+				context.server().getWorlds().forEach(serverWorld -> {
+					final Entity entity = serverWorld.getEntity(payload.wolfUUID());
+					if (entity != null) {
+						final WolfEntity wolf = (WolfEntity) entity;
+						final WolfEntityProvider provider = (WolfEntityProvider) wolf;
+						provider.setLock__(!provider.isLock__());
+					}
+				});
+			});
+		});
 
 	}
 

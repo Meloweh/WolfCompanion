@@ -11,6 +11,8 @@ import java.util.Optional;
 public interface WolfEntityProvider {
     boolean shouldDropChest();
     boolean shouldReleaseWolf();
+    boolean isAggressive__();
+    boolean isLock__();
 
     //StackReference wolfcompanion_template_1_21_1$getGetStackReference(int mappedIndex);
     boolean hasChestEquipped();
@@ -18,6 +20,8 @@ public interface WolfEntityProvider {
 
     void setShouldDropChest(boolean yes);
     void setShouldReleaseWolf(boolean yes);
+    void setAggressive__(boolean yes);
+    void setLock__(boolean lock);
 
     void wolfcompanion_template_1_21_1$dropInventoryByButton();
     void releaseWolfButton();

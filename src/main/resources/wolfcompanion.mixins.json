@@ -3,6 +3,7 @@
   "package": "github.meloweh.wolfcompanion.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "ClearAllEffectsConsumeEffectMixin",
     "EnchantmentHelperMixin",
     "EnchantmentMixin",
     "EnchantmentScreenHandlerMixin",
@@ -11,6 +12,7 @@
     "LivingEntityMixin",
     "MobEntityMixin",
     "ServerPlayerEntityMixin",
+    "TameableEntityMixin",
     "WolfArmorMixin",
     "WolfEntityMixin"
   ],

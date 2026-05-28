@@ -188,8 +188,6 @@ public abstract class WolfEntityMixin implements
     private ParticleEffect changeType(ParticleEffect parameters) {
         final byte shakeReason = getShakeReason();
 
-        //System.out.println(shakeReason + " " + self.getWorld().isClient);
-
         return switch (shakeReason) {
             case 1 -> EntityEffectParticleEffect.create(ParticleTypes.ENTITY_EFFECT, 0.529f, 0.639f, 0.388f);
             case 2 -> ParticleTypes.SMOKE;
@@ -207,6 +205,8 @@ public abstract class WolfEntityMixin implements
 
     @Shadow
     private float lastShakeProgress; //this.lastShakeProgress >= 2.0F
+    @Unique
+    private int restingTicks = 0;
 
     @Unique
     private Direction faceToward(BlockPos origin, BlockPos target) {
@@ -320,6 +320,16 @@ public abstract class WolfEntityMixin implements
     @Inject(method = "tick", at = @At("TAIL"))
     private void shakeConditions(CallbackInfo ci) {
         if (self.isAlive() && !self.getWorld().isClient) {
+            if (ConfigManager.config.allowPassiveRegeneration
+                    && this.self.isSitting()
+                    && this.self.getHealth() < this.self.getMaxHealth()) {
+                restingTicks++;
+                if (restingTicks > 20 * ConfigManager.config.passiveRegenerationRate) {
+                    restingTicks = 0;
+                    this.self.heal(1);
+                }
+            }
+
              byte shakeReason = 0;
              if (!furWet && getShakeReason() == 0) {
                  if (ConfigManager.config.canShakeOffPoison && isPoisoned(this.self))
@@ -394,6 +404,7 @@ public abstract class WolfEntityMixin implements
         if (this.self.isTamed() && !this.self.getWorld().isClient && ConfigManager.config.canRespawn) {
             final NbtCompound wolfNbt = new NbtCompound();
             this.self.writeCustomDataToNbt(wolfNbt);
+            wolfNbt.putInt("RescueTimeout", 20 * 60 * 10);
 
             wolfcompanion_template_1_21_1$dropInventoryByButton();
 
@@ -428,6 +439,10 @@ public abstract class WolfEntityMixin implements
     private static final TrackedData<Byte> SHAKE_REASON = DataTracker.registerData(WolfEntity.class, TrackedDataHandlerRegistry.BYTE);
     @Unique
     private static final TrackedData<Integer> XP = DataTracker.registerData(WolfEntity.class, TrackedDataHandlerRegistry.INTEGER);
+    @Unique
+    private static final TrackedData<Boolean> AGGRESSIVE = DataTracker.registerData(WolfEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
+    @Unique
+    private static final TrackedData<Boolean> LOCK = DataTracker.registerData(WolfEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
 
 //    private boolean isDirty = false;
 //
@@ -572,6 +587,8 @@ public abstract class WolfEntityMixin implements
         builder.add(RELEASE_WOLF, false);
         builder.add(SHAKE_REASON, (byte)0);
         builder.add(XP, 0);
+        builder.add(AGGRESSIVE, false);
+        builder.add(LOCK, false);
     }
 
     @Unique
@@ -650,6 +667,26 @@ public abstract class WolfEntityMixin implements
     @Unique
     public void setHasChest(boolean hasChest) {
         getDataTracker(self).set(CHEST, hasChest);
+    }
+
+    @Override
+    public void setAggressive__(boolean aggressive) {
+        getDataTracker(self).set(AGGRESSIVE, aggressive);
+    }
+
+    @Override
+    public boolean isAggressive__() {
+        return getDataTracker(self).get(AGGRESSIVE);
+    }
+
+    @Override
+    public void setLock__(boolean lock) {
+        getDataTracker(self).set(LOCK, lock);
+    }
+
+    @Override
+    public boolean isLock__() {
+        return getDataTracker(self).get(LOCK);
     }
 
     @Override
@@ -839,6 +876,8 @@ public abstract class WolfEntityMixin implements
     @Inject(method = "writeCustomDataToNbt", at = @At("TAIL"))
     private void injectWriteCustomDataToNbt(NbtCompound nbt, CallbackInfo ci) {
         nbt.putBoolean("ChestedWolf", this.hasChest());
+        nbt.putBoolean("wcm_IsAggressive", this.isAggressive__());
+        nbt.putBoolean("wcm_IsLock", this.isLock__());
         if (this.hasChest()) {
             NbtList nbtList = new NbtList();
 
@@ -871,6 +910,8 @@ public abstract class WolfEntityMixin implements
 
         ////////
         this.setHasChest(nbt.getBoolean("ChestedWolf"));
+        this.setAggressive__(nbt.getBoolean("wcm_IsAggressive"));
+        this.setLock__(nbt.getBoolean("wcm_IsLock"));
         this.onChestedStatusChanged();
         if (this.hasChest()) {
             NbtList nbtList = nbt.getList("Items", NbtElement.COMPOUND_TYPE);
@@ -1066,4 +1107,3 @@ public abstract class WolfEntityMixin implements
         }
     }
 }
-

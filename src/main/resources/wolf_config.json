@@ -12,5 +12,11 @@
   "requiredPlayerFood": 10,
   "doNotAttackMobs": [],
   "keepXp": false,
-  "extraHealth": 0
+  "extraHealth": 0,
+  "allowTeleport": true,
+  "teleportAtDistance": 3300,
+  "attackAcceleration": 1.2,
+  "maxSpeed": 3,
+  "allowPassiveRegeneration": true,
+  "passiveRegenerationRate": 15
 }

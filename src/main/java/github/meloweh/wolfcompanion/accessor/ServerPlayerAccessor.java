@@ -2,7 +2,7 @@ package github.meloweh.wolfcompanion.accessor;
 
 import github.meloweh.wolfcompanion.util.WolfNbtList;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.screen.ScreenHandler;
+import net.minecraft.server.MinecraftServer;
 
 public interface ServerPlayerAccessor {
     void queueRescuedWolfNbt__(NbtCompound nbt);
@@ -11,4 +11,7 @@ public interface ServerPlayerAccessor {
     WolfNbtList getRescuedWolfNbts__();
     WolfNbtList getWhistleWolfNbts__();
     void spawnWhistleWolfNbts__();
+    void spawnElapsedRescueWolfNbts__();
+    boolean hasElapsed__();
+    MinecraftServer getServer__();
 }

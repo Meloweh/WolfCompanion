@@ -28,6 +28,8 @@ public class NBTHelper {
         wolfNbt.remove("body_armor_item");
         wolfNbt.remove("body_armor_drop_chance");
         wolfNbt.remove("ArmorDropChances");
+        wolfNbt.remove("RescueTimeout");
+        wolfNbt.putFloat("FallDistance", 0f);
         wolfNbt.putFloat("Health", health);
 
         if (!ConfigManager.config.keepWolfInventory) {

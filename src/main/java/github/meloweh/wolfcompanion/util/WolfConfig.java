@@ -3,7 +3,6 @@ package github.meloweh.wolfcompanion.util;
 import java.util.ArrayList;
 import java.util.List;
 
-//@Config(name = "wolf-config", wrapperName = "WolfConfig")
 public class WolfConfig {
     public boolean canShakeOffPoison = true;
     public boolean canShakeOffFire = true;
@@ -20,4 +19,10 @@ public class WolfConfig {
     public List<String> doNotAttackMobs = new ArrayList<>(List.of());
     public boolean keepXp = false;
     public int extraHealth = 0;
+    public boolean allowTeleport = true;
+    public double teleportAtDistance = 544f;
+    public double attackAcceleration = 1.2f;
+    public double maxSpeed = 3f;
+    public boolean allowPassiveRegeneration = true;
+    public int passiveRegenerationRate = 15;
 }
