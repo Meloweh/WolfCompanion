@@ -1,26 +1,26 @@
 package github.meloweh.wolfcompanion.effects;
 
 import github.meloweh.wolfcompanion.WolfCompanion;
-import net.minecraft.entity.effect.StatusEffect;
-import net.minecraft.entity.effect.StatusEffectCategory;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.Holder;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectCategory;
 
 public final class ModEffects {
-    public static StatusEffect[] DEFEATED_WOLVES_PARTICLE_EFFECT = new StatusEffect[12];
-    public static RegistryEntry<StatusEffect>[] DEFEATED_WOLVES_PARTICLE_EFFECT_ENTRY = new RegistryEntry[12];
+    public static MobEffect[] DEFEATED_WOLVES_PARTICLE_EFFECT = new MobEffect[12];
+    public static Holder<MobEffect>[] DEFEATED_WOLVES_PARTICLE_EFFECT_ENTRY = new Holder[12];
 
     public static void register() {
         for (int i = 1; i < DEFEATED_WOLVES_PARTICLE_EFFECT.length; i++) {
             DEFEATED_WOLVES_PARTICLE_EFFECT[i] = Registry.register(
-                    Registries.STATUS_EFFECT,
-                    Identifier.of(WolfCompanion.MOD_ID, "defeated_wolves_" + i),
-                    new DefeatedWolvesStatusEffect(StatusEffectCategory.BENEFICIAL, 0x7FBCD2)
+                    BuiltInRegistries.MOB_EFFECT,
+                    Identifier.fromNamespaceAndPath(WolfCompanion.MOD_ID, "defeated_wolves_" + i),
+                    new DefeatedWolvesStatusEffect(MobEffectCategory.BENEFICIAL, 0x7FBCD2)
             );
 
-            DEFEATED_WOLVES_PARTICLE_EFFECT_ENTRY[i] = Registries.STATUS_EFFECT.getEntry(DEFEATED_WOLVES_PARTICLE_EFFECT[i]);
+            DEFEATED_WOLVES_PARTICLE_EFFECT_ENTRY[i] = BuiltInRegistries.MOB_EFFECT.wrapAsHolder(DEFEATED_WOLVES_PARTICLE_EFFECT[i]);
         }
     }
 

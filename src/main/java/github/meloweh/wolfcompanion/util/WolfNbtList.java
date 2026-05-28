@@ -1,28 +1,27 @@
 package github.meloweh.wolfcompanion.util;
 
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.storage.ReadView;
-import net.minecraft.storage.WriteView;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 public class WolfNbtList {
-    final private List<NbtCompound> wolfNbts = new ArrayList<>();
+    final private List<CompoundTag> wolfNbts = new ArrayList<>();
 
-    public void writeDataToNbt(final WriteView nbt, final String KEY) {
+    public void writeDataToNbt(final ValueOutput nbt, final String KEY) {
         if (!this.wolfNbts.isEmpty()) {
             for (int i = 0; i < this.wolfNbts.size(); i++) {
-                final NbtCompound wolfNbt = this.wolfNbts.get(i);
-                nbt.put(KEY + i, NbtCompound.CODEC, wolfNbt);
+                final CompoundTag wolfNbt = this.wolfNbts.get(i);
+                nbt.store(KEY + i, CompoundTag.CODEC, wolfNbt);
             }
         }
     }
 
-    public void readDataToNbt(ReadView nbt, final String KEY) {
+    public void readDataToNbt(ValueInput nbt, final String KEY) {
         for (int i = 0; nbt.contains(KEY + i); i++) {
-            final Optional<NbtCompound> wolfElement = nbt.read(KEY + i, NbtCompound.CODEC);
+            final Optional<CompoundTag> wolfElement = nbt.read(KEY + i, CompoundTag.CODEC);
             queueWolfNbt(wolfElement.get());
         }
     }
@@ -35,25 +34,25 @@ public class WolfNbtList {
 
     public void rescueTimeoutTick() {
         this.wolfNbts.forEach(nbt -> {
-            final int remainingTimeoutTicks = nbt.getInt("RescueTimeout", 0);
+            final int remainingTimeoutTicks = nbt.getIntOr("RescueTimeout", 0);
             if (remainingTimeoutTicks > 0) {
                 nbt.putInt("RescueTimeout", remainingTimeoutTicks - 1);
             }
         });
     }
 
-    public List<NbtCompound> dequeueElapsedTimeout() {
-        final List<NbtCompound> results = new ArrayList<>();
+    public List<CompoundTag> dequeueElapsedTimeout() {
+        final List<CompoundTag> results = new ArrayList<>();
 
         this.wolfNbts.forEach(nbt -> {
-            final int remainingTimeoutTicks = nbt.getInt("RescueTimeout", 0);
+            final int remainingTimeoutTicks = nbt.getIntOr("RescueTimeout", 0);
             if (remainingTimeoutTicks < 1) {
                 results.add(nbt);
             }
         });
 
         results.forEach(nbt -> {
-            final int remainingTimeoutTicks = nbt.getInt("RescueTimeout", 0);
+            final int remainingTimeoutTicks = nbt.getIntOr("RescueTimeout", 0);
             if (remainingTimeoutTicks < 1) {
                 this.wolfNbts.remove(nbt);
             }
@@ -62,11 +61,11 @@ public class WolfNbtList {
         return results;
     }
 
-    public void queueWolfNbt(NbtCompound nbt) {
+    public void queueWolfNbt(CompoundTag nbt) {
         this.wolfNbts.add(nbt);
     }
 
-    public List<NbtCompound> getWolfNbts() {
+    public List<CompoundTag> getWolfNbts() {
         return this.wolfNbts;
     }
 
@@ -76,7 +75,7 @@ public class WolfNbtList {
 
     public int nonElapsedSize() {
         return this.wolfNbts.stream()
-                .map(nbt -> nbt.getInt("RescueTimeout", 0))
+                .map(nbt -> nbt.getIntOr("RescueTimeout", 0))
                 .filter(e -> e > 0)
                 .toList().size();
     }
@@ -87,7 +86,7 @@ public class WolfNbtList {
 
     public Optional<Integer> getBriefestTimeout() {
         return this.wolfNbts.stream()
-                .map(nbt -> nbt.getInt("RescueTimeout", 0))
+                .map(nbt -> nbt.getIntOr("RescueTimeout", 0))
                 .filter(e -> e > 0)
                 .min(Integer::compare);
     }

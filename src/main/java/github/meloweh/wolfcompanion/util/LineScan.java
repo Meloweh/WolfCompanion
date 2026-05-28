@@ -1,16 +1,14 @@
 package github.meloweh.wolfcompanion.util;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.registry.tag.FluidTags;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.BlockView;
-import net.minecraft.world.World;
-// 1.20+: import net.minecraft.registry.tag.FluidTags;
-// older:  import net.minecraft.tag.FluidTags;
+import net.minecraft.core.BlockPos;
+import net.minecraft.tags.FluidTags;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
 
 public final class LineScan {
     public static final class ExtrudedResult {
@@ -28,15 +26,15 @@ public final class LineScan {
     }
 
     /** Scan blocks touched by [start,end] extruded downward by `down` blocks. */
-    public static ExtrudedResult scanSolidsAndLavaExtrudedY(BlockView world, Vec3d start, Vec3d end, int down) {
+    public static ExtrudedResult scanSolidsAndLavaExtrudedY(BlockGetter world, Vec3 start, Vec3 end, int down) {
         if (down < 0) down = 0;
 
         double dx = end.x - start.x, dz = end.z - start.z;
-        int x = MathHelper.floor(start.x), z = MathHelper.floor(start.z);
-        int ex = MathHelper.floor(end.x),   ez = MathHelper.floor(end.z);
+        int x = Mth.floor(start.x), z = Mth.floor(start.z);
+        int ex = Mth.floor(end.x),   ez = Mth.floor(end.z);
 
         // Use the higher of the two as the top; typical use has start.y == end.y.
-        int yTop = MathHelper.floor(Math.max(start.y, end.y));
+        int yTop = Mth.floor(Math.max(start.y, end.y));
         int yMin = yTop - down;
 
         int sx = dx > 0 ? 1 : dx < 0 ? -1 : 0;
@@ -51,7 +49,7 @@ public final class LineScan {
         double tMaxZ = sz != 0 ? (nbz - start.z) / dz : Double.POSITIVE_INFINITY;
         double tDeltaX = invDx, tDeltaZ = invDz;
 
-        BlockPos.Mutable pos = new BlockPos.Mutable();
+        BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
         boolean anyLavaFirst = false, anySolidFirst = false, allNonLava = true;
 
         while (true) {
@@ -62,8 +60,8 @@ public final class LineScan {
                 BlockState s = world.getBlockState(pos);
 
                 // Lava presence (treat cauldrons as lava for "non-lava" aggregate, but not as "first lava" ground)
-                boolean isLavaFluid = s.getFluidState().isIn(FluidTags.LAVA);
-                boolean isLavaCauldron = s.isOf(Blocks.LAVA_CAULDRON);
+                boolean isLavaFluid = s.getFluidState().is(FluidTags.LAVA);
+                boolean isLavaCauldron = s.is(Blocks.LAVA_CAULDRON);
                 if (isLavaFluid) {
                     anyLavaFirst = true;
                     allNonLava = false;
@@ -92,18 +90,18 @@ public final class LineScan {
         return new ExtrudedResult(anyLavaFirst, anySolidFirst, allNonLava);
     }
 
-    private static boolean isSolid(BlockView world, BlockPos pos, BlockState s) {
-        return s.isOpaqueFullCube(); // cheap, close to “ground” semantics
+    private static boolean isSolid(BlockGetter world, BlockPos pos, BlockState s) {
+        return s.isSolidRender(); // cheap, close to “ground” semantics
         // Alternative per-version: Block.isSolidBlock(world, pos)
     }
 
     public static boolean hasFloorLava(final LivingEntity wolf) {
-        final Vec3d lookUnit = Vec3d.fromPolar(0, wolf.getYaw());
-        final Vec3d lookDistance = lookUnit.multiply(2);
-        final Vec3d origin = wolf.getBoundingBox().getCenter();
-        final Vec3d target = origin.add(lookDistance);
+        final Vec3 lookUnit = Vec3.directionFromRotation(0, wolf.getYRot());
+        final Vec3 lookDistance = lookUnit.scale(2);
+        final Vec3 origin = wolf.getBoundingBox().getCenter();
+        final Vec3 target = origin.add(lookDistance);
 
-        final World world = wolf.getEntityWorld();
+        final Level world = wolf.level();
 
         ExtrudedResult result = scanSolidsAndLavaExtrudedY(world, origin, target, 10);
 

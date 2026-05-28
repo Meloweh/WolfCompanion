@@ -3,40 +3,39 @@ package github.meloweh.wolfcompanion.goals;
 import github.meloweh.wolfcompanion.accessor.WolfEntityProvider;
 import github.meloweh.wolfcompanion.util.Pair;
 import github.meloweh.wolfcompanion.util.WolfInventoryHelper;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.PotionContentsComponent;
-import net.minecraft.entity.AreaEffectCloudEntity;
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.ai.goal.Goal;
-import net.minecraft.entity.ai.pathing.EntityNavigation;
-import net.minecraft.entity.ai.pathing.PathNodeType;
-import net.minecraft.entity.passive.TameableEntity;
-import net.minecraft.entity.passive.WolfEntity;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.inventory.InventoryChangedListener;
-import net.minecraft.item.ItemStack;
-import net.minecraft.potion.Potion;
-import net.minecraft.potion.Potions;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.Container;
+import net.minecraft.world.ContainerListener;
+import net.minecraft.world.entity.AreaEffectCloud;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.TamableAnimal;
+import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.entity.ai.navigation.PathNavigation;
+import net.minecraft.world.entity.animal.wolf.Wolf;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.alchemy.Potion;
+import net.minecraft.world.item.alchemy.PotionContents;
+import net.minecraft.world.item.alchemy.Potions;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.pathfinder.PathType;
 
-public class RescueSelfFromLavaGoal extends Goal implements InventoryChangedListener {
-    private final TameableEntity wolf;
+public class RescueSelfFromLavaGoal extends Goal implements ContainerListener {
+    private final TamableAnimal wolf;
     @Nullable
-    private final EntityNavigation navigation;
+    private final PathNavigation navigation;
     private final WolfEntityProvider armoredWolf;
     private final List<ItemStack> inventoryContents;
     private int shootCooldown, lavaTicks;
     private static final int SHOOT_COOLDOWN = 15, LAVA_TICKS = 10;
-    private Pair<ItemStack, RegistryEntry<Potion>> usingPotion = Pair.of(ItemStack.EMPTY, Potions.AWKWARD);
+    private Pair<ItemStack, Holder<Potion>> usingPotion = Pair.of(ItemStack.EMPTY, Potions.AWKWARD);
 
-    public RescueSelfFromLavaGoal(WolfEntity wolf) {
+    public RescueSelfFromLavaGoal(Wolf wolf) {
         this.wolf = wolf;
         this.navigation = wolf.getNavigation();
         this.shootCooldown = 0;
@@ -45,17 +44,17 @@ public class RescueSelfFromLavaGoal extends Goal implements InventoryChangedList
         this.lavaTicks = 0;
     }
 
-    private void refreshInventoryContents(Inventory invBasic) {
+    private void refreshInventoryContents(Container invBasic) {
         this.inventoryContents.clear();
         for(int slotIndex = 1;
             slotIndex < 16;
             ++slotIndex) {
-            this.inventoryContents.add(invBasic.getStack(slotIndex));
+            this.inventoryContents.add(invBasic.getItem(slotIndex));
         }
     }
 
     @Override
-    public void onInventoryChanged(Inventory sender) {
+    public void containerChanged(Container sender) {
         this.refreshInventoryContents(sender);
     }
 
@@ -65,13 +64,13 @@ public class RescueSelfFromLavaGoal extends Goal implements InventoryChangedList
         refreshInventoryContents(armoredWolf.getInventory());
     }
 
-    public boolean canStart() {
+    public boolean canUse() {
         if (!this.armoredWolf.hasChestEquipped()) return false;
-        if (this.wolf.getEquippedStack(EquipmentSlot.MAINHAND).contains(DataComponentTypes.POTION_CONTENTS)) {
-            this.wolf.equipStack(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
+        if (this.wolf.getItemBySlot(EquipmentSlot.MAINHAND).has(DataComponents.POTION_CONTENTS)) {
+            this.wolf.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
         }
 
-        final boolean wouldStart = this.wolf.isTamed()
+        final boolean wouldStart = this.wolf.isTame()
                 && this.armoredWolf.hasChestEquipped();
 
         if (wouldStart) {
@@ -82,7 +81,7 @@ public class RescueSelfFromLavaGoal extends Goal implements InventoryChangedList
         return wouldStart;
     }
 
-    public boolean shouldContinue() {
+    public boolean canContinueToUse() {
         return shootCooldown > 0;
     }
 
@@ -90,86 +89,86 @@ public class RescueSelfFromLavaGoal extends Goal implements InventoryChangedList
         inventoryInit();
 
         this.shootCooldown = SHOOT_COOLDOWN;
-        this.wolf.setPathfindingPenalty(PathNodeType.WATER, 0.0F);
-        this.wolf.setSitting(false);
+        this.wolf.setPathfindingMalus(PathType.WATER, 0.0F);
+        this.wolf.setOrderedToSit(false);
 
         usingPotion = nextPotion();
 
         if (usingPotion.first.isEmpty()) return;
 
-        this.wolf.equipStack(EquipmentSlot.MAINHAND, usingPotion.first);
+        this.wolf.setItemSlot(EquipmentSlot.MAINHAND, usingPotion.first);
 
         shootCooldown = SHOOT_COOLDOWN;
     }
 
     public void stop() {
         shootCooldown = SHOOT_COOLDOWN;
-        this.wolf.equipStack(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
+        this.wolf.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
         inventoryInit();
     }
 
     public void tick() {
-        if (!this.wolf.getEntityWorld().isClient() &&
+        if (!this.wolf.level().isClientSide() &&
                 this.wolf.isAlive() &&
-                this.wolf.canMoveVoluntarily()) {
+                this.wolf.canSimulateMovement()) {
 
-            Pair<ItemStack, RegistryEntry<Potion>> itemStack = usingPotion;
+            Pair<ItemStack, Holder<Potion>> itemStack = usingPotion;
             shootCooldown--;
             if (WolfInventoryHelper.hasFittingLifesavingEffect(this.wolf, inventoryContents)) return;
 
             if (!itemStack.first.isEmpty()) {
-                this.wolf.equipStack(EquipmentSlot.MAINHAND, itemStack.first);
+                this.wolf.setItemSlot(EquipmentSlot.MAINHAND, itemStack.first);
                 if (++lavaTicks < LAVA_TICKS) return;
                 if (!this.wolf.isInLava()) lavaTicks = 0;
-                if (Math.abs(this.wolf.getVelocity().getY()) > 0.3f) return;
+                if (Math.abs(this.wolf.getDeltaMovement().y()) > 0.3f) return;
 
-                if (this.wolf.getEquippedStack(EquipmentSlot.MAINHAND) == itemStack.first) {
+                if (this.wolf.getItemBySlot(EquipmentSlot.MAINHAND) == itemStack.first) {
                     applySplashPotionEffect(itemStack);
-                    this.wolf.equipStack(EquipmentSlot.MAINHAND, nextPotion().first);
+                    this.wolf.setItemSlot(EquipmentSlot.MAINHAND, nextPotion().first);
                 }
             }
         }
     }
 
-    private Pair<ItemStack, RegistryEntry<Potion>> nextPotion() {
+    private Pair<ItemStack, Holder<Potion>> nextPotion() {
         //ItemStack itemStack = this.wolf.getEquippedStack(EquipmentSlot.MAINHAND);
 
         //if (!itemStack.isEmpty()) return itemStack;
 
-        final Pair<ItemStack, RegistryEntry<Potion>> itemStack = WolfInventoryHelper.findLifesavingPotions(inventoryContents, this.wolf);
-        this.wolf.equipStack(EquipmentSlot.MAINHAND, itemStack.first);
+        final Pair<ItemStack, Holder<Potion>> itemStack = WolfInventoryHelper.findLifesavingPotions(inventoryContents, this.wolf);
+        this.wolf.setItemSlot(EquipmentSlot.MAINHAND, itemStack.first);
 
         return itemStack;
     }
 
-    public void applySplashPotionEffect(final Pair<ItemStack, RegistryEntry<Potion>> itemStack) {
+    public void applySplashPotionEffect(final Pair<ItemStack, Holder<Potion>> itemStack) {
         //RegistryEntry<Potion> registryEntry = Potions.FIRE_RESISTANCE;
 
         // Get the world and the wolf's position
-        World world = this.wolf.getEntityWorld();
+        Level world = this.wolf.level();
         double x = this.wolf.getX();
         double y = this.wolf.getY();
         double z = this.wolf.getZ();
 
         // Create a splash effect on the wolf
-        AreaEffectCloudEntity effectCloud = new AreaEffectCloudEntity(world, x, y + 0.5f, z);
+        AreaEffectCloud effectCloud = new AreaEffectCloud(world, x, y + 0.5f, z);
         effectCloud.setOwner(this.wolf); // Set the wolf as the source
         effectCloud.setRadius(1F); // Set splash radius
-        PotionContentsComponent potionContentsComponent = new PotionContentsComponent(itemStack.second);
+        PotionContents potionContentsComponent = new PotionContents(itemStack.second);
         effectCloud.setPotionContents(potionContentsComponent); // Assign the potion effects (e.g., fire resistance)
         effectCloud.setDuration(15); // Short duration since it's a splash
         effectCloud.setWaitTime(0); // Apply immediately
 
         // Play the splash sound effect
-        world.playSound(null, x, y, z, SoundEvents.ENTITY_SPLASH_POTION_BREAK, this.wolf.getSoundCategory(), 1.0F, 0.4F + this.wolf.getRandom().nextFloat() * 0.4F);
+        world.playSound(null, x, y, z, SoundEvents.SPLASH_POTION_BREAK, this.wolf.getSoundSource(), 1.0F, 0.4F + this.wolf.getRandom().nextFloat() * 0.4F);
 
         // Spawn the area effect cloud to apply effects
-        world.spawnEntity(effectCloud);
+        world.addFreshEntity(effectCloud);
 
-        itemStack.first.decrement(1);
-        ItemStack itemStack2 = itemStack.first.finishUsing(this.wolf.getEntityWorld(), this.wolf);
+        itemStack.first.shrink(1);
+        ItemStack itemStack2 = itemStack.first.finishUsingItem(this.wolf.level(), this.wolf);
         if (!itemStack2.isEmpty()) {
-            this.wolf.equipStack(EquipmentSlot.MAINHAND, itemStack2);
+            this.wolf.setItemSlot(EquipmentSlot.MAINHAND, itemStack2);
         }
     }
 

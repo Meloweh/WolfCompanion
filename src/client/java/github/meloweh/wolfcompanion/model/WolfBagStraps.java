@@ -2,29 +2,35 @@ package github.meloweh.wolfcompanion.model;
 
 import github.meloweh.wolfcompanion.WolfCompanion;
 import net.minecraft.client.model.*;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.TexturedRenderLayers;
-import net.minecraft.client.render.entity.model.EntityModelLayer;
-import net.minecraft.client.render.entity.state.LivingEntityRenderState;
-import net.minecraft.util.Identifier;
+import net.minecraft.client.model.geom.ModelLayerLocation;
+import net.minecraft.client.model.geom.ModelPart;
+import net.minecraft.client.model.geom.PartPose;
+import net.minecraft.client.model.geom.builders.CubeDeformation;
+import net.minecraft.client.model.geom.builders.CubeListBuilder;
+import net.minecraft.client.model.geom.builders.LayerDefinition;
+import net.minecraft.client.model.geom.builders.MeshDefinition;
+import net.minecraft.client.model.geom.builders.PartDefinition;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
+import net.minecraft.resources.Identifier;
 
 public class WolfBagStraps extends Model<LivingEntityRenderState> {
     private final ModelPart main;
     public static final Identifier TEXTURE_LOCATION = WolfCompanion.id("textures/entity/straps.png");
-    public static final EntityModelLayer LAYER_LOCATION = new EntityModelLayer(WolfCompanion.id("straps"), "main");
+    public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(WolfCompanion.id("straps"), "main");
 
     public WolfBagStraps(ModelPart root) {
-        super(root, textureId -> TexturedRenderLayers.getEntitySolid());
+        super(root, RenderTypes::entitySolid);
         this.main = root.getChild("main");
     }
-    public static TexturedModelData getTexturedModelData() {
-        ModelData modelData = new ModelData();
-        ModelPartData modelPartData = modelData.getRoot();
-        ModelPartData main = modelPartData.addChild("main", ModelPartBuilder.create().uv(0, -3).cuboid(-3.0F, 3.0F, -3.0F, 0.0F, 1.0F, 6.0F, new Dilation(0.0F))
-                .uv(0, -6).cuboid(3.0F, 3.0F, -3.0F, 0.0F, 1.0F, 6.0F, new Dilation(0.0F))
-                .uv(0, 1).cuboid(-3.0F, 3.0F, 3.0F, 6.0F, 1.0F, 0.0F, new Dilation(0.0F))
-                .uv(0, 2).cuboid(-3.0F, 3.0F, -3.0F, 6.0F, 1.0F, 0.0F, new Dilation(0.0F)), ModelTransform.origin(0.0F, 24.0F, 0.0F));
-        return TexturedModelData.of(modelData, 16, 8);
+    public static LayerDefinition getTexturedModelData() {
+        MeshDefinition modelData = new MeshDefinition();
+        PartDefinition modelPartData = modelData.getRoot();
+        PartDefinition main = modelPartData.addOrReplaceChild("main", CubeListBuilder.create().texOffs(0, -3).addBox(-3.0F, 3.0F, -3.0F, 0.0F, 1.0F, 6.0F, new CubeDeformation(0.0F))
+                .texOffs(0, -6).addBox(3.0F, 3.0F, -3.0F, 0.0F, 1.0F, 6.0F, new CubeDeformation(0.0F))
+                .texOffs(0, 1).addBox(-3.0F, 3.0F, 3.0F, 6.0F, 1.0F, 0.0F, new CubeDeformation(0.0F))
+                .texOffs(0, 2).addBox(-3.0F, 3.0F, -3.0F, 6.0F, 1.0F, 0.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, 24.0F, 0.0F));
+        return LayerDefinition.create(modelData, 16, 8);
     }
 
 
@@ -35,7 +41,7 @@ public class WolfBagStraps extends Model<LivingEntityRenderState> {
 //    }
 
     public void copyTransform(ModelPart part) {
-        this.main.setTransform(part.getTransform());
+        this.main.loadPose(part.storePose());
         //this.main.copyTransform(part);
     }
 

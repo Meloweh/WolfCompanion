@@ -1,20 +1,19 @@
 package github.meloweh.wolfcompanion.mixin.client;
 
 import accessor.WolfEntityRenderStateProvider;
-import net.minecraft.client.item.ItemModelManager;
-import net.minecraft.client.render.entity.state.ItemHolderEntityRenderState;
-import net.minecraft.client.render.entity.state.WolfEntityRenderState;
-import net.minecraft.client.render.item.ItemRenderState;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.passive.WolfEntity;
-import net.minecraft.item.ItemDisplayContext;
+import net.minecraft.client.renderer.entity.state.WolfRenderState;
+import net.minecraft.client.renderer.item.ItemModelResolver;
+import net.minecraft.client.renderer.item.ItemStackRenderState;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.animal.wolf.Wolf;
+import net.minecraft.world.item.ItemDisplayContext;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 
-@Mixin(WolfEntityRenderState.class)
+@Mixin(WolfRenderState.class)
 public class WolfEntityRenderStateMixin implements WolfEntityRenderStateProvider {
 
-    private WolfEntity wolf;
+    private Wolf wolf;
     private boolean chestEquipped;
     private int entityId;
 
@@ -24,7 +23,7 @@ public class WolfEntityRenderStateMixin implements WolfEntityRenderStateProvider
     }
 
     @Override
-    public void setWolf__(final WolfEntity wolf) {
+    public void setWolf__(final Wolf wolf) {
         this.wolf = wolf;
     }
 
@@ -39,16 +38,16 @@ public class WolfEntityRenderStateMixin implements WolfEntityRenderStateProvider
     }
 
     @Unique
-    public final ItemRenderState itemRenderState = new ItemRenderState();
+    public final ItemStackRenderState itemRenderState = new ItemStackRenderState();
 
     @Override
-    public ItemRenderState getItemRenderState__() {
+    public ItemStackRenderState getItemRenderState__() {
         return itemRenderState;
     }
 
     @Override
-    public void updateRenderState__(LivingEntity entity, WolfEntityRenderStateProvider state, ItemModelManager itemModelManager) {
-        itemModelManager.updateForLivingEntity(state.getItemRenderState__(), entity.getMainHandStack(), ItemDisplayContext.GROUND, entity);
+    public void updateRenderState__(LivingEntity entity, WolfEntityRenderStateProvider state, ItemModelResolver itemModelManager) {
+        itemModelManager.updateForLiving(state.getItemRenderState__(), entity.getMainHandItem(), ItemDisplayContext.GROUND, entity);
     }
 
     @Override

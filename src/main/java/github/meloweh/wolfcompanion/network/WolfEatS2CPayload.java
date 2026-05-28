@@ -1,23 +1,23 @@
 package github.meloweh.wolfcompanion.network;
 
 import github.meloweh.wolfcompanion.WolfCompanion;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.network.packet.CustomPayload;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.world.item.ItemStack;
 
-public record WolfEatS2CPayload(int id, ItemStack stack) implements CustomPayload {
+public record WolfEatS2CPayload(int id, ItemStack stack) implements CustomPacketPayload {
 
-    public static final Id<WolfEatS2CPayload> ID = new Id<>(WolfCompanion.id("s2c.wolf.eat"));
-    public static final PacketCodec<RegistryByteBuf, WolfEatS2CPayload> PACKET_CODEC = PacketCodec.tuple(
-            PacketCodecs.INTEGER, WolfEatS2CPayload::id,
-            ItemStack.PACKET_CODEC, WolfEatS2CPayload::stack,
+    public static final Type<WolfEatS2CPayload> ID = new Type<>(WolfCompanion.id("s2c.wolf.eat"));
+    public static final StreamCodec<RegistryFriendlyByteBuf, WolfEatS2CPayload> PACKET_CODEC = StreamCodec.composite(
+            ByteBufCodecs.INT, WolfEatS2CPayload::id,
+            ItemStack.STREAM_CODEC, WolfEatS2CPayload::stack,
             WolfEatS2CPayload::new);
 
 
     @Override
-    public Id<? extends CustomPayload> getId() {
+    public Type<? extends CustomPacketPayload> type() {
         return ID;
     }
 }

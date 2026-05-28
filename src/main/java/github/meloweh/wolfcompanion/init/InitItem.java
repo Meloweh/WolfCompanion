@@ -3,15 +3,12 @@ package github.meloweh.wolfcompanion.init;
 import github.meloweh.wolfcompanion.WolfCompanion;
 import github.meloweh.wolfcompanion.item.WhistleItem;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemGroups;
-import net.minecraft.item.Items;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.util.Identifier;
-
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.item.CreativeModeTabs;
+import net.minecraft.world.item.Item;
 import java.util.function.Function;
 
 public class InitItem {
@@ -20,36 +17,36 @@ public class InitItem {
 //            new Item.Settings().food(FoodList.FOOD_FOOD_COMPONENT).maxCount(16)
 //    ));
     public static final Item ITEM_SINGLE_WOLF_BAG = register("wolf_single_bag", new Item(
-            new Item.Settings()
-                    .registryKey(RegistryKey.of(RegistryKeys.ITEM, WolfCompanion.id("wolf_single_bag")))
-                    .maxCount(16)
+            new Item.Properties()
+                    .setId(ResourceKey.create(Registries.ITEM, WolfCompanion.id("wolf_single_bag")))
+                    .stacksTo(16)
     ));
     public static final Item ITEM_WOLF_BAG = register("wolf_bag_item", new Item(
-            new Item.Settings()
-                    .registryKey(RegistryKey.of(RegistryKeys.ITEM, WolfCompanion.id("wolf_bag_item")))
-                    .maxCount(1)
+            new Item.Properties()
+                    .setId(ResourceKey.create(Registries.ITEM, WolfCompanion.id("wolf_bag_item")))
+                    .stacksTo(1)
     ));
     public static final Item DOG_WHISTLE_ITEM = register("dog_whistle_item", new WhistleItem(
-            new Item.Settings()
-                    .registryKey(RegistryKey.of(RegistryKeys.ITEM, WolfCompanion.id("dog_whistle_item")))
-                    .maxCount(1)
+            new Item.Properties()
+                    .setId(ResourceKey.create(Registries.ITEM, WolfCompanion.id("dog_whistle_item")))
+                    .stacksTo(1)
     ));
 
     public static <T extends Item> T register(String name, T item) {
-        return Registry.register(Registries.ITEM, WolfCompanion.id(name), item);
+        return Registry.register(BuiltInRegistries.ITEM, WolfCompanion.id(name), item);
     }
 
     public static void load() {
-        ItemGroupEvents.modifyEntriesEvent(ItemGroups.TOOLS).register(fabricItemGroupEntries -> {
-            fabricItemGroupEntries.add(ITEM_WOLF_BAG);
+        ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.TOOLS_AND_UTILITIES).register(fabricItemGroupEntries -> {
+            fabricItemGroupEntries.accept(ITEM_WOLF_BAG);
         });
 
-        ItemGroupEvents.modifyEntriesEvent(ItemGroups.INGREDIENTS).register(fabricItemGroupEntries -> {
-            fabricItemGroupEntries.add(ITEM_SINGLE_WOLF_BAG);
+        ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.INGREDIENTS).register(fabricItemGroupEntries -> {
+            fabricItemGroupEntries.accept(ITEM_SINGLE_WOLF_BAG);
         });
 
-        ItemGroupEvents.modifyEntriesEvent(ItemGroups.TOOLS).register(fabricItemGroupEntries -> {
-            fabricItemGroupEntries.add(DOG_WHISTLE_ITEM);
+        ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.TOOLS_AND_UTILITIES).register(fabricItemGroupEntries -> {
+            fabricItemGroupEntries.accept(DOG_WHISTLE_ITEM);
         });
     };
 }

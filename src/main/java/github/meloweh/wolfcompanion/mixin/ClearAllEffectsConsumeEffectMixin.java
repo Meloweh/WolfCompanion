@@ -1,35 +1,35 @@
 package github.meloweh.wolfcompanion.mixin;
 
 import github.meloweh.wolfcompanion.effects.ModEffects;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.consume.ClearAllEffectsConsumeEffect;
-import net.minecraft.world.World;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.consume_effects.ClearAllStatusEffectsConsumeEffect;
+import net.minecraft.world.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(ClearAllEffectsConsumeEffect.class)
+@Mixin(ClearAllStatusEffectsConsumeEffect.class)
 public class ClearAllEffectsConsumeEffectMixin {
-    private static final ThreadLocal<StatusEffectInstance> SAVED = new ThreadLocal<>();
+    private static final ThreadLocal<MobEffectInstance> SAVED = new ThreadLocal<>();
 
-    @Inject(method = "onConsume", at = @At("HEAD"))
-    private void mod$save(World world, ItemStack stack, LivingEntity user, CallbackInfoReturnable<Boolean> cir) {
+    @Inject(method = "apply", at = @At("HEAD"))
+    private void mod$save(Level world, ItemStack stack, LivingEntity user, CallbackInfoReturnable<Boolean> cir) {
 
-        StatusEffectInstance inst = null;// = user.getStatusEffect(ModEffects.DEFEATED_WOLVES_PARTICLE_EFFECT_ENTRY);
+        MobEffectInstance inst = null;// = user.getStatusEffect(ModEffects.DEFEATED_WOLVES_PARTICLE_EFFECT_ENTRY);
 
         for (int i = 1; i < ModEffects.DEFEATED_WOLVES_PARTICLE_EFFECT_ENTRY.length; i++) {
-            inst = user.getStatusEffect(ModEffects.DEFEATED_WOLVES_PARTICLE_EFFECT_ENTRY[i]);
+            inst = user.getEffect(ModEffects.DEFEATED_WOLVES_PARTICLE_EFFECT_ENTRY[i]);
             if (inst == null) continue;
-            SAVED.set(new StatusEffectInstance(
+            SAVED.set(new MobEffectInstance(
                     ModEffects.DEFEATED_WOLVES_PARTICLE_EFFECT_ENTRY[i],
                     inst.getDuration(),
                     inst.getAmplifier(),
                     inst.isAmbient(),
-                    inst.shouldShowParticles(),
-                    inst.shouldShowIcon(),
+                    inst.isVisible(),
+                    inst.showIcon(),
                     null
             ));
 
@@ -40,12 +40,12 @@ public class ClearAllEffectsConsumeEffectMixin {
         }
     }
 
-    @Inject(method = "onConsume", at = @At("TAIL"))
-    private void mod$restore(World world, ItemStack stack, LivingEntity user, CallbackInfoReturnable<Boolean> cir) {
-        StatusEffectInstance saved = SAVED.get();
+    @Inject(method = "apply", at = @At("TAIL"))
+    private void mod$restore(Level world, ItemStack stack, LivingEntity user, CallbackInfoReturnable<Boolean> cir) {
+        MobEffectInstance saved = SAVED.get();
         SAVED.remove();
         if (saved != null) {
-            user.addStatusEffect(saved);
+            user.addEffect(saved);
         }
     }
 }

@@ -1,26 +1,23 @@
 package github.meloweh.wolfcompanion.network;
 
 import github.meloweh.wolfcompanion.WolfCompanion;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.network.packet.CustomPayload;
-import net.minecraft.util.Uuids;
-
 import java.util.UUID;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 
-public record SampleS2CPayload(String mystring, int myint) implements CustomPayload {
+public record SampleS2CPayload(String mystring, int myint) implements CustomPacketPayload {
 
-    public static final Id<SampleS2CPayload> ID = new Id<>(WolfCompanion.id("sample_s2c_payload"));
-    public static final PacketCodec<RegistryByteBuf, SampleS2CPayload> PACKET_CODEC = PacketCodec.tuple(
-            PacketCodecs.STRING, SampleS2CPayload::mystring,
-            PacketCodecs.INTEGER, SampleS2CPayload::myint,
+    public static final Type<SampleS2CPayload> ID = new Type<>(WolfCompanion.id("sample_s2c_payload"));
+    public static final StreamCodec<RegistryFriendlyByteBuf, SampleS2CPayload> PACKET_CODEC = StreamCodec.composite(
+            ByteBufCodecs.STRING_UTF8, SampleS2CPayload::mystring,
+            ByteBufCodecs.INT, SampleS2CPayload::myint,
             SampleS2CPayload::new);
 
 
     @Override
-    public Id<? extends CustomPayload> getId() {
+    public Type<? extends CustomPacketPayload> type() {
         return ID;
     }
 }

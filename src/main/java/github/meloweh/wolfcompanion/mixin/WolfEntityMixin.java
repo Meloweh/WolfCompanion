@@ -12,50 +12,61 @@ import github.meloweh.wolfcompanion.util.LineScan;
 import github.meloweh.wolfcompanion.util.NBTHelper;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
-import net.minecraft.component.EnchantmentEffectComponentTypes;
-import net.minecraft.enchantment.EnchantmentEffectContext;
-import net.minecraft.enchantment.EnchantmentHelper;
-import net.minecraft.entity.*;
-import net.minecraft.entity.ai.goal.Goal;
-import net.minecraft.entity.attribute.EntityAttributes;
-import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.entity.data.DataTracker;
-import net.minecraft.entity.data.TrackedData;
-import net.minecraft.entity.data.TrackedDataHandlerRegistry;
-import net.minecraft.entity.effect.StatusEffect;
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.entity.effect.StatusEffects;
-import net.minecraft.entity.passive.WolfEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.*;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
+import net.minecraft.core.Holder;
+import net.minecraft.core.Vec3i;
+import net.minecraft.core.particles.ColorParticleOption;
+import net.minecraft.core.particles.ItemParticleOption;
+import net.minecraft.core.particles.ParticleOptions;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.*;
-import net.minecraft.particle.*;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.screen.ScreenHandler;
+import net.minecraft.network.chat.ComponentSerialization;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.storage.NbtReadView;
-import net.minecraft.storage.NbtWriteView;
-import net.minecraft.storage.ReadView;
-import net.minecraft.storage.WriteView;
-import net.minecraft.text.TextCodecs;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.ErrorReporter;
-import net.minecraft.util.Hand;
-import net.minecraft.util.WorldSavePath;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec2f;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.math.Vec3i;
-import net.minecraft.util.profiler.Profiler;
-import net.minecraft.util.profiler.Profilers;
-import net.minecraft.world.World;
-import net.minecraft.world.rule.GameRules;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.util.Mth;
+import net.minecraft.util.ProblemReporter;
+import net.minecraft.util.profiling.Profiler;
+import net.minecraft.util.profiling.ProfilerFiller;
+import net.minecraft.world.Container;
+import net.minecraft.world.ContainerListener;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityEvent;
+import net.minecraft.world.entity.EntityReference;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.HasCustomInventoryScreen;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.OwnableEntity;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.entity.animal.wolf.Wolf;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.EnchantedItemInUse;
+import net.minecraft.world.item.enchantment.EnchantmentEffectComponents;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.gamerules.GameRules;
+import net.minecraft.world.level.storage.LevelResource;
+import net.minecraft.world.level.storage.TagValueInput;
+import net.minecraft.world.level.storage.TagValueOutput;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.phys.Vec2;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Math;
 import org.spongepowered.asm.mixin.Mixin;
@@ -72,11 +83,11 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.*;
 
-@Mixin(WolfEntity.class)
+@Mixin(Wolf.class)
 public abstract class WolfEntityMixin implements
-        InventoryChangedListener,
-        RideableInventory,
-        Tameable,
+        ContainerListener,
+        HasCustomInventoryScreen,
+        OwnableEntity,
         WolfEntityProvider,
         EntityAccessor,
         MobEntityAccessor,
@@ -84,15 +95,16 @@ public abstract class WolfEntityMixin implements
         WolfXpProvider,
         WolfEntityMixinProvider {
     @Unique
-    protected SimpleInventory items;
+    protected SimpleContainer items;
     @Unique
-    private WolfEntity self;
+    private Wolf self;
     @Unique
     private Optional<ItemEntity> targetPickup = Optional.empty();
 
     @Inject(method = "<init>", at = @At("RETURN"))
     private void onConstructor(CallbackInfo info) {
-        this.self = (WolfEntity) (Object) this;
+        this.self = (Wolf) (Object) this;
+        this.targetPickup = Optional.empty();
         this.onChestedStatusChanged();
     }
 
@@ -107,46 +119,49 @@ public abstract class WolfEntityMixin implements
 
     @Override
     public Optional<ItemEntity> getTargetPickup__() {
+        if (this.targetPickup == null) {
+            this.targetPickup = Optional.empty();
+        }
         return this.targetPickup;
     }
 
-    @ModifyArg(method = "initGoals", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/ai/goal/GoalSelector;add(ILnet/minecraft/entity/ai/goal/Goal;)V", ordinal = 5), index = 1)
+    @ModifyArg(method = "registerGoals", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/ai/goal/GoalSelector;addGoal(ILnet/minecraft/world/entity/ai/goal/Goal;)V", ordinal = 5), index = 1)
     private Goal f(Goal goal) {
         if (this.self == null) {
-            self = (WolfEntity) (Object) this;
+            self = (Wolf) (Object) this;
         }
         return new WolfMeleeAttackGoal(this.self, 1.5, true);
     }
 
-    @Inject(method = "initGoals", at = @At("TAIL"))
+    @Inject(method = "registerGoals", at = @At("TAIL"))
     private void onInitGoals(CallbackInfo info) {
         if (this.self == null) {
-            self = (WolfEntity) (Object) this;
+            self = (Wolf) (Object) this;
         }
-        ((MobEntityAccessor) self).getGoalSelector().add(1, new RescueOwnerFromLavaGoal(self, 1.75f, 2.5f, 7f));
-        ((MobEntityAccessor) self).getGoalSelector().add(1, new RescueSelfFromLavaGoal(self));
-        ((MobEntityAccessor) self).getGoalSelector().add(2, new EatFoodGoal(self));
-        ((MobEntityAccessor) self).getGoalSelector().add(9, new PickUpFoodGoal(self));
+        ((MobEntityAccessor) self).getGoalSelector().addGoal(1, new RescueOwnerFromLavaGoal(self, 1.75f, 2.5f, 7f));
+        ((MobEntityAccessor) self).getGoalSelector().addGoal(1, new RescueSelfFromLavaGoal(self));
+        ((MobEntityAccessor) self).getGoalSelector().addGoal(2, new EatFoodGoal(self));
+        ((MobEntityAccessor) self).getGoalSelector().addGoal(9, new PickUpFoodGoal(self));
     }
 
     @Shadow
-    private boolean furWet;
+    private boolean isWet;
     @Shadow
-    private boolean canShakeWaterOff;
+    private boolean isShaking;
     @Shadow
-    private float shakeProgress;
+    private float shakeAnim;
 
     @Unique
     private void doWolfShake() {
-        this.furWet = true;
-        if (!self.getEntityWorld().isClient()) {
+        this.isWet = true;
+        if (!self.level().isClientSide()) {
             //this.furWet = true;
             //this.self.getEntityWorld().sendEntityStatus(this.self, (byte)56);
         }
     }
 
     @Unique
-    public void writeToPlayerSaveFile(File playerDataFolder, UUID playerUUID, final NbtCompound wolfNbt) {
+    public void writeToPlayerSaveFile(File playerDataFolder, UUID playerUUID, final CompoundTag wolfNbt) {
         File playerFile = new File(playerDataFolder, playerUUID.toString() + ".dat");
         if (playerFile.exists()) {
             FileInputStream fileInputStream = null;
@@ -156,7 +171,7 @@ public abstract class WolfEntityMixin implements
                 fileInputStream = new FileInputStream(playerFile);
 
                 // Read the existing NBT data
-                final NbtCompound nbt = NbtIo.readCompressed(fileInputStream, NbtSizeTracker.ofUnlimitedBytes());
+                final CompoundTag nbt = NbtIo.readCompressed(fileInputStream, NbtAccounter.unlimitedHeap());
 
                 int i = 0;
                 for (; nbt.contains(WolfEventHandler.RESCUED_WOLF_NBT_KEY + i); i++);
@@ -190,36 +205,36 @@ public abstract class WolfEntityMixin implements
         }
     }
 
-    @ModifyArg(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;addParticleClient(Lnet/minecraft/particle/ParticleEffect;DDDDDD)V"))
-    private ParticleEffect changeType(ParticleEffect parameters) {
+    @ModifyArg(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;addParticle(Lnet/minecraft/core/particles/ParticleOptions;DDDDDD)V"))
+    private ParticleOptions changeType(ParticleOptions parameters) {
         final byte shakeReason = getShakeReason();
 
         return switch (shakeReason) {
-            case 1 -> TintedParticleEffect.create(ParticleTypes.ENTITY_EFFECT, 0.529f, 0.639f, 0.388f);
+            case 1 -> ColorParticleOption.create(ParticleTypes.ENTITY_EFFECT, 0.529f, 0.639f, 0.388f);
             case 2 -> ParticleTypes.SMOKE;
             default -> ParticleTypes.SPLASH;
         };
     }
 
     @Unique
-    public boolean isPoisoned(WolfEntity wolf) {
-        Map<RegistryEntry<StatusEffect>, StatusEffectInstance> effects = wolf.getActiveStatusEffects();
+    public boolean isPoisoned(Wolf wolf) {
+        Map<Holder<MobEffect>, MobEffectInstance> effects = wolf.getActiveEffectsMap();
         return effects.keySet().stream().anyMatch(effect ->
-                effect == StatusEffects.POISON
+                effect == MobEffects.POISON
         );  // No negative effects found
     }
 
     @Shadow
-    private float lastShakeProgress; //this.lastShakeProgress >= 2.0F
+    private float shakeAnimO; //this.lastShakeProgress >= 2.0F
     @Unique
     private int restingTicks = 0;
 
     @Inject(method = "tick", at = @At("TAIL"))
     private void shakeConditions(CallbackInfo ci) {
-        if (self.isAlive() && !self.getEntityWorld().isClient()) {
+        if (self.isAlive() && !self.level().isClientSide()) {
 
             if (ConfigManager.config.allowPassiveRegeneration
-                    && this.self.isSitting()
+                    && this.self.isOrderedToSit()
                     && this.self.getHealth() < this.self.getMaxHealth()) {
                 restingTicks++;
                 if (restingTicks > 20 * ConfigManager.config.passiveRegenerationRate) {
@@ -229,11 +244,11 @@ public abstract class WolfEntityMixin implements
             }
 
              byte shakeReason = 0;
-             if (!furWet && getShakeReason() == 0) {
+             if (!isWet && getShakeReason() == 0) {
                  if (ConfigManager.config.canShakeOffPoison && isPoisoned(this.self))
                      shakeReason = 1;
 
-                 if (ConfigManager.config.canShakeOffFire && self.isOnFire() && !self.isInLava() && self.isOnGround()) {
+                 if (ConfigManager.config.canShakeOffFire && self.isOnFire() && !self.isInLava() && self.onGround()) {
                      shakeReason = 2;
                  }
 
@@ -247,39 +262,39 @@ public abstract class WolfEntityMixin implements
              }
 
              if (getShakeReason() > 0){
-                 if (lastShakeProgress >= 1.8f) {
+                 if (shakeAnimO >= 1.8f) {
                      setShakeReason((byte) 0);
                      if (isPoisoned(self)) {
-                         self.removeStatusEffect(StatusEffects.POISON);
+                         self.removeEffect(MobEffects.POISON);
                      }
                      else if (self.isOnFire()) {
-                         self.setFireTicks(0);
+                         self.setRemainingFireTicks(0);
                      }
                  }
              }
         }
 
         if (this.self.getTarget() != null &&
-                this.self.getAttacker() == null &&
-                !this.self.isOnGround() &&
-                !this.self.isAttacking()) {
+                this.self.getLastHurtByMob() == null &&
+                !this.self.onGround() &&
+                !this.self.isAggressive()) {
             if (LineScan.hasFloorLava(this.self)) {
                 this.self.setTarget((LivingEntity) null);
-                this.self.setVelocity(this.self.getVelocity().multiply(-1, this.self.getVelocity().getY(), -1));
+                this.self.setDeltaMovement(this.self.getDeltaMovement().multiply(-1, this.self.getDeltaMovement().y(), -1));
             }
         }
     }
 
-    @Inject(method = "onDeath", at = @At("HEAD"))
+    @Inject(method = "die", at = @At("HEAD"))
     private void cancelDeath(DamageSource damageSource, CallbackInfo ci) {
-        if (this.self.isTamed() && !this.self.getEntityWorld().isClient() && ConfigManager.config.canRespawn) {
-            NbtWriteView writeView = NbtWriteView.create(ErrorReporter.EMPTY);
-            this.self.writeData(writeView);
-            final NbtCompound wolfNbt = writeView.getNbt();
+        if (this.self.isTame() && !this.self.level().isClientSide() && ConfigManager.config.canRespawn) {
+            TagValueOutput writeView = TagValueOutput.createWithoutContext(ProblemReporter.DISCARDING);
+            this.self.saveWithoutId(writeView);
+            final CompoundTag wolfNbt = writeView.buildResult();
 
             wolfNbt.putInt("RescueTimeout", 20 * 60 * 10);
 
-            ReadView nbtReadView = NbtReadView.create(ErrorReporter.EMPTY, this.self.getRegistryManager(), wolfNbt);
+            ValueInput nbtReadView = TagValueInput.create(ProblemReporter.DISCARDING, this.self.registryAccess(), wolfNbt);
 
             wolfcompanion_template_1_21_1$dropInventoryByButton();
 
@@ -288,18 +303,18 @@ public abstract class WolfEntityMixin implements
                 playerAccessor.queueRescuedWolfNbt__(wolfNbt);
             } else {
                 if (wolfNbt.contains("Owner")) {
-                    LazyEntityReference<LivingEntity> lazyEntityReference = LazyEntityReference.fromDataOrPlayerName(nbtReadView, "Owner", this.getEntityWorld());
+                    EntityReference<LivingEntity> lazyEntityReference = EntityReference.readWithOldOwnerConversion(nbtReadView, "Owner", this.level());
 
                     if (lazyEntityReference == null) {
                         System.out.println("ERROR: Could not retrieve lazyEntityReference for wolf.");
                     } else {
-                        final UUID ownerUUID = lazyEntityReference.getUuid();
+                        final UUID ownerUUID = lazyEntityReference.getUUID();
                         //final UUID ownerUUID = UUID.fromString(wolfNbt.getString("Owner").get());
 
                         if (WolfEventHandler.getMinecraftServer() == null) {
                             System.out.println("ERROR: Server for cancelling wolf deletion not found");
                         } else {
-                            final File worldDirectory = WolfEventHandler.getMinecraftServer().getSavePath(WorldSavePath.ROOT).toFile();
+                            final File worldDirectory = WolfEventHandler.getMinecraftServer().getWorldPath(LevelResource.ROOT).toFile();
                             final File playerDatFolder = new File(worldDirectory, "playerdata");
                             writeToPlayerSaveFile(playerDatFolder, ownerUUID, wolfNbt);
                         }
@@ -313,24 +328,24 @@ public abstract class WolfEntityMixin implements
     }
 
     @Override
-    public SimpleInventory wolfcompanion_template_1_21_1$getItemsInventory() {
+    public SimpleContainer wolfcompanion_template_1_21_1$getItemsInventory() {
         return this.items;
     }
 
     @Unique
-    private static final TrackedData<Boolean> CHEST = DataTracker.registerData(WolfEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> CHEST = SynchedEntityData.defineId(Wolf.class, EntityDataSerializers.BOOLEAN);
     @Unique
-    private static final TrackedData<Boolean> DROP_CHEST = DataTracker.registerData(WolfEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> DROP_CHEST = SynchedEntityData.defineId(Wolf.class, EntityDataSerializers.BOOLEAN);
     @Unique
-    private static final TrackedData<Boolean> RELEASE_WOLF = DataTracker.registerData(WolfEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> RELEASE_WOLF = SynchedEntityData.defineId(Wolf.class, EntityDataSerializers.BOOLEAN);
     @Unique
-    private static final TrackedData<Byte> SHAKE_REASON = DataTracker.registerData(WolfEntity.class, TrackedDataHandlerRegistry.BYTE);
+    private static final EntityDataAccessor<Byte> SHAKE_REASON = SynchedEntityData.defineId(Wolf.class, EntityDataSerializers.BYTE);
     @Unique
-    private static final TrackedData<Integer> XP = DataTracker.registerData(WolfEntity.class, TrackedDataHandlerRegistry.INTEGER);
+    private static final EntityDataAccessor<Integer> XP = SynchedEntityData.defineId(Wolf.class, EntityDataSerializers.INT);
     @Unique
-    private static final TrackedData<Boolean> AGGRESSIVE = DataTracker.registerData(WolfEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> AGGRESSIVE = SynchedEntityData.defineId(Wolf.class, EntityDataSerializers.BOOLEAN);
     @Unique
-    private static final TrackedData<Boolean> LOCK = DataTracker.registerData(WolfEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> LOCK = SynchedEntityData.defineId(Wolf.class, EntityDataSerializers.BOOLEAN);
 
 //    private boolean isDirty = false;
 //
@@ -393,31 +408,31 @@ public abstract class WolfEntityMixin implements
 
     @Unique
     protected void onChestedStatusChanged() {
-        SimpleInventory simpleInventory = this.items;
-        this.items = new SimpleInventory(this.getInventorySize());
+        SimpleContainer simpleInventory = this.items;
+        this.items = new SimpleContainer(this.getInventorySize());
         if (simpleInventory != null) {
             simpleInventory.removeListener(this);
-            int i = Math.min(simpleInventory.size(), this.items.size());
+            int i = Math.min(simpleInventory.getContainerSize(), this.items.getContainerSize());
 
             for (int j = 0; j < i; j++) {
-                ItemStack itemStack = simpleInventory.getStack(j);
+                ItemStack itemStack = simpleInventory.getItem(j);
                 if (!itemStack.isEmpty()) {
-                    this.items.setStack(j, itemStack.copy());
+                    this.items.setItem(j, itemStack.copy());
                 }
             }
         }
 
         this.items.addListener(this);
-        this.items.markDirty();
+        this.items.setChanged();
     }
 
     @Override
-    public SimpleInventory getInventory() {
+    public SimpleContainer getInventory() {
         return this.items;
     }
 
     @Override
-    public void onInventoryChanged(Inventory sender) {
+    public void containerChanged(Container sender) {
 
     }
 
@@ -428,20 +443,20 @@ public abstract class WolfEntityMixin implements
 
     @Nullable
     @Override
-    public ScreenHandler createMenu(int syncId, PlayerInventory playerInventory, PlayerEntity player) {
+    public AbstractContainerMenu createMenu(int syncId, Inventory playerInventory, Player player) {
         return new WolfInventoryScreenHandler(syncId, playerInventory, self, NBTHelper.getWolfNBT(self));
     }
 
     @Override
-    public UuidPayload getScreenOpeningData(ServerPlayerEntity player) {
-        return new UuidPayload(self.getUuid(), NBTHelper.getWolfNBT(self));
+    public UuidPayload getScreenOpeningData(ServerPlayer player) {
+        return new UuidPayload(self.getUUID(), NBTHelper.getWolfNBT(self));
     }
 
 
 
     @Unique
-    public void openWolfInventory(final ServerPlayerEntity player, WolfEntityMixin wolfEntityMixin, Inventory inventory) {
-        player.openHandledScreen(this);
+    public void openWolfInventory(final ServerPlayer player, WolfEntityMixin wolfEntityMixin, Container inventory) {
+        player.openMenu(this);
     }
 
 //    @Unique
@@ -455,9 +470,9 @@ public abstract class WolfEntityMixin implements
 //    }
 
     @Override
-    public void openInventory(PlayerEntity player) {
-        if (!self.getEntityWorld().isClient()) {
-            openWolfInventory((ServerPlayerEntity) player, this, player.getInventory());
+    public void openCustomInventoryScreen(Player player) {
+        if (!self.level().isClientSide()) {
+            openWolfInventory((ServerPlayer) player, this, player.getInventory());
         }
     }
 
@@ -468,52 +483,52 @@ public abstract class WolfEntityMixin implements
 //                : StackReference.of(entity, slot);
 //    }
 
-    @Inject(method = "initDataTracker", at = @At("TAIL"))
-    protected void injectInitDataTracker(DataTracker.Builder builder, CallbackInfo ci) {
-        builder.add(CHEST, false);
-        builder.add(DROP_CHEST, false);
-        builder.add(RELEASE_WOLF, false);
-        builder.add(SHAKE_REASON, (byte)0);
-        builder.add(XP, 0);
-        builder.add(AGGRESSIVE, false);
-        builder.add(LOCK, false);
+    @Inject(method = "defineSynchedData", at = @At("TAIL"))
+    protected void injectInitDataTracker(SynchedEntityData.Builder builder, CallbackInfo ci) {
+        builder.define(CHEST, false);
+        builder.define(DROP_CHEST, false);
+        builder.define(RELEASE_WOLF, false);
+        builder.define(SHAKE_REASON, (byte)0);
+        builder.define(XP, 0);
+        builder.define(AGGRESSIVE, false);
+        builder.define(LOCK, false);
     }
 
     @Unique
     private float getKnockbackAgainst(Entity target, DamageSource damageSource) {
-        float f = (float)this.self.getAttributeValue(EntityAttributes.ATTACK_KNOCKBACK);
-        World var5 = this.self.getEntityWorld();
-        if (var5 instanceof ServerWorld serverWorld) {
-            return EnchantmentHelper.modifyKnockback(serverWorld, this.self.getWeaponStack(), target, damageSource, f);
+        float f = (float)this.self.getAttributeValue(Attributes.ATTACK_KNOCKBACK);
+        Level var5 = this.self.level();
+        if (var5 instanceof ServerLevel serverWorld) {
+            return EnchantmentHelper.modifyKnockback(serverWorld, this.self.getWeaponItem(), target, damageSource, f);
         } else {
             return f;
         }
     }
 
     @Override
-    public boolean tryAttack__(ServerWorld world, Entity target) {
-        float f = (float)this.self.getAttributeValue(EntityAttributes.ATTACK_DAMAGE) + getLevel() * 0.5f;
-        ItemStack itemStack = this.self.getWeaponStack();
-        DamageSource damageSource = (DamageSource)Optional.ofNullable(itemStack.getItem().getDamageSource(this.self)).orElse(this.self.getDamageSources().mobAttack(this.self));
-        f = EnchantmentHelper.getDamage(world, itemStack, target, damageSource, f);
-        f += itemStack.getItem().getBonusAttackDamage(target, f, damageSource);
-        boolean bl = target.damage(world, damageSource, f);
+    public boolean tryAttack__(ServerLevel world, Entity target) {
+        float f = (float)this.self.getAttributeValue(Attributes.ATTACK_DAMAGE) + getLevel() * 0.5f;
+        ItemStack itemStack = this.self.getWeaponItem();
+        DamageSource damageSource = (DamageSource)Optional.ofNullable(itemStack.getItem().getItemDamageSource(this.self)).orElse(this.self.damageSources().mobAttack(this.self));
+        f = EnchantmentHelper.modifyDamage(world, itemStack, target, damageSource, f);
+        f += itemStack.getItem().getAttackDamageBonus(target, f, damageSource);
+        boolean bl = target.hurtServer(world, damageSource, f);
         if (bl) {
             float g = getKnockbackAgainst(target, damageSource);
             LivingEntity livingEntity;
             if (g > 0.0F && target instanceof LivingEntity) {
                 livingEntity = (LivingEntity)target;
-                livingEntity.takeKnockback(g * 0.5F, MathHelper.sin(this.self.getYaw() * 0.017453292F), -MathHelper.cos(this.self.getYaw() * 0.017453292F));
-                this.self.setVelocity(this.self.getVelocity().multiply(0.6, 1.0, 0.6));
+                livingEntity.knockback(g * 0.5F, Mth.sin(this.self.getYRot() * 0.017453292F), -Mth.cos(this.self.getYRot() * 0.017453292F));
+                this.self.setDeltaMovement(this.self.getDeltaMovement().multiply(0.6, 1.0, 0.6));
             }
 
             if (target instanceof LivingEntity) {
                 livingEntity = (LivingEntity)target;
-                itemStack.postHit(livingEntity, this.self);
+                itemStack.hurtEnemy(livingEntity, this.self);
             }
 
-            EnchantmentHelper.onTargetDamaged(world, target, damageSource);
-            this.self.onAttacking(target);
+            EnchantmentHelper.doPostAttackEffects(world, target, damageSource);
+            this.self.setLastHurtMob(target);
             //this.self.playAttackSound();
         }
 
@@ -521,8 +536,8 @@ public abstract class WolfEntityMixin implements
     }
 
     @Unique
-    private DataTracker getDataTracker(WolfEntity wolf) {
-        return self.getDataTracker();
+    private SynchedEntityData getDataTracker(Wolf wolf) {
+        return self.getEntityData();
     }
 
     @Unique
@@ -630,12 +645,12 @@ public abstract class WolfEntityMixin implements
 
     @Override
     public int repairGear(final int amount) {
-        Optional<EnchantmentEffectContext> optional = EnchantmentHelper.chooseEquipmentWith(EnchantmentEffectComponentTypes.REPAIR_WITH_XP, this.self, ItemStack::isDamaged);
+        Optional<EnchantedItemInUse> optional = EnchantmentHelper.getRandomItemWith(EnchantmentEffectComponents.REPAIR_WITH_XP, this.self, ItemStack::isDamaged);
         if (optional.isPresent()) {
-            ItemStack itemStack = optional.get().stack();
-            int i = EnchantmentHelper.getRepairWithExperience((ServerWorld) this.self.getEntityWorld(), itemStack, amount);
-            int j = java.lang.Math.min(i, itemStack.getDamage());
-            itemStack.setDamage(itemStack.getDamage() - j);
+            ItemStack itemStack = optional.get().itemStack();
+            int i = EnchantmentHelper.modifyDurabilityToRepairFromXp((ServerLevel) this.self.level(), itemStack, amount);
+            int j = java.lang.Math.min(i, itemStack.getDamageValue());
+            itemStack.setDamageValue(itemStack.getDamageValue() - j);
             if (j > 0) {
                 int k = amount - j * amount / i;
                 if (k > 0) {
@@ -654,7 +669,7 @@ public abstract class WolfEntityMixin implements
         setShouldDropChest(true);
         wolfcompanion_template_1_21_1$dropInventoryByButton();
         if (this.self.getOwner() != null) {
-            this.self.setTamed(false, true);
+            this.self.setTame(false, true);
             this.self.setOwner((LivingEntity) null);
             //final NbtCompound wolfNbt = new NbtCompound();
             //this.self.writeCustomDataToNbt(wolfNbt);
@@ -671,12 +686,12 @@ public abstract class WolfEntityMixin implements
 
         if (shouldDropChest() || !ConfigManager.config.keepWolfInventory) {
             if (this.items != null) {
-                for (int i = this.items.size(); i >= 0; i--) {
-                    final ItemStack itemStack = this.items.getStack(i);
+                for (int i = this.items.getContainerSize(); i >= 0; i--) {
+                    final ItemStack itemStack = this.items.getItem(i);
                     if (!itemStack.isEmpty()) {
-                        if (self.getEquippedStack(EquipmentSlot.BODY) != itemStack) {
-                            this.items.removeStack(i);
-                            self.dropStack((ServerWorld) self.getEntityWorld(), itemStack);
+                        if (self.getItemBySlot(EquipmentSlot.BODY) != itemStack) {
+                            this.items.removeItemNoUpdate(i);
+                            self.spawnAtLocation((ServerLevel) self.level(), itemStack);
                         }
                     }
                 }
@@ -685,8 +700,8 @@ public abstract class WolfEntityMixin implements
             if (this.hasChest()) {
 
                 if (shouldDropChest() || !ConfigManager.config.keepWolfBag) {
-                    if (!self.getEntityWorld().isClient()) {
-                        self.dropItem((ServerWorld) self.getEntityWorld(), InitItem.ITEM_WOLF_BAG);
+                    if (!self.level().isClientSide()) {
+                        self.spawnAtLocation((ServerLevel) self.level(), InitItem.ITEM_WOLF_BAG);
                     }
                     this.setHasChest(false);
                 }
@@ -696,94 +711,94 @@ public abstract class WolfEntityMixin implements
 
     }
 
-    @Inject(method = "damage", at = @At("HEAD"), cancellable = true)
-    private void cancelPlayerDamage(ServerWorld world, DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
-        if (source.getAttacker() instanceof PlayerEntity && this.self.isTamed()) {
+    @Inject(method = "hurtServer", at = @At("HEAD"), cancellable = true)
+    private void cancelPlayerDamage(ServerLevel world, DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
+        if (source.getEntity() instanceof Player && this.self.isTame()) {
             cir.setReturnValue(false);
             cir.cancel();
         }
     }
 
-    @Inject(method = "writeCustomData", at = @At("TAIL"))
-    private void injectWriteCustomDataToNbt(WriteView view, CallbackInfo ci) {
+    @Inject(method = "addAdditionalSaveData", at = @At("TAIL"))
+    private void injectWriteCustomDataToNbt(ValueOutput view, CallbackInfo ci) {
         view.putBoolean("ChestedWolf", this.hasChest());
         view.putBoolean("wcm_IsAggressive", this.isAggressive__());
         view.putBoolean("wcm_IsLock", this.isLock__());
-        if (this.hasChest() && this.self.getEntityWorld() instanceof ServerWorld serverWorld) {
-            DynamicOps<NbtElement> ops =
-                    serverWorld.getRegistryManager().getOps(NbtOps.INSTANCE); // registry-aware ops
+        if (this.hasChest() && this.self.level() instanceof ServerLevel serverWorld) {
+            DynamicOps<Tag> ops =
+                    serverWorld.registryAccess().createSerializationContext(NbtOps.INSTANCE); // registry-aware ops
 
-            WriteView.ListView list = view.getList("WolfBagItems");
+            ValueOutput.ValueOutputList list = view.childrenList("WolfBagItems");
 
-            for (int slot = 0; slot < this.items.size(); slot++) {
-                ItemStack stack = this.items.getStack(slot);
+            for (int slot = 0; slot < this.items.getContainerSize(); slot++) {
+                ItemStack stack = this.items.getItem(slot);
                 if (stack.isEmpty()) continue;
 
-                NbtElement encoded = ItemStack.CODEC.encodeStart(ops, stack)
+                Tag encoded = ItemStack.CODEC.encodeStart(ops, stack)
                         .getOrThrow(msg -> new IllegalStateException("Failed to encode ItemStack: " + msg));
 
-                WriteView entry = list.add();
+                ValueOutput entry = list.addChild();
                 entry.putInt("Slot", slot);
                 entry.putString("Stack", encoded.toString()); // SNBT
             }
         }
-        view.putNullable("CustomName", TextCodecs.CODEC, this.self.getCustomName());
+        view.storeNullable("CustomName", ComponentSerialization.CODEC, this.self.getCustomName());
         if (this.self.isCustomNameVisible()) {
             view.putBoolean("CustomNameVisible", this.self.isCustomNameVisible());
         }
         view.putInt("XP", this.getXp());
     }
 
-    @Inject(method = "readCustomData", at = @At("TAIL"))
-    private void readCustomDataFromNbt(ReadView view, CallbackInfo ci) {
-        this.setHasChest(view.getBoolean("ChestedWolf", false));
-        this.setAggressive__(view.getBoolean("wcm_IsAggressive", false));
-        this.setLock__(view.getBoolean("wcm_IsLock", false));
+    @Inject(method = "readAdditionalSaveData", at = @At("TAIL"))
+    private void readCustomDataFromNbt(ValueInput view, CallbackInfo ci) {
+        this.setHasChest(view.getBooleanOr("ChestedWolf", false));
+        this.setAggressive__(view.getBooleanOr("wcm_IsAggressive", false));
+        this.setLock__(view.getBooleanOr("wcm_IsLock", false));
         this.onChestedStatusChanged();
-        if (this.hasChest() && this.getEntityWorld() instanceof ServerWorld serverWorld) {
-            DynamicOps<NbtElement> ops =
-                    serverWorld.getRegistryManager().getOps(NbtOps.INSTANCE);
+        if (this.hasChest() && this.level() instanceof ServerLevel serverWorld) {
+            DynamicOps<Tag> ops =
+                    serverWorld.registryAccess().createSerializationContext(NbtOps.INSTANCE);
 
-            for (ReadView entry : view.getListReadView("WolfBagItems")) {
-                int slot = entry.getInt("Slot", -1);
-                if (slot < 0 || slot >= this.items.size()) continue;
+            for (ValueInput entry : view.childrenListOrEmpty("WolfBagItems")) {
+                int slot = entry.getIntOr("Slot", -1);
+                if (slot < 0 || slot >= this.items.getContainerSize()) continue;
 
-                String snbt = entry.getString("Stack", "");
+                String snbt = entry.getStringOr("Stack", "");
                 if (snbt.isEmpty()) continue;
 
                 try {
-                    NbtElement parsed = StringNbtReader.readCompound(snbt);
+                    Tag parsed = TagParser.parseCompoundFully(snbt);
 
                     ItemStack stack = ItemStack.CODEC.parse(ops, parsed)
                             .getOrThrow(msg -> new IllegalStateException("Failed to decode ItemStack: " + msg));
 
                     if (slot == 0) {
-                        this.self.equipBodyArmor(stack);
+                        this.self.setBodyArmorItem(stack);
                     } else {
-                        this.items.setStack(slot, stack);
+                        this.items.setItem(slot, stack);
                     }
                 } catch (Exception ignored) {
                     // optionally log
                 }
             }
         }
-        this.self.setCustomName(view.read("CustomName", TextCodecs.CODEC).orElse(null));
-        this.self.setCustomNameVisible(view.getBoolean("CustomNameVisible", false));
+        this.self.setCustomName(view.read("CustomName", ComponentSerialization.CODEC).orElse(null));
+        this.self.setCustomNameVisible(view.getBooleanOr("CustomNameVisible", false));
 
-        this.setXp(view.getInt("XP", 0));
+        this.setXp(view.getIntOr("XP", 0));
     }
 
     @Unique
-    private void addChest(PlayerEntity player, ItemStack chest) {
+    private void addChest(Player player, ItemStack chest) {
         this.setHasChest(true);
         this.playAddChestSound();
-        chest.decrementUnlessCreative(1, player);
+        chest.consume(1, player);
         this.onChestedStatusChanged();
     }
 
     @Unique
     protected void playAddChestSound() {
-        self.playSound(SoundEvents.ENTITY_DONKEY_CHEST, 1.0F, (self.getRandom().nextFloat() - self.getRandom().nextFloat()) * 0.2F + 1.0F);
+        self.playSound(SoundEvents.DONKEY_CHEST, 1.0F, (self.getRandom().nextFloat() - self.getRandom().nextFloat()) * 0.2F + 1.0F);
     }
 
     @Unique
@@ -792,56 +807,56 @@ public abstract class WolfEntityMixin implements
     }
 
     @Unique
-    private SimpleInventory getReducedInventory() {
-        final SimpleInventory inv = new SimpleInventory(15);
-        for (int i = 1; i < this.items.size(); i++) {
-            inv.setStack(i - 1, this.items.getStack(i));
+    private SimpleContainer getReducedInventory() {
+        final SimpleContainer inv = new SimpleContainer(15);
+        for (int i = 1; i < this.items.getContainerSize(); i++) {
+            inv.setItem(i - 1, this.items.getItem(i));
         }
         return inv;
     }
 
     @Unique
-    private void transferReducedInventory(final SimpleInventory inv) {
-        for (int i = 1; i < this.items.size(); i++) {
-            this.items.setStack(i, inv.getStack(i - 1));
+    private void transferReducedInventory(final SimpleContainer inv) {
+        for (int i = 1; i < this.items.getContainerSize(); i++) {
+            this.items.setItem(i, inv.getItem(i - 1));
         }
     }
 
     @Unique
     private void dropItem(ItemStack stack) {
-        ItemEntity itemEntity = new ItemEntity(this.self.getEntityWorld(), this.self.getX(), this.self.getY(), this.self.getZ(), stack);
-        this.self.getEntityWorld().spawnEntity(itemEntity);
+        ItemEntity itemEntity = new ItemEntity(this.self.level(), this.self.getX(), this.self.getY(), this.self.getZ(), stack);
+        this.self.level().addFreshEntity(itemEntity);
     }
 
     @Override
     public void spit__(ItemStack stack) {
-        if (!stack.isEmpty() && !this.self.getEntityWorld().isClient()) {
+        if (!stack.isEmpty() && !this.self.level().isClientSide()) {
             ItemEntity itemEntity = new ItemEntity(
-                    this.self.getEntityWorld(), this.self.getX() + this.self.getRotationVector().x, this.self.getY() + 1.0, this.self.getZ() + this.self.getRotationVector().z, stack
+                    this.self.level(), this.self.getX() + this.self.getLookAngle().x, this.self.getY() + 1.0, this.self.getZ() + this.self.getLookAngle().z, stack
             );
-            itemEntity.setPickupDelay(40);
+            itemEntity.setPickUpDelay(40);
             itemEntity.setThrower(this.self);
-            this.self.playSound(SoundEvents.ENTITY_FOX_SPIT, 1.0F, 1.0F);
-            this.self.getEntityWorld().spawnEntity(itemEntity);
+            this.self.playSound(SoundEvents.FOX_SPIT, 1.0F, 1.0F);
+            this.self.level().addFreshEntity(itemEntity);
         }
     }
 
     @Unique
     private void loot__(ItemEntity item) {
-        ItemStack itemStack = item.getStack();
+        ItemStack itemStack = item.getItem();
         if (!itemStack.isEmpty()) {
             if (this.hasChestEquipped()) {
-                if (this.items.canInsert(itemStack)) {
-                    this.self.triggerItemPickedUpByEntityCriteria(item);
+                if (this.items.canAddItem(itemStack)) {
+                    this.self.onItemPickup(item);
 
-                    final SimpleInventory reducedInventory = getReducedInventory();
-                    final ItemStack itemStack2 = reducedInventory.addStack(itemStack); //this.items.addStack(itemStack);
+                    final SimpleContainer reducedInventory = getReducedInventory();
+                    final ItemStack itemStack2 = reducedInventory.addItem(itemStack); //this.items.addStack(itemStack);
                     transferReducedInventory(reducedInventory);
 
                     final int transfered = itemStack.getCount() - itemStack2.getCount();
 
-                    this.self.sendPickup(item, transfered);
-                    itemStack.decrement(transfered);
+                    this.self.take(item, transfered);
+                    itemStack.shrink(transfered);
 
                     if (itemStack.isEmpty()) {
                         item.discard();
@@ -849,7 +864,7 @@ public abstract class WolfEntityMixin implements
 
                     this.items.removeListener(this);
                     this.items.addListener(this);
-                    this.items.markDirty();
+                    this.items.setChanged();
                 }
             } else {
                 int i = itemStack.getCount();
@@ -857,32 +872,33 @@ public abstract class WolfEntityMixin implements
                     this.dropItem(itemStack.split(i - 1));
                 }
 
-                this.spit__(this.self.getEquippedStack(EquipmentSlot.MAINHAND));
-                this.self.triggerItemPickedUpByEntityCriteria(item);
-                this.self.equipStack(EquipmentSlot.MAINHAND, itemStack.split(1));
-                this.self.sendPickup(item, itemStack.getCount());
+                this.spit__(this.self.getItemBySlot(EquipmentSlot.MAINHAND));
+                this.self.onItemPickup(item);
+                this.self.setItemSlot(EquipmentSlot.MAINHAND, itemStack.split(1));
+                this.self.take(item, itemStack.getCount());
                 item.discard();
             }
         }
     }
 
-    @Inject(method = "tickMovement", at = @At("TAIL"))
+    @Inject(method = "aiStep", at = @At("TAIL"))
     private void onTickMovement(CallbackInfo ci) {
-        if(this.targetPickup.isPresent()) {
-            if (!this.self.getEntityWorld().isClient()
+        Optional<ItemEntity> targetPickup = this.getTargetPickup__();
+        if(targetPickup.isPresent()) {
+            if (!this.self.level().isClientSide()
                     && this.self.isAlive()
-                    && !this.self.isDead()
-                    && ((ServerWorld)this.self.getEntityWorld()).getGameRules().getValue(GameRules.DO_MOB_GRIEFING)) {
-                final Profiler profiler = Profilers.get();
+                    && !this.self.isDeadOrDying()
+                    && ((ServerLevel)this.self.level()).getGameRules().get(GameRules.MOB_GRIEFING)) {
+                final ProfilerFiller profiler = Profiler.get();
                 profiler.push("looting");
 
                 Vec3i vec3i = ((MobEntityAccessor) this.self).getItemPickUpRangeExpander__();
-                List<ItemEntity> list = this.getEntityWorld().getNonSpectatingEntities(ItemEntity.class, this.self.getBoundingBox()
-                        .expand(vec3i.getX(), vec3i.getY(), vec3i.getZ()))
-                        .stream().filter(e -> e == this.targetPickup.get()).toList();
+                List<ItemEntity> list = this.level().getEntitiesOfClass(ItemEntity.class, this.self.getBoundingBox()
+                        .inflate(vec3i.getX(), vec3i.getY(), vec3i.getZ()))
+                        .stream().filter(e -> e == targetPickup.get()).toList();
 
                 for (ItemEntity itemEntity : list) {
-                    if (!itemEntity.isRemoved() && !itemEntity.getStack().isEmpty() && !itemEntity.cannotPickup() && this.self.canGather(((ServerWorld)this.self.getEntityWorld()), itemEntity.getStack())) {
+                    if (!itemEntity.isRemoved() && !itemEntity.getItem().isEmpty() && !itemEntity.hasPickUpDelay() && this.self.wantsToPickUp(((ServerLevel)this.self.level()), itemEntity.getItem())) {
                         this.loot__(itemEntity);
                     }
                 }
@@ -893,23 +909,23 @@ public abstract class WolfEntityMixin implements
     }
 
     @Unique
-    private Vec2f vecFromYaw(final float yaw) {
+    private Vec2 vecFromYaw(final float yaw) {
         final float rad = Math.toRadians(yaw);
-        return new Vec2f(-MathHelper.sin(rad), MathHelper.cos(rad));
+        return new Vec2(-Mth.sin(rad), Mth.cos(rad));
     }
 
-    @Inject(method = "handleStatus", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "handleEntityEvent", at = @At("HEAD"), cancellable = true)
     private void onHandleStatus(byte status, CallbackInfo ci) {
-        if (status == EntityStatuses.CREATE_EATING_PARTICLES) {
-            ItemStack itemStack = this.self.getEquippedStack(EquipmentSlot.MAINHAND);
-            final Vec2f vec = vecFromYaw(self.bodyYaw).normalize();
+        if (status == EntityEvent.FOX_EAT) {
+            ItemStack itemStack = this.self.getItemBySlot(EquipmentSlot.MAINHAND);
+            final Vec2 vec = vecFromYaw(self.yBodyRot).normalized();
             if (!itemStack.isEmpty()) {
                 for (int i = 0; i < 8; i++) {
-                    Vec3d vec3d = new Vec3d(((double)this.self.getRandom().nextFloat() - 0.5) * 0.1, Math.random() * 0.1 + 0.1, 0.0)
-                            .rotateX(-this.self.getPitch() * (float) (Math.PI / 180.0))
-                            .rotateY(-this.self.getYaw() * (float) (Math.PI / 180.0));
-                    this.self.getEntityWorld().addParticleClient(
-                                    new ItemStackParticleEffect(ParticleTypes.ITEM, itemStack),
+                    Vec3 vec3d = new Vec3(((double)this.self.getRandom().nextFloat() - 0.5) * 0.1, Math.random() * 0.1 + 0.1, 0.0)
+                            .xRot(-this.self.getXRot() * (float) (Math.PI / 180.0))
+                            .yRot(-this.self.getYRot() * (float) (Math.PI / 180.0));
+                    this.self.level().addParticle(
+                                    new ItemParticleOption(ParticleTypes.ITEM, itemStack),
                             this.self.getX() + vec.x * 0.6,
                             this.self.getY() + 0.6,
                             this.self.getZ() + vec.y * 0.6,
@@ -923,28 +939,27 @@ public abstract class WolfEntityMixin implements
         }
     }
 
-    @Inject(method = "interactMob", at = @At("HEAD"), cancellable = true)
-    private void onRightClick(PlayerEntity player, Hand hand, CallbackInfoReturnable<ActionResult> cir) {
-        if (!player.getEntityWorld().isClient() &&
-                hand == Hand.MAIN_HAND &&
-                self.isTamed() &&
-                self.isOwner(player) &&
+    @Inject(method = "mobInteract", at = @At("HEAD"), cancellable = true)
+    private void onRightClick(Player player, InteractionHand hand, CallbackInfoReturnable<InteractionResult> cir) {
+        if (!player.level().isClientSide() &&
+                hand == InteractionHand.MAIN_HAND &&
+                self.isTame() &&
+                self.isOwnedBy(player) &&
                 !self.isBaby()
         ) {
-            final ItemStack itemStack = player.getStackInHand(hand);
+            final ItemStack itemStack = player.getItemInHand(hand);
             //System.out.println(itemStack.isOf(InitItem.ITEM_WOLF_BAG));
-            if (!this.hasChest() && itemStack.isOf(InitItem.ITEM_WOLF_BAG)) {
+            if (!this.hasChest() && itemStack.is(InitItem.ITEM_WOLF_BAG)) {
                 this.addChest(player, itemStack);
-                final ActionResult result = self.getEntityWorld().isClient() ? ActionResult.SUCCESS : ActionResult.SUCCESS_SERVER;
+                final InteractionResult result = self.level().isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
                 cir.setReturnValue(result);
                 cir.cancel();
-            } else if (player.isSneaking()) {
-                this.openInventory(player);
-                final ActionResult result = self.getEntityWorld().isClient() ? ActionResult.SUCCESS : ActionResult.SUCCESS_SERVER;
+            } else if (player.isShiftKeyDown()) {
+                this.openCustomInventoryScreen(player);
+                final InteractionResult result = self.level().isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
                 cir.setReturnValue(result);
                 cir.cancel();
             }
         }
     }
 }
-

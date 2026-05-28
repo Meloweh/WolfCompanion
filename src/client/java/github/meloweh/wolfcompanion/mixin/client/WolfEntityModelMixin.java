@@ -2,7 +2,8 @@ package github.meloweh.wolfcompanion.mixin.client;
 
 import accessor.WolfEntityModelAccessor;
 import net.minecraft.client.model.*;
-import net.minecraft.client.render.entity.model.WolfEntityModel;
+import net.minecraft.client.model.animal.wolf.WolfModel;
+import net.minecraft.client.model.geom.ModelPart;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 import org.spongepowered.asm.mixin.injection.At;
@@ -10,9 +11,9 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 
-@Mixin(WolfEntityModel.class)
+@Mixin(WolfModel.class)
 public abstract class WolfEntityModelMixin implements WolfEntityModelAccessor {
-    @Accessor("torso")
+    @Accessor("body")
     public abstract ModelPart getTorso();
     @Accessor("realHead")
     public abstract ModelPart getRealHead();

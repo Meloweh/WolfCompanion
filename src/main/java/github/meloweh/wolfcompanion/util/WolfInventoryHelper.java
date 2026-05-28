@@ -1,29 +1,26 @@
 package github.meloweh.wolfcompanion.util;
 
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.AttributeModifierSlot;
-import net.minecraft.component.type.PotionContentsComponent;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.effect.StatusEffect;
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.entity.effect.StatusEffects;
-import net.minecraft.entity.passive.WolfEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.potion.Potion;
-import net.minecraft.potion.Potions;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.registry.entry.RegistryEntry;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.EquipmentSlotGroup;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.animal.wolf.Wolf;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.alchemy.Potion;
+import net.minecraft.world.item.alchemy.PotionContents;
+import net.minecraft.world.item.alchemy.Potions;
 
 public class WolfInventoryHelper {
 
@@ -36,14 +33,14 @@ public class WolfInventoryHelper {
 //    }
 
     private static boolean hasLifesavingEffects(final LivingEntity entity) {
-        return getLifeSavingEffects(true).stream().anyMatch(entity::hasStatusEffect);
+        return getLifeSavingEffects(true).stream().anyMatch(entity::hasEffect);
     }
 
     public static boolean hasFittingLifesavingEffect(final LivingEntity entity) {
         final boolean isLow = entity.getHealth() <= 7;
         final boolean isHot = entity.isOnFire() || entity.isInLava();
         final boolean hasAnyEffect = hasLifesavingEffects(entity);
-        final boolean hasFireResistance = entity.hasStatusEffect(StatusEffects.FIRE_RESISTANCE);
+        final boolean hasFireResistance = entity.hasEffect(MobEffects.FIRE_RESISTANCE);
 
         if (isHot && !hasFireResistance) return false;
         if (isLow) {
@@ -55,29 +52,29 @@ public class WolfInventoryHelper {
     }
 
     public static boolean hasFittingLifesavingEffect(final LivingEntity entity, final List<ItemStack> inventoryContents) {
-        final boolean hasFireResistance = entity.hasStatusEffect(StatusEffects.FIRE_RESISTANCE);
+        final boolean hasFireResistance = entity.hasEffect(MobEffects.FIRE_RESISTANCE);
         final boolean isHot = entity.isOnFire() || entity.isInLava();
         final boolean isLow = entity.getHealth() <= 7;
         final boolean hasAnyEffect = hasLifesavingEffects(entity);
         final boolean hasAnyPotion = !findLifesavingPotions(inventoryContents, entity).first.isEmpty();
-        final boolean hasFirePotion = !findPotion(inventoryContents, StatusEffects.FIRE_RESISTANCE).first.isEmpty();
+        final boolean hasFirePotion = !findPotion(inventoryContents, MobEffects.FIRE_RESISTANCE).first.isEmpty();
 
         boolean hasArmor = false;
 
-        if (entity instanceof WolfEntity) {
-            WolfEntity w = (WolfEntity) entity;
+        if (entity instanceof Wolf) {
+            Wolf w = (Wolf) entity;
             hasArmor = w.isWearingBodyArmor();
         }
 
-        if (entity instanceof PlayerEntity) {
-            PlayerEntity p = (PlayerEntity) entity;
+        if (entity instanceof Player) {
+            Player p = (Player) entity;
             boolean isOk = true;
 
-            for(EquipmentSlot equipmentSlot : AttributeModifierSlot.ARMOR) {
+            for(EquipmentSlot equipmentSlot : EquipmentSlotGroup.ARMOR) {
                 if (equipmentSlot.getType() == EquipmentSlot.Type.HUMANOID_ARMOR) {
-                    ItemStack e = entity.getEquippedStack(equipmentSlot);
+                    ItemStack e = entity.getItemBySlot(equipmentSlot);
 
-                    if (!e.isOf(Items.NETHERITE_BOOTS) && !e.isOf(Items.NETHERITE_LEGGINGS) && !e.isOf(Items.NETHERITE_CHESTPLATE) && !e.isOf(Items.NETHERITE_HELMET)) {
+                    if (!e.is(Items.NETHERITE_BOOTS) && !e.is(Items.NETHERITE_LEGGINGS) && !e.is(Items.NETHERITE_CHESTPLATE) && !e.is(Items.NETHERITE_HELMET)) {
                         isOk = false;
                         break;
                     }
@@ -131,88 +128,88 @@ public class WolfInventoryHelper {
         //return getLifeSavingEffects().stream().anyMatch(entity::hasStatusEffect);
     }
 
-    private static List<RegistryEntry<StatusEffect>> getLifeSavingEffects(final boolean withFire) {
+    private static List<Holder<MobEffect>> getLifeSavingEffects(final boolean withFire) {
         //System.out.println(withFire);
-        final List<RegistryEntry<StatusEffect>> acceptableStatusEffects = new ArrayList<>();
+        final List<Holder<MobEffect>> acceptableStatusEffects = new ArrayList<>();
         if (withFire)
-            acceptableStatusEffects.add(StatusEffects.FIRE_RESISTANCE);
-        acceptableStatusEffects.add(StatusEffects.INSTANT_HEALTH);
-        acceptableStatusEffects.add(StatusEffects.REGENERATION);
+            acceptableStatusEffects.add(MobEffects.FIRE_RESISTANCE);
+        acceptableStatusEffects.add(MobEffects.INSTANT_HEALTH);
+        acceptableStatusEffects.add(MobEffects.REGENERATION);
         return acceptableStatusEffects;
     }
 
-    private static RegistryEntry<Potion> getPotion(final RegistryEntry<StatusEffect> effect, final int ampl, final int duration) {
+    private static Holder<Potion> getPotion(final Holder<MobEffect> effect, final int ampl, final int duration) {
         if (Potions.LONG_FIRE_RESISTANCE.value().getEffects().stream()
-                .anyMatch(a -> a.getAmplifier() == ampl && a.getDuration() == duration && a.getEffectType() == effect)) {
+                .anyMatch(a -> a.getAmplifier() == ampl && a.getDuration() == duration && a.getEffect() == effect)) {
             return Potions.LONG_FIRE_RESISTANCE;
         }
 
         if (Potions.FIRE_RESISTANCE.value().getEffects().stream()
-                .anyMatch(a -> a.getAmplifier() == ampl && a.getDuration() == duration && a.getEffectType() == effect)) {
+                .anyMatch(a -> a.getAmplifier() == ampl && a.getDuration() == duration && a.getEffect() == effect)) {
             return Potions.FIRE_RESISTANCE;
         }
 
         if (Potions.HEALING.value().getEffects().stream()
-                .anyMatch(a -> a.getAmplifier() == ampl && a.getDuration() == duration && a.getEffectType() == effect)) {
+                .anyMatch(a -> a.getAmplifier() == ampl && a.getDuration() == duration && a.getEffect() == effect)) {
             return Potions.HEALING;
         }
 
         if (Potions.STRONG_HEALING.value().getEffects().stream()
-                .anyMatch(a -> a.getAmplifier() == ampl && a.getDuration() == duration && a.getEffectType() == effect)) {
+                .anyMatch(a -> a.getAmplifier() == ampl && a.getDuration() == duration && a.getEffect() == effect)) {
             return Potions.STRONG_HEALING;
         }
 
         if (Potions.REGENERATION.value().getEffects().stream()
-                .anyMatch(a -> a.getAmplifier() == ampl && a.getDuration() == duration && a.getEffectType() == effect)) {
+                .anyMatch(a -> a.getAmplifier() == ampl && a.getDuration() == duration && a.getEffect() == effect)) {
             return Potions.REGENERATION;
         }
 
         if (Potions.STRONG_REGENERATION.value().getEffects().stream()
-                .anyMatch(a -> a.getAmplifier() == ampl && a.getDuration() == duration && a.getEffectType() == effect)) {
+                .anyMatch(a -> a.getAmplifier() == ampl && a.getDuration() == duration && a.getEffect() == effect)) {
             return Potions.STRONG_REGENERATION;
         }
 
         if (Potions.LONG_REGENERATION.value().getEffects().stream()
-                .anyMatch(a -> a.getAmplifier() == ampl && a.getDuration() == duration && a.getEffectType() == effect)) {
+                .anyMatch(a -> a.getAmplifier() == ampl && a.getDuration() == duration && a.getEffect() == effect)) {
             return Potions.LONG_REGENERATION;
         }
 
         return Potions.AWKWARD;
     }
 
-    public static Pair<ItemStack, RegistryEntry<Potion>> findLifesavingPotions(final List<ItemStack> inventoryContents, final LivingEntity entity) {
-        final boolean withFire = (entity.isOnFire() || entity.isInLava()) && !entity.hasStatusEffect(StatusEffects.FIRE_RESISTANCE);
-        final List<RegistryEntry<StatusEffect>> acceptableEffects =
+    public static Pair<ItemStack, Holder<Potion>> findLifesavingPotions(final List<ItemStack> inventoryContents, final LivingEntity entity) {
+        final boolean withFire = (entity.isOnFire() || entity.isInLava()) && !entity.hasEffect(MobEffects.FIRE_RESISTANCE);
+        final List<Holder<MobEffect>> acceptableEffects =
                 getLifeSavingEffects(withFire);
 
-        final Set<RegistryEntry<StatusEffect>> actives = entity.getStatusEffects().stream().map(StatusEffectInstance::getEffectType).collect(Collectors.toSet());
+        final Set<Holder<MobEffect>> actives = entity.getActiveEffects().stream().map(MobEffectInstance::getEffect).collect(Collectors.toSet());
 
-        final List<RegistryEntry<StatusEffect>> filtered = acceptableEffects.stream()
-                .filter(e -> actives.stream().noneMatch(a -> a.matchesKey(e.getKey().get()))).toList();
+        final List<Holder<MobEffect>> filtered = acceptableEffects.stream()
+                .filter(e -> actives.stream().noneMatch(a -> a.is(e.unwrapKey().get()))).toList();
 
         return findPotions(inventoryContents, filtered);
 
     }
-    private static Pair<ItemStack, RegistryEntry<Potion>> findPotions(final List<ItemStack> inventoryContents, final List<RegistryEntry<StatusEffect>> statusEffects) {
-        for (final RegistryEntry<StatusEffect> statusEffect : statusEffects) {
-            final Pair<ItemStack, RegistryEntry<Potion>> potion = findPotion(inventoryContents, statusEffect);
+    private static Pair<ItemStack, Holder<Potion>> findPotions(final List<ItemStack> inventoryContents, final List<Holder<MobEffect>> statusEffects) {
+        for (final Holder<MobEffect> statusEffect : statusEffects) {
+            final Pair<ItemStack, Holder<Potion>> potion = findPotion(inventoryContents, statusEffect);
             if (!potion.first.isEmpty()) return potion;
         }
         return Pair.of(ItemStack.EMPTY, Potions.AWKWARD);
     }
 
-    public static RegistryEntry<Potion> getPotionOfStack(final ItemStack stack, final RegistryEntry<StatusEffect> statusEffect) {
+    public static Holder<Potion> getPotionOfStack(final ItemStack stack, final Holder<MobEffect> statusEffect) {
 
         if (stack.isEmpty()) return Potions.AWKWARD;
 
-        final PotionContentsComponent potion_ = stack.get(DataComponentTypes.POTION_CONTENTS);
+        final PotionContents potion_ = stack.get(DataComponents.POTION_CONTENTS);
 
         int ampl = 0;
         int duration = 0;
         //RegistryEntry<StatusEffect> effectType;
 
-        for (final Iterator<StatusEffectInstance> it = potion_.getEffects().iterator(); it.hasNext(); ) {
-            final StatusEffectInstance instance = it.next();
+        for (final Iterator<MobEffectInstance> it = potion_.getAllEffects().iterator(); it.hasNext(); ) {
+            final MobEffectInstance instance = it.next();
             ampl = instance.getAmplifier();
             duration = instance.getDuration();
             //effectType = instance.getEffectType();
@@ -220,30 +217,30 @@ public class WolfInventoryHelper {
 
         return getPotion(statusEffect, ampl, duration);
     }
-    private static Pair<ItemStack, RegistryEntry<Potion>> findPotion(final List<ItemStack> inventoryContents, final RegistryEntry<StatusEffect> statusEffect) {
+    private static Pair<ItemStack, Holder<Potion>> findPotion(final List<ItemStack> inventoryContents, final Holder<MobEffect> statusEffect) {
         //System.out.println(inventoryContents.size());
         final ItemStack stack = inventoryContents.stream()
                 .filter(itemStack -> {
                     //itemStack.getComponents().forEach(e -> System.out.println(e.toString()));
                     //System.out.println(itemStack.getComponents());
-                    return !itemStack.isEmpty() && itemStack.contains(DataComponentTypes.POTION_CONTENTS);
+                    return !itemStack.isEmpty() && itemStack.has(DataComponents.POTION_CONTENTS);
                 })
                 .filter(itemStack -> {
-                    PotionContentsComponent potion = itemStack.get(DataComponentTypes.POTION_CONTENTS);
-                    return StreamSupport.stream(potion.getEffects().spliterator(), false)
-                            .anyMatch(effect -> effect.getEffectType() == statusEffect);
+                    PotionContents potion = itemStack.get(DataComponents.POTION_CONTENTS);
+                    return StreamSupport.stream(potion.getAllEffects().spliterator(), false)
+                            .anyMatch(effect -> effect.getEffect() == statusEffect);
                 })
                 .max(Comparator.comparing(itemStack -> {
-                    final PotionContentsComponent potion = itemStack.get(DataComponentTypes.POTION_CONTENTS);
-                    return StreamSupport.stream(potion.getEffects().spliterator(), false)
-                            .filter(effect -> effect.getEffectType() == statusEffect)
-                            .mapToInt(StatusEffectInstance::getAmplifier)
+                    final PotionContents potion = itemStack.get(DataComponents.POTION_CONTENTS);
+                    return StreamSupport.stream(potion.getAllEffects().spliterator(), false)
+                            .filter(effect -> effect.getEffect() == statusEffect)
+                            .mapToInt(MobEffectInstance::getAmplifier)
                             .max()
                             .orElse(0);
                 }))
                 .orElse(ItemStack.EMPTY);
 
-        final RegistryEntry<Potion> actualPotion = getPotionOfStack(stack, statusEffect);
+        final Holder<Potion> actualPotion = getPotionOfStack(stack, statusEffect);
 
         return Pair.of(stack, actualPotion);
     }

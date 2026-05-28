@@ -4,12 +4,11 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import github.meloweh.wolfcompanion.WolfCompanion;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.tag.TagKey;
-import net.minecraft.util.Identifier;
-
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
 import java.io.*;
 import java.nio.file.Files;
 import java.util.HashSet;
@@ -65,20 +64,20 @@ public class ConfigManager {
         for (String s : entries) {
             if (s.startsWith("#")) {
                 Identifier id = Identifier.tryParse(s.substring(1));
-                if (id != null) TAGS.add(TagKey.of(Registries.ENTITY_TYPE.getKey(), id));
+                if (id != null) TAGS.add(TagKey.create(BuiltInRegistries.ENTITY_TYPE.key(), id));
                 continue;
             }
             Identifier id = Identifier.tryParse(s);
             if (id == null) continue;
 
-            TYPES.add(Registries.ENTITY_TYPE.get(id));
+            TYPES.add(BuiltInRegistries.ENTITY_TYPE.getValue(id));
         }
     }
 
     public static boolean isBlacklisted(Entity attacker) {
         EntityType<?> t = attacker.getType();
         if (TYPES.contains(t)) return true;
-        for (var tag : TAGS) if (t.isIn(tag)) return true;
+        for (var tag : TAGS) if (t.is(tag)) return true;
         return false;
     }
 }

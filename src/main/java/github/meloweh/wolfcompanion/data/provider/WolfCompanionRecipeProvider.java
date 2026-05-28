@@ -3,51 +3,50 @@ package github.meloweh.wolfcompanion.data.provider;
 import github.meloweh.wolfcompanion.init.InitItem;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricRecipeProvider;
-import net.minecraft.data.recipe.RecipeExporter;
-import net.minecraft.data.recipe.RecipeGenerator;
-import net.minecraft.item.Items;
-import net.minecraft.recipe.book.RecipeCategory;
-import net.minecraft.registry.RegistryWrapper;
-
+import net.minecraft.core.HolderLookup;
+import net.minecraft.data.recipes.RecipeCategory;
+import net.minecraft.data.recipes.RecipeOutput;
+import net.minecraft.data.recipes.RecipeProvider;
+import net.minecraft.world.item.Items;
 import java.util.concurrent.CompletableFuture;
 
 public class WolfCompanionRecipeProvider extends FabricRecipeProvider {
-    public WolfCompanionRecipeProvider(FabricDataOutput output, CompletableFuture<RegistryWrapper.WrapperLookup> registriesFuture) {
+    public WolfCompanionRecipeProvider(FabricDataOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
         super(output, registriesFuture);
     }
 
     @Override
-    protected RecipeGenerator getRecipeGenerator(RegistryWrapper.WrapperLookup wrapperLookup, RecipeExporter recipeExporter) {
-        return new RecipeGenerator(wrapperLookup, recipeExporter) {
+    protected RecipeProvider createRecipeProvider(HolderLookup.Provider wrapperLookup, RecipeOutput recipeExporter) {
+        return new RecipeProvider(wrapperLookup, recipeExporter) {
             @Override
-            public void generate() {
-                createShaped(RecipeCategory.TOOLS, InitItem.ITEM_SINGLE_WOLF_BAG)
-                        .input('A', Items.ARMADILLO_SCUTE)
-                        .input('C', Items.CHEST)
+            public void buildRecipes() {
+                shaped(RecipeCategory.TOOLS, InitItem.ITEM_SINGLE_WOLF_BAG)
+                        .define('A', Items.ARMADILLO_SCUTE)
+                        .define('C', Items.CHEST)
                         .pattern(" A ")
                         .pattern("ACA")
                         .pattern("AAA")
-                        .criterion(hasItem(Items.CHEST), conditionsFromItem(Items.CHEST))
-                        .criterion(hasItem(Items.ARMADILLO_SCUTE), conditionsFromItem(Items.ARMADILLO_SCUTE))
-                        .offerTo(recipeExporter);
+                        .unlockedBy(getHasName(Items.CHEST), has(Items.CHEST))
+                        .unlockedBy(getHasName(Items.ARMADILLO_SCUTE), has(Items.ARMADILLO_SCUTE))
+                        .save(recipeExporter);
 
-                createShaped(RecipeCategory.TOOLS, InitItem.ITEM_WOLF_BAG)
-                        .input('A', Items.ARMADILLO_SCUTE)
-                        .input('C', InitItem.ITEM_SINGLE_WOLF_BAG)
+                shaped(RecipeCategory.TOOLS, InitItem.ITEM_WOLF_BAG)
+                        .define('A', Items.ARMADILLO_SCUTE)
+                        .define('C', InitItem.ITEM_SINGLE_WOLF_BAG)
                         .pattern(" A ")
                         .pattern("C C")
                         .pattern(" A ")
-                        .criterion(hasItem(InitItem.ITEM_SINGLE_WOLF_BAG), conditionsFromItem(InitItem.ITEM_SINGLE_WOLF_BAG))
-                        .criterion(hasItem(Items.ARMADILLO_SCUTE), conditionsFromItem(Items.ARMADILLO_SCUTE))
-                        .offerTo(recipeExporter);
+                        .unlockedBy(getHasName(InitItem.ITEM_SINGLE_WOLF_BAG), has(InitItem.ITEM_SINGLE_WOLF_BAG))
+                        .unlockedBy(getHasName(Items.ARMADILLO_SCUTE), has(Items.ARMADILLO_SCUTE))
+                        .save(recipeExporter);
 
-                createShaped(RecipeCategory.TOOLS, InitItem.DOG_WHISTLE_ITEM)
-                        .input('I', Items.IRON_INGOT)
+                shaped(RecipeCategory.TOOLS, InitItem.DOG_WHISTLE_ITEM)
+                        .define('I', Items.IRON_INGOT)
                         .pattern("   ")
                         .pattern("III")
                         .pattern(" II")
-                        .criterion(hasItem(Items.IRON_INGOT), conditionsFromItem(Items.IRON_INGOT))
-                        .offerTo(recipeExporter);
+                        .unlockedBy(getHasName(Items.IRON_INGOT), has(Items.IRON_INGOT))
+                        .save(recipeExporter);
 
             }
         };

@@ -1,16 +1,15 @@
 package github.meloweh.wolfcompanion.shadow;
 
 import com.mojang.datafixers.util.Pair;
-import net.minecraft.component.EnchantmentEffectComponentTypes;
-import net.minecraft.enchantment.EnchantmentHelper;
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.screen.PlayerScreenHandler;
-import net.minecraft.screen.slot.Slot;
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.Container;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.EnchantmentEffectComponents;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import org.jetbrains.annotations.Nullable;
 
 public class ShadowArmorSlot extends Slot {
@@ -19,7 +18,7 @@ public class ShadowArmorSlot extends Slot {
     @Nullable
     private final Identifier backgroundSprite;
 
-    public ShadowArmorSlot(Inventory inventory, LivingEntity entity, EquipmentSlot equipmentSlot, int index, int x, int y, @Nullable Identifier backgroundSprite) {
+    public ShadowArmorSlot(Container inventory, LivingEntity entity, EquipmentSlot equipmentSlot, int index, int x, int y, @Nullable Identifier backgroundSprite) {
         super(inventory, index, x, y);
         this.entity = entity;
         this.equipmentSlot = equipmentSlot;
@@ -27,32 +26,32 @@ public class ShadowArmorSlot extends Slot {
     }
 
     @Override
-    public void setStack(ItemStack stack, ItemStack previousStack) {
-        this.entity.onEquipStack(this.equipmentSlot, previousStack, stack);
-        super.setStack(stack, previousStack);
+    public void setByPlayer(ItemStack stack, ItemStack previousStack) {
+        this.entity.onEquipItem(this.equipmentSlot, previousStack, stack);
+        super.setByPlayer(stack, previousStack);
     }
 
     @Override
-    public int getMaxItemCount() {
+    public int getMaxStackSize() {
         return 1;
     }
 
     @Override
-    public boolean canInsert(ItemStack stack) {
-        return this.equipmentSlot == this.entity.getPreferredEquipmentSlot(stack);
+    public boolean mayPlace(ItemStack stack) {
+        return this.equipmentSlot == this.entity.getEquipmentSlotForItem(stack);
     }
 
     @Override
-    public boolean canTakeItems(PlayerEntity playerEntity) {
-        ItemStack itemStack = this.getStack();
+    public boolean mayPickup(Player playerEntity) {
+        ItemStack itemStack = this.getItem();
         return (itemStack.isEmpty()
                 || playerEntity.isCreative()
-                || !EnchantmentHelper.hasAnyEnchantmentsWith(itemStack, EnchantmentEffectComponentTypes.PREVENT_ARMOR_CHANGE)) && super.canTakeItems(playerEntity);
+                || !EnchantmentHelper.has(itemStack, EnchantmentEffectComponents.PREVENT_ARMOR_CHANGE)) && super.mayPickup(playerEntity);
     }
 
 
     @Override
-    public Identifier getBackgroundSprite() {
-        return this.backgroundSprite != null ? this.backgroundSprite : super.getBackgroundSprite();
+    public Identifier getNoItemIcon() {
+        return this.backgroundSprite != null ? this.backgroundSprite : super.getNoItemIcon();
     }
 }

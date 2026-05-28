@@ -5,14 +5,14 @@ import github.meloweh.wolfcompanion.screen.WolfInventoryScreen;
 
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
-import net.minecraft.client.gui.screen.ingame.HandledScreens;
-import net.minecraft.entity.EntityType;
+import net.minecraft.client.gui.screens.MenuScreens;
+import net.minecraft.world.entity.EntityType;
 import renderer.CustomWolfEntityRenderer;
 
 public class WolfCompanionClient implements ClientModInitializer {
 	@Override
 	public void onInitializeClient() {
-		HandledScreens.register(ScreenHandlerTypeInit.WOLF_INVENTORY_SCREEN_HANDLER, WolfInventoryScreen::new);
+		MenuScreens.register(ScreenHandlerTypeInit.WOLF_INVENTORY_SCREEN_HANDLER, WolfInventoryScreen::new);
 
 		EntityRendererRegistry.register(EntityType.WOLF, CustomWolfEntityRenderer::new);
 

@@ -1,11 +1,6 @@
 package github.meloweh.wolfcompanion.init;
 
 import github.meloweh.wolfcompanion.WolfCompanion;
-import net.minecraft.block.Block;
-import net.minecraft.item.BlockItem;
-import net.minecraft.item.Item;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
 
 public class InitBlock {
 //    public static <T extends Block> T register(String name, T block) {

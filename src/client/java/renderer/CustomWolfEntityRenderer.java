@@ -2,21 +2,21 @@ package renderer;
 
 import accessor.WolfEntityRenderStateProvider;
 import github.meloweh.wolfcompanion.accessor.WolfEntityProvider;
-import net.minecraft.client.render.entity.EntityRendererFactory;
-import net.minecraft.client.render.entity.WolfEntityRenderer;
-import net.minecraft.client.render.entity.state.WolfEntityRenderState;
-import net.minecraft.entity.passive.WolfEntity;
+import net.minecraft.client.renderer.entity.EntityRendererProvider;
+import net.minecraft.client.renderer.entity.WolfRenderer;
+import net.minecraft.client.renderer.entity.state.WolfRenderState;
+import net.minecraft.world.entity.animal.wolf.Wolf;
 
-public class CustomWolfEntityRenderer extends WolfEntityRenderer {
-    public CustomWolfEntityRenderer(EntityRendererFactory.Context context) {
+public class CustomWolfEntityRenderer extends WolfRenderer {
+    public CustomWolfEntityRenderer(EntityRendererProvider.Context context) {
         super(context);
-        this.addFeature(new WolfBagFeatureRenderer(this));
-        this.addFeature(new WolfItemFeatureRenderer(this));
+        this.addLayer(new WolfBagFeatureRenderer(this));
+        this.addLayer(new WolfItemFeatureRenderer(this));
     }
 
     @Override
-    public void updateRenderState(WolfEntity wolfEntity, WolfEntityRenderState wolfEntityRenderState, float f) {
-        super.updateRenderState(wolfEntity, wolfEntityRenderState, f);
+    public void extractRenderState(Wolf wolfEntity, WolfRenderState wolfEntityRenderState, float f) {
+        super.extractRenderState(wolfEntity, wolfEntityRenderState, f);
         //this.itemModelResolver.updateForLivingEntity(wolfEntityRenderState.headItemRenderState, wolfEntity.getMainHandStack(), ModelTransformationMode.GROUND, false, wolfEntity);
         WolfEntityProvider w = (WolfEntityProvider) wolfEntity;
         final WolfEntityRenderStateProvider provider = (WolfEntityRenderStateProvider) wolfEntityRenderState;

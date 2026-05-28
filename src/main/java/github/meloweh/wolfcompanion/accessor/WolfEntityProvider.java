@@ -1,12 +1,11 @@
 package github.meloweh.wolfcompanion.accessor;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.ItemEntity;
-import net.minecraft.inventory.SimpleInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.server.world.ServerWorld;
-
 import java.util.Optional;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.item.ItemStack;
 
 public interface WolfEntityProvider {
     boolean shouldDropChest();
@@ -16,7 +15,7 @@ public interface WolfEntityProvider {
 
     //StackReference wolfcompanion_template_1_21_1$getGetStackReference(int mappedIndex);
     boolean hasChestEquipped();
-    SimpleInventory getInventory();
+    SimpleContainer getInventory();
 
     void setShouldDropChest(boolean yes);
     void setShouldReleaseWolf(boolean yes);
@@ -26,7 +25,7 @@ public interface WolfEntityProvider {
     void wolfcompanion_template_1_21_1$dropInventoryByButton();
     void releaseWolfButton();
 
-    boolean tryAttack__(ServerWorld serverWorld, Entity target);
+    boolean tryAttack__(ServerLevel serverWorld, Entity target);
 
     Optional<ItemEntity> getTargetPickup__();
 

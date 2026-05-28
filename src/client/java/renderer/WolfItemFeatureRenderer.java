@@ -2,31 +2,29 @@ package renderer;
 
 import accessor.WolfEntityModelAccessor;
 import accessor.WolfEntityRenderStateProvider;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Axis;
 import github.meloweh.wolfcompanion.model.WolfBagModelV2;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.model.ModelPart;
-import net.minecraft.client.render.OverlayTexture;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.render.command.OrderedRenderCommandQueue;
-import net.minecraft.client.render.entity.feature.FeatureRenderer;
-import net.minecraft.client.render.entity.feature.FeatureRendererContext;
-import net.minecraft.client.render.entity.model.WolfEntityModel;
-import net.minecraft.client.render.entity.state.WolfEntityRenderState;
-import net.minecraft.client.render.item.ItemRenderState;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.RotationAxis;
+import net.minecraft.client.model.animal.wolf.WolfModel;
+import net.minecraft.client.model.geom.ModelPart;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.entity.RenderLayerParent;
+import net.minecraft.client.renderer.entity.layers.RenderLayer;
+import net.minecraft.client.renderer.entity.state.WolfRenderState;
+import net.minecraft.client.renderer.item.ItemStackRenderState;
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.util.Mth;
 
 @Environment(EnvType.CLIENT)
-public class WolfItemFeatureRenderer extends FeatureRenderer<WolfEntityRenderState, WolfEntityModel>  {
+public class WolfItemFeatureRenderer extends RenderLayer<WolfRenderState, WolfModel>  {
     final private ModelPart wolfHead;
 
-    public WolfItemFeatureRenderer(FeatureRendererContext<WolfEntityRenderState, WolfEntityModel> context) {
+    public WolfItemFeatureRenderer(RenderLayerParent<WolfRenderState, WolfModel> context) {
         super(context);
 
-        final WolfEntityModel model = context.getModel();
+        final WolfModel model = context.getModel();
         this.wolfHead = ((WolfEntityModelAccessor) model).getHead();
     }
 
@@ -38,7 +36,7 @@ public class WolfItemFeatureRenderer extends FeatureRenderer<WolfEntityRenderSta
             g = 1.0F;
         }
 
-        return MathHelper.sin(g * 3.1415927F) * MathHelper.sin(g * 3.1415927F * 11.0F) * 0.15F * 3.1415927F;
+        return Mth.sin(g * 3.1415927F) * Mth.sin(g * 3.1415927F * 11.0F) * 0.15F * 3.1415927F;
     }
 
     public float getBegAnimationProgress(float tickDelta) {
@@ -46,21 +44,21 @@ public class WolfItemFeatureRenderer extends FeatureRenderer<WolfEntityRenderSta
     }
 
     @Override
-    public void render(MatrixStack matrices, OrderedRenderCommandQueue queue, int light, WolfEntityRenderState state, float limbAngle, float limbDistance) {
+    public void submit(PoseStack matrices, SubmitNodeCollector queue, int light, WolfRenderState state, float limbAngle, float limbDistance) {
 
     //}
 
     //@Override
     //public void render(MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, WolfEntityRenderState state, float limbAngle, float limbDistance) {
         final WolfEntityRenderStateProvider customState = (WolfEntityRenderStateProvider) state;
-        final ItemRenderState itemRenderState = customState.getItemRenderState__(); //state.itemRenderState;
+        final ItemStackRenderState itemRenderState = customState.getItemRenderState__(); //state.itemRenderState;
 
         //final ItemStack itemStack = customState.getWolf__().getMainHandStack();
 
         if (!itemRenderState.isEmpty()) {
             boolean bl = false;
-            boolean bl2 = state.baby;
-            matrices.push();
+            boolean bl2 = state.isBaby;
+            matrices.pushPose();
             float m;
             if (bl2) {
                 m = 0.75F;
@@ -68,14 +66,14 @@ public class WolfItemFeatureRenderer extends FeatureRenderer<WolfEntityRenderSta
                 matrices.translate(0.0F, 0.5F, 0.209375F);
             }
 
-            matrices.translate(wolfHead.originX / 16.0F, wolfHead.originY / 16.0F, wolfHead.originZ / 16.0F);
-            m = state.begAnimationProgress + getShakeAnimationProgress(state.shakeProgress, 0f);
+            matrices.translate(wolfHead.x / 16.0F, wolfHead.y / 16.0F, wolfHead.z / 16.0F);
+            m = state.headRollAngle + getShakeAnimationProgress(state.shakeAnim, 0f);
             //m = state.shakeProgress;
 
-            matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(limbAngle));
-            matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(limbDistance));
-            matrices.multiply(RotationAxis.POSITIVE_Z.rotation(m));
-            if (state.baby) {
+            matrices.mulPose(Axis.YP.rotationDegrees(limbAngle));
+            matrices.mulPose(Axis.XP.rotationDegrees(limbDistance));
+            matrices.mulPose(Axis.ZP.rotation(m));
+            if (state.isBaby) {
                 if (bl) {
                     matrices.translate(0.4F, 0.26F, 0.15F);
                 } else {
@@ -87,14 +85,14 @@ public class WolfItemFeatureRenderer extends FeatureRenderer<WolfEntityRenderSta
                 matrices.translate(0.06F, 0.13F, -0.4F);
             }
 
-            matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(90.0F));
+            matrices.mulPose(Axis.XP.rotationDegrees(90.0F));
             if (bl) {
-                matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(90.0F));
+                matrices.mulPose(Axis.ZP.rotationDegrees(90.0F));
             }
 
-            itemRenderState.render(matrices, queue, light, OverlayTexture.DEFAULT_UV, state.outlineColor);
+            itemRenderState.submit(matrices, queue, light, OverlayTexture.NO_OVERLAY, state.outlineColor);
 
-            matrices.pop();
+            matrices.popPose();
         }
     }
 }
