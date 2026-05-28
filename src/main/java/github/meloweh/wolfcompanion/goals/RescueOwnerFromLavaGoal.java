@@ -15,7 +15,6 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.Container;
-import net.minecraft.world.ContainerListener;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.TamableAnimal;
@@ -34,7 +33,7 @@ import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.level.pathfinder.PathType;
 import net.minecraft.world.phys.Vec3;
 
-public class RescueOwnerFromLavaGoal extends Goal implements ContainerListener {
+public class RescueOwnerFromLavaGoal extends Goal {
     private final TamableAnimal wolf;
     @Nullable
     private LivingEntity owner;
@@ -75,14 +74,7 @@ public class RescueOwnerFromLavaGoal extends Goal implements ContainerListener {
         }
     }
 
-    @Override
-    public void containerChanged(Container sender) {
-        this.refreshInventoryContents(sender);
-    }
-
     private void inventoryInit() {
-        armoredWolf.getInventory().removeListener(this);
-        armoredWolf.getInventory().addListener(this);
         refreshInventoryContents(armoredWolf.getInventory());
     }
 

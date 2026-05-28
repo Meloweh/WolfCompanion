@@ -10,7 +10,6 @@ import java.util.List;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.Container;
-import net.minecraft.world.ContainerListener;
 import net.minecraft.world.entity.animal.wolf.Wolf;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -36,9 +35,7 @@ public class WolfInventoryProvider {
         }
     }
 
-    public void inventoryInit(final ContainerListener listener) {
-        armoredWolf.getInventory().removeListener(listener);
-        armoredWolf.getInventory().addListener(listener);
+    public void inventoryInit() {
         refreshInventoryContents(armoredWolf.getInventory());
     }
 

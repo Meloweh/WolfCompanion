@@ -1,8 +1,5 @@
 package github.meloweh.wolfcompanion.data.provider;
 
-import github.meloweh.wolfcompanion.init.InitItem;
-import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
-
 //import net.minecraft.client.data.ItemModelGenerator;
 //import net.minecraft.client.data.Models;
 

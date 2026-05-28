@@ -9,7 +9,7 @@ import github.meloweh.wolfcompanion.network.LockWolfC2SPayload;
 import github.meloweh.wolfcompanion.network.ReleaseWolfC2SPayload;
 import github.meloweh.wolfcompanion.screenhandler.WolfInventoryScreenHandler;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.input.MouseButtonEvent;
@@ -61,9 +61,7 @@ public class WolfInventoryScreen extends AbstractContainerScreen<WolfInventorySc
     private static final Identifier HEART = WolfCompanion.id("textures/gui/container/heart.png");
 
     public WolfInventoryScreen(WolfInventoryScreenHandler handler, Inventory inventory, Component title) {
-        super(handler, inventory, title);
-        this.imageWidth = 176;
-        this.imageHeight = 184;
+        super(handler, inventory, title, 176, 184);
         this.inventoryLabelY = this.imageHeight - 111;
         this.slotColumnCount = 5;
         this.wolf = handler.getWolf();
@@ -140,7 +138,7 @@ public class WolfInventoryScreen extends AbstractContainerScreen<WolfInventorySc
         return super.mouseClicked(click, doubled);
     }
 
-    private void drawReleaseButton(GuiGraphics context, float deltaTicks, int mouseX, int mouseY) {
+    private void drawReleaseButton(GuiGraphicsExtractor context, float deltaTicks, int mouseX, int mouseY) {
         if (!this.wolf.isTame()) return;
 
         final int WIDTH = 12;
@@ -161,7 +159,7 @@ public class WolfInventoryScreen extends AbstractContainerScreen<WolfInventorySc
         }
     }
 
-    private void drawAggressionButton(GuiGraphics context, float deltaTicks, int mouseX, int mouseY) {
+    private void drawAggressionButton(GuiGraphicsExtractor context, float deltaTicks, int mouseX, int mouseY) {
         if (!this.wolf.isTame()) return;
 
         int i = (this.width - this.imageWidth) / 2;
@@ -181,7 +179,7 @@ public class WolfInventoryScreen extends AbstractContainerScreen<WolfInventorySc
         }
     }
 
-    private void drawLockButton(GuiGraphics context, float deltaTicks, int mouseX, int mouseY) {
+    private void drawLockButton(GuiGraphicsExtractor context, float deltaTicks, int mouseX, int mouseY) {
         if (!this.wolf.isTame()) return;
 
         int i = (this.width - this.imageWidth) / 2;
@@ -201,7 +199,7 @@ public class WolfInventoryScreen extends AbstractContainerScreen<WolfInventorySc
         }
     }
 
-    private void drawChestButton(GuiGraphics context, float deltaTicks, int mouseX, int mouseY) {
+    private void drawChestButton(GuiGraphicsExtractor context, float deltaTicks, int mouseX, int mouseY) {
         if (!this.wolf.isTame()) return;
 
         int i = (this.width - this.imageWidth) / 2;
@@ -223,7 +221,9 @@ public class WolfInventoryScreen extends AbstractContainerScreen<WolfInventorySc
     }
 
     @Override
-    protected void renderBg(GuiGraphics context, float deltaTicks, int mouseX, int mouseY) {
+    public void extractBackground(GuiGraphicsExtractor context, int mouseX, int mouseY, float deltaTicks) {
+        this.mouseX = (float)mouseX;
+        this.mouseY = (float)mouseY;
         int i = (this.width - this.imageWidth) / 2;
         int j = (this.height - this.imageHeight) / 2;
         context.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, i, j, 0.0F, 0.0F, this.imageWidth, this.imageHeight, 256, 256);
@@ -249,11 +249,10 @@ public class WolfInventoryScreen extends AbstractContainerScreen<WolfInventorySc
 
         drawLockButton(context, deltaTicks, mouseX, mouseY);
 
-        this.renderTooltip(context, mouseX, mouseY);
-        InventoryScreen.renderEntityInInventoryFollowsMouse(context, i + 26, j + 18, i + 78, j + 70, 33, 0.25F, this.mouseX, this.mouseY, this.wolf);
+        InventoryScreen.extractEntityInInventoryFollowsMouse(context, i + 26, j + 18, i + 78, j + 70, 33, 0.25F, this.mouseX, this.mouseY, this.wolf);
     }
 
-    private void drawHearts(GuiGraphics context) {
+    private void drawHearts(GuiGraphicsExtractor context) {
         final int WIDTH = 8, HEIGHT = 9;
 
         int x = (this.width) / 2;
@@ -266,7 +265,7 @@ public class WolfInventoryScreen extends AbstractContainerScreen<WolfInventorySc
         context.blit(RenderPipelines.GUI_TEXTURED, HEART, x, y, 0, 0, healthPixels, HEIGHT, WIDTH, HEIGHT);
     }
 
-    private void drawLevelInfo(GuiGraphics context) {
+    private void drawLevelInfo(GuiGraphicsExtractor context) {
         final int WIDTH = 30;
         final int HEIGHT = 5;
 
@@ -289,16 +288,15 @@ public class WolfInventoryScreen extends AbstractContainerScreen<WolfInventorySc
         context.blit(RenderPipelines.GUI_TEXTURED, EXPERIENCE_BAR_BACKGROUND_TEXTURE, x, y, 0, 0, WIDTH, HEIGHT, WIDTH, HEIGHT);
         //final int currentXpBar = WIDTH * (deltaXp / deltaMaxXp);
         context.blit(RenderPipelines.GUI_TEXTURED, EXPERIENCE_BAR_CURRENT_TEXTURE, x, y, 0, 0, WIDTH * deltaXp / deltaMaxXp, HEIGHT, WIDTH, HEIGHT);
-        context.drawString(font, xpText, x + WIDTH / 2 - xpTextWidth / 2, y - 4 + 2, 0xFF7EFC20, true);
+        context.text(font, xpText, x + WIDTH / 2 - xpTextWidth / 2, y - 4 + 2, 0xFF7EFC20, true);
 
     }
 
     @Override
-    public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
+    public void extractRenderState(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
         this.mouseX = (float)mouseX;
         this.mouseY = (float)mouseY;
-        super.render(context, mouseX, mouseY, delta);
-        this.renderTooltip(context, mouseX, mouseY);
+        super.extractRenderState(context, mouseX, mouseY, delta);
         this.drawLevelInfo(context);
         this.drawHearts(context);
     }

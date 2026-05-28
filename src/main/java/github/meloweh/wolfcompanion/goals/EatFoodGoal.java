@@ -5,7 +5,6 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.Container;
-import net.minecraft.world.ContainerListener;
 import net.minecraft.world.entity.EntityEvent;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.goal.Goal;
@@ -18,7 +17,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-public class EatFoodGoal extends Goal implements ContainerListener {
+public class EatFoodGoal extends Goal {
     private final Wolf entity;
     private final WolfEntityProvider armoredWolf;
 
@@ -49,8 +48,6 @@ public class EatFoodGoal extends Goal implements ContainerListener {
     }*/
 
     private void inventoryInit() {
-        armoredWolf.getInventory().removeListener(this);
-        armoredWolf.getInventory().addListener(this);
         refreshInventoryContents(armoredWolf.getInventory());
     }
 
@@ -163,11 +160,6 @@ public class EatFoodGoal extends Goal implements ContainerListener {
         eatingFood = ItemStack.EMPTY;
         this.entity.setItemSlot(EquipmentSlot.MAINHAND, this.eatingFood);
         inventoryInit();
-    }
-
-    @Override
-    public void containerChanged(Container sender) {
-        this.refreshInventoryContents(sender);
     }
 
     private void refreshInventoryContents(Container invBasic) {

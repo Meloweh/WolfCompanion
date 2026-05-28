@@ -11,7 +11,7 @@ import github.meloweh.wolfcompanion.util.ConfigManager;
 import github.meloweh.wolfcompanion.util.LineScan;
 import github.meloweh.wolfcompanion.util.NBTHelper;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
+import net.fabricmc.fabric.api.menu.v1.ExtendedMenuProvider;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Vec3i;
 import net.minecraft.core.particles.ColorParticleOption;
@@ -32,7 +32,6 @@ import net.minecraft.util.ProblemReporter;
 import net.minecraft.util.profiling.Profiler;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.Container;
-import net.minecraft.world.ContainerListener;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.SimpleContainer;
@@ -55,6 +54,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.enchantment.EnchantedItemInUse;
 import net.minecraft.world.item.enchantment.EnchantmentEffectComponents;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
@@ -85,13 +85,12 @@ import java.util.*;
 
 @Mixin(Wolf.class)
 public abstract class WolfEntityMixin implements
-        ContainerListener,
         HasCustomInventoryScreen,
         OwnableEntity,
         WolfEntityProvider,
         EntityAccessor,
         MobEntityAccessor,
-        ExtendedScreenHandlerFactory<UuidPayload>,
+        ExtendedMenuProvider<UuidPayload>,
         WolfXpProvider,
         WolfEntityMixinProvider {
     @Unique
@@ -411,7 +410,6 @@ public abstract class WolfEntityMixin implements
         SimpleContainer simpleInventory = this.items;
         this.items = new SimpleContainer(this.getInventorySize());
         if (simpleInventory != null) {
-            simpleInventory.removeListener(this);
             int i = Math.min(simpleInventory.getContainerSize(), this.items.getContainerSize());
 
             for (int j = 0; j < i; j++) {
@@ -422,18 +420,12 @@ public abstract class WolfEntityMixin implements
             }
         }
 
-        this.items.addListener(this);
         this.items.setChanged();
     }
 
     @Override
     public SimpleContainer getInventory() {
         return this.items;
-    }
-
-    @Override
-    public void containerChanged(Container sender) {
-
     }
 
     @Unique
@@ -862,8 +854,6 @@ public abstract class WolfEntityMixin implements
                         item.discard();
                     }
 
-                    this.items.removeListener(this);
-                    this.items.addListener(this);
                     this.items.setChanged();
                 }
             } else {
@@ -925,7 +915,7 @@ public abstract class WolfEntityMixin implements
                             .xRot(-this.self.getXRot() * (float) (Math.PI / 180.0))
                             .yRot(-this.self.getYRot() * (float) (Math.PI / 180.0));
                     this.self.level().addParticle(
-                                    new ItemParticleOption(ParticleTypes.ITEM, itemStack),
+                                    new ItemParticleOption(ParticleTypes.ITEM, ItemStackTemplate.fromNonEmptyStack(itemStack)),
                             this.self.getX() + vec.x * 0.6,
                             this.self.getY() + 0.6,
                             this.self.getZ() + vec.y * 0.6,

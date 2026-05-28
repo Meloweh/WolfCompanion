@@ -54,10 +54,10 @@ public class WolfCompanion implements ModInitializer {
 			dynamicRegistryManager = minecraftServer.registryAccess();
 		});
 
-		PayloadTypeRegistry.playC2S().register(DropWolfChestC2SPayload.ID, DropWolfChestC2SPayload.PACKET_CODEC);
-		PayloadTypeRegistry.playC2S().register(ReleaseWolfC2SPayload.ID, ReleaseWolfC2SPayload.PACKET_CODEC);
-		PayloadTypeRegistry.playC2S().register(AggressionWolfC2SPayload.ID, AggressionWolfC2SPayload.PACKET_CODEC);
-		PayloadTypeRegistry.playC2S().register(LockWolfC2SPayload.ID, LockWolfC2SPayload.PACKET_CODEC);
+		PayloadTypeRegistry.serverboundPlay().register(DropWolfChestC2SPayload.ID, DropWolfChestC2SPayload.PACKET_CODEC);
+		PayloadTypeRegistry.serverboundPlay().register(ReleaseWolfC2SPayload.ID, ReleaseWolfC2SPayload.PACKET_CODEC);
+		PayloadTypeRegistry.serverboundPlay().register(AggressionWolfC2SPayload.ID, AggressionWolfC2SPayload.PACKET_CODEC);
+		PayloadTypeRegistry.serverboundPlay().register(LockWolfC2SPayload.ID, LockWolfC2SPayload.PACKET_CODEC);
 
 		ServerPlayNetworking.registerGlobalReceiver(DropWolfChestC2SPayload.ID, (payload, context) -> {
 			context.server().execute(() -> {

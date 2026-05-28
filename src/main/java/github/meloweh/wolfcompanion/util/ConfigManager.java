@@ -77,7 +77,7 @@ public class ConfigManager {
     public static boolean isBlacklisted(Entity attacker) {
         EntityType<?> t = attacker.getType();
         if (TYPES.contains(t)) return true;
-        for (var tag : TAGS) if (t.is(tag)) return true;
+        for (var tag : TAGS) if (t.builtInRegistryHolder().is(tag)) return true;
         return false;
     }
 }

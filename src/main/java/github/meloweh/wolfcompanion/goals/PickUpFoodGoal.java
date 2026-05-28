@@ -8,8 +8,6 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.function.Predicate;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.Container;
-import net.minecraft.world.ContainerListener;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.animal.wolf.Wolf;
@@ -20,7 +18,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.gamerules.GameRules;
 
-public class PickUpFoodGoal extends Goal implements ContainerListener {
+public class PickUpFoodGoal extends Goal {
     final Wolf wolf;
     final WolfEntityProvider provider;
     int scanCooldown;
@@ -36,11 +34,6 @@ public class PickUpFoodGoal extends Goal implements ContainerListener {
         this.provider = (WolfEntityProvider) wolf;
         this.scanCooldown = 0;
         this.inventory = new WolfInventoryProvider(this.wolf);
-    }
-
-    @Override
-    public void containerChanged(Container sender) {
-        if (provider.hasChestEquipped()) this.inventory.refreshInventoryContents(sender);
     }
 
     public static boolean playerFoodEnough(final Wolf wolf) {
@@ -67,7 +60,7 @@ public class PickUpFoodGoal extends Goal implements ContainerListener {
     private boolean wantsToPickupItem() {
         if (!ConfigManager.config.canPickupFood) return false;
         if (provider.hasChestEquipped()) {
-            this.inventory.inventoryInit(this);
+            this.inventory.inventoryInit();
 
             if (this.inventory.hasSpace() && (this.inventory.getFoodCount() <= ConfigManager.config.maxPickupFood
                     || ConfigManager.config.pickAllRottenFlesh && this.inventory.onlyFood(Items.ROTTEN_FLESH))) {
@@ -135,7 +128,7 @@ public class PickUpFoodGoal extends Goal implements ContainerListener {
     @Override
     public void stop() {
         super.stop();
-        if (provider.hasChestEquipped()) this.inventory.inventoryInit(this);
+        if (provider.hasChestEquipped()) this.inventory.inventoryInit();
         provider.setTargetPickup__(null);
     }
 }

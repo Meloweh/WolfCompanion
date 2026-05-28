@@ -23,7 +23,7 @@ public class WolfBagModelV2 extends Model<LivingEntityRenderState> {
 	private final ModelPart left;
 	private final ModelPart right;
 	public WolfBagModelV2(ModelPart root) {
-        super(root, textureId -> Sheets.solidBlockSheet());
+        super(root, textureId -> Sheets.cutoutBlockSheet());
         this.main = root.getChild("main");
 		this.left = this.main.getChild("left");
 		this.right = this.main.getChild("right");
