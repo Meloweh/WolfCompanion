@@ -69,7 +69,6 @@ public class NBTHelper {
                     e -> {
                         final CustomData nbtComponent = CustomData.of(wolfNbt);
                         applyEntityNbt(e, nbtComponent.copyTag());
-                        //nbtComponent.applyToEntity(e);
                     },
                     player.blockPosition(),
                     EntitySpawnReason.MOB_SUMMONED,

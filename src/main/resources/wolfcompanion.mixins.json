@@ -12,7 +12,6 @@
     "MobEntityMixin",
     "ServerPlayerEntityMixin",
     "TameableEntityMixin",
-    "WolfArmorMixin",
     "WolfEntityMixin"
   ],
   "injectors": {

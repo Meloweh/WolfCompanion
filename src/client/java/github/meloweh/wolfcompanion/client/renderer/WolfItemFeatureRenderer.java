@@ -45,15 +45,8 @@ public final class WolfItemFeatureRenderer extends RenderLayer<WolfRenderState, 
 
     @Override
     public void submit(PoseStack matrices, SubmitNodeCollector queue, int light, WolfRenderState state, float limbAngle, float limbDistance) {
-
-    //}
-
-    //@Override
-    //public void render(MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, WolfEntityRenderState state, float limbAngle, float limbDistance) {
         final WolfEntityRenderStateProvider customState = (WolfEntityRenderStateProvider) state;
-        final ItemStackRenderState itemRenderState = customState.getItemRenderState__(); //state.itemRenderState;
-
-        //final ItemStack itemStack = customState.getWolf__().getMainHandStack();
+        final ItemStackRenderState itemRenderState = customState.getItemRenderState__();
 
         if (!itemRenderState.isEmpty()) {
             boolean bl = false;
@@ -68,7 +61,6 @@ public final class WolfItemFeatureRenderer extends RenderLayer<WolfRenderState, 
 
             matrices.translate(wolfHead.x / 16.0F, wolfHead.y / 16.0F, wolfHead.z / 16.0F);
             m = state.headRollAngle + getShakeAnimationProgress(state.shakeAnim, 0f);
-            //m = state.shakeProgress;
 
             matrices.mulPose(Axis.YP.rotationDegrees(limbAngle));
             matrices.mulPose(Axis.XP.rotationDegrees(limbDistance));

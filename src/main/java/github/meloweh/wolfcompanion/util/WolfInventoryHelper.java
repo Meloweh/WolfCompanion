@@ -1,7 +1,5 @@
 package github.meloweh.wolfcompanion.util;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -23,15 +21,6 @@ import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.item.alchemy.Potions;
 
 public class WolfInventoryHelper {
-
-//    private static ItemStack findLavaSituationPotion(final List<ItemStack> inventoryContents, final LivingEntity entity) {
-//        final ItemStack potion = WolfInventoryHelper.findPotion(inventoryContents, StatusEffects.FIRE_RESISTANCE);
-//
-//        if (!potion.isEmpty()) return potion;
-//
-//        return WolfInventoryHelper.findLifesavingPotions(inventoryContents, entity);
-//    }
-
     private static boolean hasLifesavingEffects(final LivingEntity entity) {
         return getLifeSavingEffects(true).stream().anyMatch(entity::hasEffect);
     }
@@ -81,13 +70,6 @@ public class WolfInventoryHelper {
                 }
             }
 
-            /*for (ItemStack e : p.getArmorItems()) {
-                if (!e.isOf(Items.NETHERITE_BOOTS) && !e.isOf(Items.NETHERITE_LEGGINGS) && !e.isOf(Items.NETHERITE_CHESTPLATE) && !e.isOf(Items.NETHERITE_HELMET)) {
-                    isOk = false;
-                    break;
-                }
-            }*/
-
             hasArmor = isOk;
         }
 
@@ -104,28 +86,6 @@ public class WolfInventoryHelper {
         }
 
         return true;
-
-
-//        if (entity.getHealth() / entity.getHealth() <= 0.2f) {
-//            if (!hasLifesavingEffects(entity))
-//        }
-//
-//
-//        if (entity.isOnFire()) {
-//            final boolean hasFireResistance = entity.hasStatusEffect(StatusEffects.FIRE_RESISTANCE);
-//            if (entity.getHealth() / entity.getHealth() > 0.2f && hasFireResistance) {
-//                return true;
-//            }
-//            if (findPotion(inventoryContents, StatusEffects.FIRE_RESISTANCE).first.isEmpty()) return true;
-//        }
-//
-//        if (entity.getHealth() / entity.getHealth() <= 0.2f) {
-//            return hasLifesavingEffects(entity) || findLifesavingPotions(inventoryContents, entity).first.isEmpty();
-//        }
-//
-//        return true;
-
-        //return getLifeSavingEffects().stream().anyMatch(entity::hasStatusEffect);
     }
 
     private static List<Holder<MobEffect>> getLifeSavingEffects(final boolean withFire) {
@@ -205,13 +165,11 @@ public class WolfInventoryHelper {
 
         int ampl = 0;
         int duration = 0;
-        //RegistryEntry<StatusEffect> effectType;
 
         for (final Iterator<MobEffectInstance> it = potion_.getAllEffects().iterator(); it.hasNext(); ) {
             final MobEffectInstance instance = it.next();
             ampl = instance.getAmplifier();
             duration = instance.getDuration();
-            //effectType = instance.getEffectType();
         }
 
         return getPotion(statusEffect, ampl, duration);

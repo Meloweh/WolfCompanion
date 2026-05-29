@@ -36,17 +36,6 @@ public class EatFoodGoal extends Goal {
         this.inventoryContents = new ArrayList<>();
     }
 
-    /*
-    @Override
-    public boolean canStart() {
-        return this.wolfProvider.hasChestEquipped() && this.entity.hurtTime == 0;
-    }
-
-    @Override
-    public void onInventoryChanged(Inventory sender) {
-
-    }*/
-
     private void inventoryInit() {
         refreshInventoryContents(armoredWolf.getInventory());
     }
@@ -114,11 +103,6 @@ public class EatFoodGoal extends Goal {
                 this.entity.isAlive() &&
                 this.entity.canSimulateMovement()) {
             if (!this.eatingFood.isEmpty()) {
-//                if (this.armoredWolf.hasChestEquipped() && !this.inventoryContents.contains(this.eatingFood)) {
-//                    stop();
-//                    return;
-//                }
-
                 ItemStack itemStack = this.eatingFood;
                 if (!itemStack.isEmpty()) {
                     this.eatingTime--;
@@ -134,7 +118,6 @@ public class EatFoodGoal extends Goal {
                         return;
                     }
                     this.entity.heal(foodComponent.nutrition());
-                    //itemStack.decrement(1);
                     ItemStack itemStack2 = itemStack.finishUsingItem(this.entity.level(), this.entity);
                     this.entity.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
                     this.eatingTime = -1;

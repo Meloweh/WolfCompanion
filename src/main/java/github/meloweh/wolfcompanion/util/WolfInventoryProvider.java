@@ -69,10 +69,6 @@ public class WolfInventoryProvider {
         return this.inventoryContents.stream().filter(this::canEat_).mapToInt(ItemStack::getCount).sum();
     }
 
-//    public boolean hasFood() {
-//        return this.inventoryContents.stream().anyMatch(this::canEat_);
-//    }
-
     public boolean hasSpace() {
         Iterator<ItemStack> it = this.armoredWolf.getInventory().items.iterator();
 
@@ -82,18 +78,9 @@ public class WolfInventoryProvider {
         return false;
     }
 
-//    public boolean hasOnly(final Item item, final int max) {
-//        return this.inventoryContents.stream()
-//                .filter(i -> i.isOf(item)).mapToInt(ItemStack::getCount).sum() <= max;
-//    }
-
     public boolean onlyFood(final Item item) {
         return this.inventoryContents.stream()
                 .filter(this::canEat_)
                 .noneMatch(e -> !e.is(item) && !e.isEmpty());
     }
-
-//    public boolean isOnlyItem(final Item item, final int max) {
-//        return isOnlyItem(item) && hasOnly(item, max);
-//    }
 }

@@ -123,10 +123,6 @@ public class RescueSelfFromLavaGoal extends Goal {
     }
 
     private Pair<ItemStack, Holder<Potion>> nextPotion() {
-        //ItemStack itemStack = this.wolf.getEquippedStack(EquipmentSlot.MAINHAND);
-
-        //if (!itemStack.isEmpty()) return itemStack;
-
         final Pair<ItemStack, Holder<Potion>> itemStack = WolfInventoryHelper.findLifesavingPotions(inventoryContents, this.wolf);
         this.wolf.setItemSlot(EquipmentSlot.MAINHAND, itemStack.first);
 
@@ -134,27 +130,21 @@ public class RescueSelfFromLavaGoal extends Goal {
     }
 
     public void applySplashPotionEffect(final Pair<ItemStack, Holder<Potion>> itemStack) {
-        //RegistryEntry<Potion> registryEntry = Potions.FIRE_RESISTANCE;
-
-        // Get the world and the wolf's position
         Level world = this.wolf.level();
         double x = this.wolf.getX();
         double y = this.wolf.getY();
         double z = this.wolf.getZ();
 
-        // Create a splash effect on the wolf
         AreaEffectCloud effectCloud = new AreaEffectCloud(world, x, y + 0.5f, z);
-        effectCloud.setOwner(this.wolf); // Set the wolf as the source
-        effectCloud.setRadius(1F); // Set splash radius
+        effectCloud.setOwner(this.wolf);
+        effectCloud.setRadius(1F);
         PotionContents potionContentsComponent = new PotionContents(itemStack.second);
-        effectCloud.setPotionContents(potionContentsComponent); // Assign the potion effects (e.g., fire resistance)
-        effectCloud.setDuration(15); // Short duration since it's a splash
-        effectCloud.setWaitTime(0); // Apply immediately
+        effectCloud.setPotionContents(potionContentsComponent);
+        effectCloud.setDuration(15);
+        effectCloud.setWaitTime(0);
 
-        // Play the splash sound effect
         world.playSound(null, x, y, z, SoundEvents.SPLASH_POTION_BREAK, this.wolf.getSoundSource(), 1.0F, 0.4F + this.wolf.getRandom().nextFloat() * 0.4F);
 
-        // Spawn the area effect cloud to apply effects
         world.addFreshEntity(effectCloud);
 
         itemStack.first.shrink(1);

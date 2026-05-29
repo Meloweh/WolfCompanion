@@ -26,26 +26,14 @@ public class WolfBagStraps extends Model<LivingEntityRenderState> {
     public static LayerDefinition getTexturedModelData() {
         MeshDefinition modelData = new MeshDefinition();
         PartDefinition modelPartData = modelData.getRoot();
-        PartDefinition main = modelPartData.addOrReplaceChild("main", CubeListBuilder.create().texOffs(0, -3).addBox(-3.0F, 3.0F, -3.0F, 0.0F, 1.0F, 6.0F, new CubeDeformation(0.0F))
+        modelPartData.addOrReplaceChild("main", CubeListBuilder.create().texOffs(0, -3).addBox(-3.0F, 3.0F, -3.0F, 0.0F, 1.0F, 6.0F, new CubeDeformation(0.0F))
                 .texOffs(0, -6).addBox(3.0F, 3.0F, -3.0F, 0.0F, 1.0F, 6.0F, new CubeDeformation(0.0F))
                 .texOffs(0, 1).addBox(-3.0F, 3.0F, 3.0F, 6.0F, 1.0F, 0.0F, new CubeDeformation(0.0F))
                 .texOffs(0, 2).addBox(-3.0F, 3.0F, -3.0F, 6.0F, 1.0F, 0.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, 24.0F, 0.0F));
         return LayerDefinition.create(modelData, 16, 8);
     }
 
-
-
-//    @Override
-//    public void render(MatrixStack matrices, VertexConsumer vertexConsumer, int light, int overlay, int color) {
-//        this.main.render(matrices, vertexConsumer, light, overlay, color);
-//    }
-
     public void copyTransform(ModelPart part) {
         this.main.loadPose(part.storePose());
-        //this.main.copyTransform(part);
     }
-
-    /*public RenderLayer getRenderLayer() {
-        return RenderLayer.getEntitySolid(WolfCompanion.id("textures/entity/wb.png"));
-    }*/
 }

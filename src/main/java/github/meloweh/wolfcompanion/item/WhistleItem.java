@@ -53,8 +53,6 @@ public class WhistleItem extends Item {
         if (used == SECOND_WHISTLE_TICKS) {          // fires once per hold
             playWhistle(world, user, stack, 2);
             onSecondWhistle(world, user, stack);     // your custom second-whistle logic
-            // Optional hard stop after second:
-            // user.stopUsingItem();
         }
     }
 
@@ -107,9 +105,6 @@ public class WhistleItem extends Item {
                 1.0f,
                 stage == 2 ? 1.0f : 1.1f
         );
-
-        //user.setCurrentHand(hand);
-
         if (stage == 1) {
             if (user instanceof ServerPlayer serverPlayer) {
                 final Optional<LivingEntity> target = getLookedAtEntity(serverPlayer);

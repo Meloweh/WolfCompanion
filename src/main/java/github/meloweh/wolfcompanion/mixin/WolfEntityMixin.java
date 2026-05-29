@@ -155,10 +155,6 @@ public abstract class WolfEntityMixin implements
     @Unique
     private void doWolfShake() {
         this.isWet = true;
-        if (!self.level().isClientSide()) {
-            //this.furWet = true;
-            //this.self.getEntityWorld().sendEntityStatus(this.self, (byte)56);
-        }
     }
 
     @Unique
@@ -437,7 +433,6 @@ public abstract class WolfEntityMixin implements
 
             EnchantmentHelper.doPostAttackEffects(world, target, damageSource);
             this.self.setLastHurtMob(target);
-            //this.self.playAttackSound();
         }
 
         return bl;
@@ -677,7 +672,6 @@ public abstract class WolfEntityMixin implements
                         this.items.setItem(slot, stack);
                     }
                 } catch (Exception ignored) {
-                    // optionally log
                 }
             }
         }

@@ -79,9 +79,6 @@ public final class LineScan {
                 }
             }
 
-            // Optional global early-exit: if you only care “is any column lava-first?”
-            // if (anyLavaFirst) return new ExtrudedResult(true, anySolidFirst, allNonLava);
-
             if (x == ex && z == ez) break;
 
             if (tMaxX <= tMaxZ) { x += sx; tMaxX += tDeltaX; }

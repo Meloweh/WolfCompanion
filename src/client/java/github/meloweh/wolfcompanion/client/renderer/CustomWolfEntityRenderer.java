@@ -17,7 +17,6 @@ public final class CustomWolfEntityRenderer extends WolfRenderer {
     @Override
     public void extractRenderState(Wolf wolfEntity, WolfRenderState wolfEntityRenderState, float f) {
         super.extractRenderState(wolfEntity, wolfEntityRenderState, f);
-        //this.itemModelResolver.updateForLivingEntity(wolfEntityRenderState.headItemRenderState, wolfEntity.getMainHandStack(), ModelTransformationMode.GROUND, false, wolfEntity);
         WolfEntityProvider w = (WolfEntityProvider) wolfEntity;
         final WolfEntityRenderStateProvider provider = (WolfEntityRenderStateProvider) wolfEntityRenderState;
         provider.updateRenderState__(wolfEntity, provider, this.itemModelResolver);

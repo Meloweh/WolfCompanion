@@ -36,7 +36,7 @@ public final class WolfBagFeatureRenderer extends RenderLayer<WolfRenderState, W
     private final Map<Long, WolfBagModelV2> cache = new HashMap<>();
 
     private WolfBagModelV2 getBagModel(long entityId) {
-        return cache.computeIfAbsent(entityId, id -> new WolfBagModelV2(WolfBagModelV2.getTexturedModelData().bakeRoot())); // build from baked root
+        return cache.computeIfAbsent(entityId, id -> new WolfBagModelV2(WolfBagModelV2.getTexturedModelData().bakeRoot()));
     }
 
     @Override
@@ -52,28 +52,21 @@ public final class WolfBagFeatureRenderer extends RenderLayer<WolfRenderState, W
 
         matrices.pushPose();
 
-        // Pose the bag model relative to the wolf torso
-        //bagModelV2.copyTransform(wolfTorso);
-
         final WolfBagModelV2 bag = getBagModel(provider.getEntityId__());
-        // copy pose directly, no matrix math
-        //bag.getRootPart().setTransform(wolfTorso.getTransform());
         bag.copyTransform(wolfTorso);
 
-        // 1) Bag body (ModelPart)
         queue.submitModelPart(
                 bag.root(),
                 matrices,
                 RenderTypes.entitySolid(WolfBagModelV2.TEXTURE_LOCATION),
                 light,
-                OverlayTexture.NO_OVERLAY, // correct overlay
-                null                       // Sprite (none)
+                OverlayTexture.NO_OVERLAY,
+                null
         );
 
         bagModelV2.resetPose();
 
         if (state.bodyArmorItem.isEmpty()) {
-            // 2) Straps overlay on the wolf (full EntityModel with current pose)
             queue.order(1)
                     .submitModel(
                             this.getParentModel(),
@@ -88,7 +81,4 @@ public final class WolfBagFeatureRenderer extends RenderLayer<WolfRenderState, W
 
         matrices.popPose();
     }
-
-
-
 }

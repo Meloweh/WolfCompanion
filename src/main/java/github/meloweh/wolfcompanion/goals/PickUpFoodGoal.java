@@ -22,7 +22,6 @@ public class PickUpFoodGoal extends Goal {
     final Wolf wolf;
     final WolfEntityProvider provider;
     int scanCooldown;
-    //final int SCAN_COOLDOWN = 20 * 10;
     final WolfInventoryProvider inventory;
 
     final Predicate<ItemEntity> PICKABLE_DROP_FILTER = (item)
@@ -77,7 +76,6 @@ public class PickUpFoodGoal extends Goal {
 
     @Override
     public boolean canUse() {
-        //if (!wolf.getEntityWorld().isClient() && wolf.isAlive() && !wolf.isDead() && ((ServerWorld)wolf.getEntityWorld()).getGameRules().getBoolean(GameRules.DO_MOB_GRIEFING)) {
         final boolean can_mob_grief = ((ServerLevel)wolf.level()).getGameRules().get(GameRules.MOB_GRIEFING);
         if (!wolf.level().isClientSide() && wolf.isAlive() && !wolf.isDeadOrDying() && can_mob_grief) {
             if (wolf.isTame()

@@ -59,11 +59,6 @@ public abstract class ServerPlayerEntityMixin implements ServerPlayerAccessor {
         this.whistleWolfNbtList = ((ServerPlayerAccessor) oldPlayer).getWhistleWolfNbts__();
     }
 
-    /*@Inject(method = "onSpawn", at = @At("TAIL"))
-    private void spawnDoggosOnSpawn(CallbackInfo ci) {
-        respawnRescuedDoggo(null, null);
-    }*/
-
     @Inject(method = "addAdditionalSaveData", at = @At("TAIL"))
     public void writeWolfDataToNbt(ValueOutput view, CallbackInfo ci) {
         this.rescuedWolfNbtList.writeDataToNbt(view, WolfEventHandler.RESCUED_WOLF_NBT_KEY);
@@ -95,13 +90,6 @@ public abstract class ServerPlayerEntityMixin implements ServerPlayerAccessor {
         wolfNbtList.getWolfNbts().removeIf(wolfNbt -> canDelete.getWolfNbts().contains(wolfNbt));
     }
 
-    /*@Inject(method = "sleep", at = @At("TAIL"))
-    private void respawnRescuedDoggo(BlockPos pos, CallbackInfo ci) {
-        if (self.isSleeping())
-            spawnDoggos(this.rescuedWolfNbtList, true);
-
-    }*/
-
     @Unique
     private void clearTimeoutEffects() {
         for (int i = 1; i < ModEffects.DEFEATED_WOLVES_PARTICLE_EFFECT_ENTRY.length; i++) {
@@ -114,10 +102,7 @@ public abstract class ServerPlayerEntityMixin implements ServerPlayerAccessor {
 
     @Inject(method = "tick", at = @At("TAIL"))
     private void updateRespawnCountdown(CallbackInfo ci) {
-        //spawnDoggos(this.rescuedWolfNbtList, true);
         this.rescuedWolfNbtList.rescueTimeoutTick();
-        //final List<NbtCompound> elapsed = this.rescuedWolfNbtList.dequeueElapsedTimeout();
-        //elapsed.forEach(nbt -> this.whistleWolfNbtList.queueWolfNbt(nbt));
         final int level = Math.min(this.rescuedWolfNbtList.nonElapsedSize(), 11);
         final Optional<Integer> optBriefestTimeout = this.rescuedWolfNbtList.getBriefestTimeout();
 
