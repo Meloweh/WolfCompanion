@@ -11,7 +11,6 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.Container;
-import net.minecraft.world.ContainerListener;
 import net.minecraft.world.entity.AreaEffectCloud;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.TamableAnimal;
@@ -25,7 +24,7 @@ import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.pathfinder.PathType;
 
-public class RescueSelfFromLavaGoal extends Goal implements ContainerListener {
+public class RescueSelfFromLavaGoal extends Goal {
     private final TamableAnimal wolf;
     @Nullable
     private final PathNavigation navigation;
@@ -53,14 +52,7 @@ public class RescueSelfFromLavaGoal extends Goal implements ContainerListener {
         }
     }
 
-    @Override
-    public void containerChanged(Container sender) {
-        this.refreshInventoryContents(sender);
-    }
-
     private void inventoryInit() {
-        armoredWolf.getInventory().removeListener(this);
-        armoredWolf.getInventory().addListener(this);
         refreshInventoryContents(armoredWolf.getInventory());
     }
 
@@ -131,10 +123,6 @@ public class RescueSelfFromLavaGoal extends Goal implements ContainerListener {
     }
 
     private Pair<ItemStack, Holder<Potion>> nextPotion() {
-        //ItemStack itemStack = this.wolf.getEquippedStack(EquipmentSlot.MAINHAND);
-
-        //if (!itemStack.isEmpty()) return itemStack;
-
         final Pair<ItemStack, Holder<Potion>> itemStack = WolfInventoryHelper.findLifesavingPotions(inventoryContents, this.wolf);
         this.wolf.setItemSlot(EquipmentSlot.MAINHAND, itemStack.first);
 
@@ -142,27 +130,21 @@ public class RescueSelfFromLavaGoal extends Goal implements ContainerListener {
     }
 
     public void applySplashPotionEffect(final Pair<ItemStack, Holder<Potion>> itemStack) {
-        //RegistryEntry<Potion> registryEntry = Potions.FIRE_RESISTANCE;
-
-        // Get the world and the wolf's position
         Level world = this.wolf.level();
         double x = this.wolf.getX();
         double y = this.wolf.getY();
         double z = this.wolf.getZ();
 
-        // Create a splash effect on the wolf
         AreaEffectCloud effectCloud = new AreaEffectCloud(world, x, y + 0.5f, z);
-        effectCloud.setOwner(this.wolf); // Set the wolf as the source
-        effectCloud.setRadius(1F); // Set splash radius
+        effectCloud.setOwner(this.wolf);
+        effectCloud.setRadius(1F);
         PotionContents potionContentsComponent = new PotionContents(itemStack.second);
-        effectCloud.setPotionContents(potionContentsComponent); // Assign the potion effects (e.g., fire resistance)
-        effectCloud.setDuration(15); // Short duration since it's a splash
-        effectCloud.setWaitTime(0); // Apply immediately
+        effectCloud.setPotionContents(potionContentsComponent);
+        effectCloud.setDuration(15);
+        effectCloud.setWaitTime(0);
 
-        // Play the splash sound effect
         world.playSound(null, x, y, z, SoundEvents.SPLASH_POTION_BREAK, this.wolf.getSoundSource(), 1.0F, 0.4F + this.wolf.getRandom().nextFloat() * 0.4F);
 
-        // Spawn the area effect cloud to apply effects
         world.addFreshEntity(effectCloud);
 
         itemStack.first.shrink(1);

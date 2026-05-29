@@ -1,7 +1,7 @@
 package github.meloweh.wolfcompanion.goals;
 
 import github.meloweh.wolfcompanion.accessor.WolfEntityProvider;
-import github.meloweh.wolfcompanion.util.ConfigManager;
+import github.meloweh.wolfcompanion.config.WolfCompanionConfig;
 import github.meloweh.wolfcompanion.util.LineScan;
 import java.util.Comparator;
 import java.util.EnumSet;
@@ -60,7 +60,7 @@ public class WolfMeleeAttackGoal extends Goal {
                         attacker.isAlive() &&
                         !attacker.isRemoved() &&
                         attacker.getTarget().getUUID() == player.getUUID() &&
-                        !ConfigManager.isBlacklisted(attacker));
+                        !WolfCompanionConfig.isEntityAttackBlocked(attacker));
 
         if (attackers.isEmpty()) return;
         attackers.sort(Comparator.comparingDouble(e -> e.distanceTo(player)));
@@ -161,8 +161,8 @@ public class WolfMeleeAttackGoal extends Goal {
                     this.updateCountdownTicks += 5;
                 }
 
-                this.speed *= ConfigManager.config.attackAcceleration;
-                this.speed = Math.min(ConfigManager.config.maxSpeed, this.speed);
+                this.speed *= WolfCompanionConfig.current().attackAcceleration;
+                this.speed = Math.min(WolfCompanionConfig.current().maxSpeed, this.speed);
 
                 if (!this.mob.getNavigation().moveTo(livingEntity, this.speed)) {
                     this.updateCountdownTicks += 15;

@@ -3,19 +3,15 @@ package github.meloweh.wolfcompanion.goals;
 import github.meloweh.wolfcompanion.accessor.WolfEntityProvider;
 import github.meloweh.wolfcompanion.util.Pair;
 import github.meloweh.wolfcompanion.util.WolfInventoryHelper;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.stream.StreamSupport;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.Container;
-import net.minecraft.world.ContainerListener;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.TamableAnimal;
@@ -34,7 +30,7 @@ import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.level.pathfinder.PathType;
 import net.minecraft.world.phys.Vec3;
 
-public class RescueOwnerFromLavaGoal extends Goal implements ContainerListener {
+public class RescueOwnerFromLavaGoal extends Goal {
     private final TamableAnimal wolf;
     @Nullable
     private LivingEntity owner;
@@ -75,14 +71,7 @@ public class RescueOwnerFromLavaGoal extends Goal implements ContainerListener {
         }
     }
 
-    @Override
-    public void containerChanged(Container sender) {
-        this.refreshInventoryContents(sender);
-    }
-
     private void inventoryInit() {
-        armoredWolf.getInventory().removeListener(this);
-        armoredWolf.getInventory().addListener(this);
         refreshInventoryContents(armoredWolf.getInventory());
     }
 
@@ -149,16 +138,8 @@ public class RescueOwnerFromLavaGoal extends Goal implements ContainerListener {
 
             final Pair<ItemStack, Holder<Potion>> itemStack = usingPotion;
             shootCooldown--;
-//            if (itemStack.first.isEmpty()) {
-//                shootCooldown = 0;
-//                return;
-//            } else {
-//                shootCooldown--;
-//            }
 
             if (WolfInventoryHelper.hasFittingLifesavingEffect(this.owner, inventoryContents)) return;
-            //System.out.println("A1");
-            //if (WolfInventoryHelper.findLifesavingPotions(inventoryContents, this.owner).first.isEmpty()) return;
 
             if (this.teleportCooldown > 0) this.teleportCooldown--;
 
@@ -182,17 +163,12 @@ public class RescueOwnerFromLavaGoal extends Goal implements ContainerListener {
                         this.wolf.getItemBySlot(EquipmentSlot.MAINHAND) == itemStack.first) {
                     shoot(itemStack);
                     this.wolf.setItemSlot(EquipmentSlot.MAINHAND, nextPotion().first);
-                    //shootCooldown = 0;
                 }
             }
         }
     }
 
     private Pair<ItemStack, Holder<Potion>> nextPotion() {
-        //Pair<ItemStack, RegistryEntry<Potion>> itemStack = this.wolf.getEquippedStack(EquipmentSlot.MAINHAND);
-
-        //if (!itemStack.first.isEmpty()) return itemStack;
-
         final Pair<ItemStack, Holder<Potion>> itemStack = WolfInventoryHelper.findLifesavingPotions(inventoryContents, this.owner);
         this.wolf.setItemSlot(EquipmentSlot.MAINHAND, itemStack.first);
 
@@ -206,7 +182,7 @@ public class RescueOwnerFromLavaGoal extends Goal implements ContainerListener {
         double f = this.owner.getZ() + vec3d.z - this.wolf.getZ();
         double g = Math.sqrt(d * d + f * f);
 
-        Holder<Potion> registryEntry = itemStack.second;//Potions.FIRE_RESISTANCE;
+        Holder<Potion> registryEntry = itemStack.second;
 
         AbstractThrownPotion potionEntity = new ThrownSplashPotion(this.wolf.level(), this.wolf, itemStack.first);
         potionEntity.setItem(PotionContents.createItemStack(Items.SPLASH_POTION, registryEntry));

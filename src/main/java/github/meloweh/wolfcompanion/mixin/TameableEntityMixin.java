@@ -1,6 +1,6 @@
 package github.meloweh.wolfcompanion.mixin;
 
-import github.meloweh.wolfcompanion.util.ConfigManager;
+import github.meloweh.wolfcompanion.config.WolfCompanionConfig;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.animal.wolf.Wolf;
@@ -21,18 +21,12 @@ public class TameableEntityMixin {
         this.self = (TamableAnimal) (Object) this;
     }
 
-    /*@Inject(method = "tryTeleportToOwner", at = @At("HEAD"), cancellable = true)
-    public void tryTeleportToOwner(CallbackInfo ci) {
-        ci.cancel();
-    }*/
-
     @Inject(method = "shouldTryTeleportToOwner", at = @At("TAIL"), cancellable = true)
     public void shouldTryTeleportToOwner(CallbackInfoReturnable<Boolean> cir) {
         if (this.self instanceof Wolf wolf) {
             LivingEntity livingEntity = wolf.getOwner();
-            //cir.setReturnValue(livingEntity != null && wolf.squaredDistanceTo(wolf.getOwner()) >= (double)144.0F);
-            if (ConfigManager.config.allowTeleport) {
-                cir.setReturnValue(livingEntity != null && wolf.distanceToSqr(wolf.getOwner()) >= ConfigManager.config.teleportAtDistance);
+            if (WolfCompanionConfig.current().allowTeleport) {
+                cir.setReturnValue(livingEntity != null && wolf.distanceToSqr(wolf.getOwner()) >= WolfCompanionConfig.current().teleportAtDistance);
             } else {
                 cir.setReturnValue(false);
             }

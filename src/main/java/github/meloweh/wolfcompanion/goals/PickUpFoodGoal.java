@@ -1,15 +1,13 @@
 package github.meloweh.wolfcompanion.goals;
 
 import github.meloweh.wolfcompanion.accessor.WolfEntityProvider;
-import github.meloweh.wolfcompanion.util.ConfigManager;
+import github.meloweh.wolfcompanion.config.WolfCompanionConfig;
 import github.meloweh.wolfcompanion.util.WolfInventoryProvider;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.function.Predicate;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.Container;
-import net.minecraft.world.ContainerListener;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.animal.wolf.Wolf;
@@ -20,11 +18,10 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.gamerules.GameRules;
 
-public class PickUpFoodGoal extends Goal implements ContainerListener {
+public class PickUpFoodGoal extends Goal {
     final Wolf wolf;
     final WolfEntityProvider provider;
     int scanCooldown;
-    //final int SCAN_COOLDOWN = 20 * 10;
     final WolfInventoryProvider inventory;
 
     final Predicate<ItemEntity> PICKABLE_DROP_FILTER = (item)
@@ -38,13 +35,8 @@ public class PickUpFoodGoal extends Goal implements ContainerListener {
         this.inventory = new WolfInventoryProvider(this.wolf);
     }
 
-    @Override
-    public void containerChanged(Container sender) {
-        if (provider.hasChestEquipped()) this.inventory.refreshInventoryContents(sender);
-    }
-
     public static boolean playerFoodEnough(final Wolf wolf) {
-        if (!ConfigManager.config.shouldCarePlayerFood) return true;
+        if (!WolfCompanionConfig.current().shouldCarePlayerFood) return true;
         if (wolf.getOwner() != null) {
             final Inventory inv = ((Player)wolf.getOwner()).getInventory();
             final List<ItemStack> ic = new ArrayList<>();
@@ -53,7 +45,7 @@ public class PickUpFoodGoal extends Goal implements ContainerListener {
                 ++slotIndex) {
                 ic.add(inv.getItem(slotIndex));
             }
-            return ic.stream().filter(WolfInventoryProvider::canPlayerEat).mapToInt(ItemStack::getCount).sum() >= ConfigManager.config.requiredPlayerFood;
+            return ic.stream().filter(WolfInventoryProvider::canPlayerEat).mapToInt(ItemStack::getCount).sum() >= WolfCompanionConfig.current().requiredPlayerFood;
         }
         return true;
     }
@@ -65,12 +57,12 @@ public class PickUpFoodGoal extends Goal implements ContainerListener {
     }
 
     private boolean wantsToPickupItem() {
-        if (!ConfigManager.config.canPickupFood) return false;
+        if (!WolfCompanionConfig.current().canPickupFood) return false;
         if (provider.hasChestEquipped()) {
-            this.inventory.inventoryInit(this);
+            this.inventory.inventoryInit();
 
-            if (this.inventory.hasSpace() && (this.inventory.getFoodCount() <= ConfigManager.config.maxPickupFood
-                    || ConfigManager.config.pickAllRottenFlesh && this.inventory.onlyFood(Items.ROTTEN_FLESH))) {
+            if (this.inventory.hasSpace() && (this.inventory.getFoodCount() <= WolfCompanionConfig.current().maxPickupFood
+                    || WolfCompanionConfig.current().pickAllRottenFlesh && this.inventory.onlyFood(Items.ROTTEN_FLESH))) {
                 return true;
             }
         }
@@ -84,7 +76,6 @@ public class PickUpFoodGoal extends Goal implements ContainerListener {
 
     @Override
     public boolean canUse() {
-        //if (!wolf.getEntityWorld().isClient() && wolf.isAlive() && !wolf.isDead() && ((ServerWorld)wolf.getEntityWorld()).getGameRules().getBoolean(GameRules.DO_MOB_GRIEFING)) {
         final boolean can_mob_grief = ((ServerLevel)wolf.level()).getGameRules().get(GameRules.MOB_GRIEFING);
         if (!wolf.level().isClientSide() && wolf.isAlive() && !wolf.isDeadOrDying() && can_mob_grief) {
             if (wolf.isTame()
@@ -135,7 +126,7 @@ public class PickUpFoodGoal extends Goal implements ContainerListener {
     @Override
     public void stop() {
         super.stop();
-        if (provider.hasChestEquipped()) this.inventory.inventoryInit(this);
+        if (provider.hasChestEquipped()) this.inventory.inventoryInit();
         provider.setTargetPickup__(null);
     }
 }

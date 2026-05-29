@@ -13,7 +13,6 @@ public interface WolfEntityProvider {
     boolean isAggressive__();
     boolean isLock__();
 
-    //StackReference wolfcompanion_template_1_21_1$getGetStackReference(int mappedIndex);
     boolean hasChestEquipped();
     SimpleContainer getInventory();
 

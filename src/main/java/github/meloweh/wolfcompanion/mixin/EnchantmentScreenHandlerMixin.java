@@ -9,7 +9,6 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
-import net.minecraft.util.Util;
 import net.minecraft.util.random.WeightedRandom;
 import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.inventory.EnchantmentMenu;
@@ -29,10 +28,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 @Mixin(EnchantmentMenu.class)
 public class EnchantmentScreenHandlerMixin {
@@ -56,7 +53,7 @@ public class EnchantmentScreenHandlerMixin {
             level = Mth.clamp(Math.round((float)level + (float)level * f), 1, Integer.MAX_VALUE);
             List<EnchantmentInstance> list2 = EnchantmentHelperHelper.getPossibleWolfArmorEntries(level, possibleEnchantments);
             Optional<EnchantmentInstance> var10000 = WeightedRandom.getRandomItem(random, list2, EnchantmentInstance::weight);
-            var10000.ifPresent(list::add);  // Explicitly using a lambda expression
+            var10000.ifPresent(list::add);
 
             while (random.nextInt(50) <= level) {
                 var10000 = WeightedRandom.getRandomItem(random, list2, EnchantmentInstance::weight);
@@ -67,32 +64,6 @@ public class EnchantmentScreenHandlerMixin {
             return list;
         }
     }
-
-//    @Unique
-//    public List<EnchantmentLevelEntry> generateEnchantments(Random random, ItemStack stack, int level, Stream<RegistryEntry<Enchantment>> possibleEnchantments) {
-//        List<EnchantmentLevelEntry> list = Lists.newArrayList();
-//        Item item = stack.getItem();
-//        int i = item.getEnchantability();
-//        if (i <= 0) {
-//            return list;
-//        } else {
-//            level += 1 + random.nextInt(i / 4 + 1) + random.nextInt(i / 4 + 1);
-//            float f = (random.nextFloat() + random.nextFloat() - 1.0F) * 0.15F;
-//            level = MathHelper.clamp(Math.round((float)level + (float)level * f), 1, Integer.MAX_VALUE);
-//            List<EnchantmentLevelEntry> list2 = EnchantmentHelperHelper.getPossibleWolfArmorEntries(level, possibleEnchantments);
-//            Optional<EnchantmentLevelEntry> var10000 = Weighting.getRandom(random, list2);
-//            var10000.ifPresent(list::add);  // Explicitly using a lambda expression
-//
-//            while (random.nextInt(50) <= level) {
-//                var10000 = Weighting.getRandom(random, list2);
-//                var10000.ifPresent(list::add);
-//                level /= 2;
-//            }
-//
-//            return list;
-//        }
-//    }
-
 
     @Inject(method = "getEnchantmentList", at = @At("HEAD"), cancellable = true)
     public void changeGenerateEnchantments(RegistryAccess registryManager, ItemStack stack, int slot, int level, CallbackInfoReturnable<List<EnchantmentInstance>> cir) {

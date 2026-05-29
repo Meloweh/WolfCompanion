@@ -1,16 +1,15 @@
 package github.meloweh.wolfcompanion.util;
 
 import github.meloweh.wolfcompanion.accessor.WolfEntityProvider;
+import github.meloweh.wolfcompanion.config.WolfCompanionConfig;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.Iterator;
 import java.util.List;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.Container;
-import net.minecraft.world.ContainerListener;
 import net.minecraft.world.entity.animal.wolf.Wolf;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -36,9 +35,7 @@ public class WolfInventoryProvider {
         }
     }
 
-    public void inventoryInit(final ContainerListener listener) {
-        armoredWolf.getInventory().removeListener(listener);
-        armoredWolf.getInventory().addListener(listener);
+    public void inventoryInit() {
         refreshInventoryContents(armoredWolf.getInventory());
     }
 
@@ -72,31 +69,26 @@ public class WolfInventoryProvider {
         return this.inventoryContents.stream().filter(this::canEat_).mapToInt(ItemStack::getCount).sum();
     }
 
-//    public boolean hasFood() {
-//        return this.inventoryContents.stream().anyMatch(this::canEat_);
-//    }
-
     public boolean hasSpace() {
-        Iterator<ItemStack> it = this.armoredWolf.getInventory().items.iterator();
+        Container inventory = this.armoredWolf.getInventory();
+        int stackLimit = WolfCompanionConfig.current().wolfBagInventoryStackLimit();
 
-        for (ItemStack itemStack = Items.POTATO.getDefaultInstance(); it.hasNext(); itemStack = it.next()) {
-            if (itemStack.isEmpty()) return true;
+        for (int slot = 1; slot < inventory.getContainerSize(); slot++) {
+            ItemStack itemStack = inventory.getItem(slot);
+            if (itemStack.isEmpty()) {
+                return true;
+            }
+            if (itemStack.getCount() < Math.min(itemStack.getMaxStackSize(), stackLimit)) {
+                return true;
+            }
         }
+
         return false;
     }
-
-//    public boolean hasOnly(final Item item, final int max) {
-//        return this.inventoryContents.stream()
-//                .filter(i -> i.isOf(item)).mapToInt(ItemStack::getCount).sum() <= max;
-//    }
 
     public boolean onlyFood(final Item item) {
         return this.inventoryContents.stream()
                 .filter(this::canEat_)
                 .noneMatch(e -> !e.is(item) && !e.isEmpty());
     }
-
-//    public boolean isOnlyItem(final Item item, final int max) {
-//        return isOnlyItem(item) && hasOnly(item, max);
-//    }
 }

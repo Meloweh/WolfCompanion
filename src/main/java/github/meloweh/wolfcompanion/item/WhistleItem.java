@@ -3,8 +3,8 @@ package github.meloweh.wolfcompanion.item;
 import github.meloweh.wolfcompanion.accessor.MobEntityAccessor;
 import github.meloweh.wolfcompanion.accessor.ServerPlayerAccessor;
 import github.meloweh.wolfcompanion.accessor.WolfEntityProvider;
-import github.meloweh.wolfcompanion.init.InitSound;
-import github.meloweh.wolfcompanion.util.ConfigManager;
+import github.meloweh.wolfcompanion.registry.ModSounds;
+import github.meloweh.wolfcompanion.config.WolfCompanionConfig;
 import github.meloweh.wolfcompanion.util.NBTHelper;
 import java.util.Optional;
 import net.minecraft.core.particles.ParticleTypes;
@@ -53,8 +53,6 @@ public class WhistleItem extends Item {
         if (used == SECOND_WHISTLE_TICKS) {          // fires once per hold
             playWhistle(world, user, stack, 2);
             onSecondWhistle(world, user, stack);     // your custom second-whistle logic
-            // Optional hard stop after second:
-            // user.stopUsingItem();
         }
     }
 
@@ -102,14 +100,11 @@ public class WhistleItem extends Item {
         world.playSound(
                 null,
                 user,
-                InitSound.WHISTLE_SOUND_EVENT,
+                ModSounds.WHISTLE_SOUND_EVENT,
                 SoundSource.PLAYERS,
                 1.0f,
                 stage == 2 ? 1.0f : 1.1f
         );
-
-        //user.setCurrentHand(hand);
-
         if (stage == 1) {
             if (user instanceof ServerPlayer serverPlayer) {
                 final Optional<LivingEntity> target = getLookedAtEntity(serverPlayer);
@@ -123,7 +118,7 @@ public class WhistleItem extends Item {
                                         wolf.getOwner().getUUID() == user.getUUID() &&
                                         !((WolfEntityProvider) wolf).isLock__()
                         ).forEach(wolf -> {
-                            if (ConfigManager.config.canTeleportSitting)
+                            if (WolfCompanionConfig.current().canTeleportSitting)
                                 wolf.setOrderedToSit(false);
 
                             wolf.snapTo(user.getX(), user.getY(), user.getZ(), user.getYRot(), user.getXRot());
@@ -159,11 +154,11 @@ public class WhistleItem extends Item {
         Vec3 rotationVec = player.getViewVector(tickDelta);
 
         // End of ray
-        Vec3 endPos = cameraPos.add(rotationVec.scale(ConfigManager.config.teleportAtDistance));
+        Vec3 endPos = cameraPos.add(rotationVec.scale(WolfCompanionConfig.current().teleportAtDistance));
 
         // Expand search box along ray
         AABB searchBox = player.getBoundingBox()
-                .expandTowards(rotationVec.scale(ConfigManager.config.teleportAtDistance))
+                .expandTowards(rotationVec.scale(WolfCompanionConfig.current().teleportAtDistance))
                 .inflate(1.0D);
 
         // Perform entity raycast
@@ -173,7 +168,7 @@ public class WhistleItem extends Item {
                 endPos,
                 searchBox,
                 entity -> !entity.isSpectator() && entity.isPickable() && entity instanceof LivingEntity && entity.isAlive(),
-                ConfigManager.config.teleportAtDistance * ConfigManager.config.teleportAtDistance
+                WolfCompanionConfig.current().teleportAtDistance * WolfCompanionConfig.current().teleportAtDistance
         );
 
         if (entityHit != null) {

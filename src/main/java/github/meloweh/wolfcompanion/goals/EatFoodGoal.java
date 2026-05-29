@@ -5,7 +5,6 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.Container;
-import net.minecraft.world.ContainerListener;
 import net.minecraft.world.entity.EntityEvent;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.goal.Goal;
@@ -18,7 +17,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-public class EatFoodGoal extends Goal implements ContainerListener {
+public class EatFoodGoal extends Goal {
     private final Wolf entity;
     private final WolfEntityProvider armoredWolf;
 
@@ -37,20 +36,7 @@ public class EatFoodGoal extends Goal implements ContainerListener {
         this.inventoryContents = new ArrayList<>();
     }
 
-    /*
-    @Override
-    public boolean canStart() {
-        return this.wolfProvider.hasChestEquipped() && this.entity.hurtTime == 0;
-    }
-
-    @Override
-    public void onInventoryChanged(Inventory sender) {
-
-    }*/
-
     private void inventoryInit() {
-        armoredWolf.getInventory().removeListener(this);
-        armoredWolf.getInventory().addListener(this);
         refreshInventoryContents(armoredWolf.getInventory());
     }
 
@@ -117,11 +103,6 @@ public class EatFoodGoal extends Goal implements ContainerListener {
                 this.entity.isAlive() &&
                 this.entity.canSimulateMovement()) {
             if (!this.eatingFood.isEmpty()) {
-//                if (this.armoredWolf.hasChestEquipped() && !this.inventoryContents.contains(this.eatingFood)) {
-//                    stop();
-//                    return;
-//                }
-
                 ItemStack itemStack = this.eatingFood;
                 if (!itemStack.isEmpty()) {
                     this.eatingTime--;
@@ -137,7 +118,6 @@ public class EatFoodGoal extends Goal implements ContainerListener {
                         return;
                     }
                     this.entity.heal(foodComponent.nutrition());
-                    //itemStack.decrement(1);
                     ItemStack itemStack2 = itemStack.finishUsingItem(this.entity.level(), this.entity);
                     this.entity.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
                     this.eatingTime = -1;
@@ -163,11 +143,6 @@ public class EatFoodGoal extends Goal implements ContainerListener {
         eatingFood = ItemStack.EMPTY;
         this.entity.setItemSlot(EquipmentSlot.MAINHAND, this.eatingFood);
         inventoryInit();
-    }
-
-    @Override
-    public void containerChanged(Container sender) {
-        this.refreshInventoryContents(sender);
     }
 
     private void refreshInventoryContents(Container invBasic) {
