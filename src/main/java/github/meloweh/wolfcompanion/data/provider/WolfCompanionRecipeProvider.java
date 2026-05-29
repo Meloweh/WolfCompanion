@@ -1,65 +1,48 @@
 package github.meloweh.wolfcompanion.data.provider;
 
-import github.meloweh.wolfcompanion.init.InitItem;
+import github.meloweh.wolfcompanion.registry.ModItems;
+import java.util.concurrent.CompletableFuture;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricRecipeProvider;
-import net.minecraft.data.server.recipe.RecipeExporter;
-import net.minecraft.data.server.recipe.ShapedRecipeJsonBuilder;
-import net.minecraft.item.Items;
-import net.minecraft.recipe.book.RecipeCategory;
-import net.minecraft.registry.RegistryWrapper;
-
-import java.util.concurrent.CompletableFuture;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.data.recipes.RecipeCategory;
+import net.minecraft.data.recipes.RecipeOutput;
+import net.minecraft.data.recipes.ShapedRecipeBuilder;
+import net.minecraft.world.item.Items;
 
 public class WolfCompanionRecipeProvider extends FabricRecipeProvider {
-    public WolfCompanionRecipeProvider(FabricDataOutput output, CompletableFuture<RegistryWrapper.WrapperLookup> registriesFuture) {
+    public WolfCompanionRecipeProvider(FabricDataOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
         super(output, registriesFuture);
     }
 
     @Override
-    public void generate(RecipeExporter recipeExporter) {
-//        ShapedRecipeJsonBuilder.create(RecipeCategory.TOOLS, InitItem.ITEM_SINGLE_WOLF_BAG)
-//                .input('C', Items.CHEST).input('S', Items.ARMADILLO_SCUTE)
-//                .pattern(" S ")
-//                .pattern("SCS")
-//                .pattern("SSS")
-//                .criterion(hasItem(Items.CHEST), conditionsFromItem(Items.CHEST))
-//                .criterion(hasItem(Items.ARMADILLO_SCUTE), conditionsFromItem(Items.ARMADILLO_SCUTE))
-//                .offerTo(recipeExporter);
-
-//        ShapedRecipeJsonBuilder.create(RecipeCategory.TOOLS, InitItem.ITEM_WOLF_BAG)
-//                .input('S', Items.ARMADILLO_SCUTE).input('B', InitItem.ITEM_SINGLE_WOLF_BAG)
-//                .pattern(" S ")
-//                .pattern("B B")
-//                .pattern(" S ")
-//                .offerTo(recipeExporter);
-
-        ShapedRecipeJsonBuilder.create(RecipeCategory.TOOLS, InitItem.ITEM_SINGLE_WOLF_BAG)
-                .input('A', Items.ARMADILLO_SCUTE)
-                .input('C', Items.CHEST)
+    public void buildRecipes(RecipeOutput recipeExporter) {
+        ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, ModItems.SINGLE_WOLF_BAG)
+                .define('A', Items.ARMADILLO_SCUTE)
+                .define('C', Items.CHEST)
                 .pattern(" A ")
                 .pattern("ACA")
                 .pattern("AAA")
-                .criterion(hasItem(Items.CHEST), conditionsFromItem(Items.CHEST))
-                .criterion(hasItem(Items.ARMADILLO_SCUTE), conditionsFromItem(Items.ARMADILLO_SCUTE))
-                .offerTo(recipeExporter);
+                .unlockedBy(getHasName(Items.CHEST), has(Items.CHEST))
+                .unlockedBy(getHasName(Items.ARMADILLO_SCUTE), has(Items.ARMADILLO_SCUTE))
+                .save(recipeExporter);
 
-        ShapedRecipeJsonBuilder.create(RecipeCategory.TOOLS, InitItem.ITEM_WOLF_BAG)
-                .input('A', Items.ARMADILLO_SCUTE)
-                .input('C', InitItem.ITEM_SINGLE_WOLF_BAG)
+        ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, ModItems.WOLF_BAG)
+                .define('A', Items.ARMADILLO_SCUTE)
+                .define('C', ModItems.SINGLE_WOLF_BAG)
                 .pattern(" A ")
                 .pattern("C C")
                 .pattern(" A ")
-                .criterion(hasItem(InitItem.ITEM_SINGLE_WOLF_BAG), conditionsFromItem(InitItem.ITEM_SINGLE_WOLF_BAG))
-                .criterion(hasItem(Items.ARMADILLO_SCUTE), conditionsFromItem(Items.ARMADILLO_SCUTE))
-                .offerTo(recipeExporter);
+                .unlockedBy(getHasName(ModItems.SINGLE_WOLF_BAG), has(ModItems.SINGLE_WOLF_BAG))
+                .unlockedBy(getHasName(Items.ARMADILLO_SCUTE), has(Items.ARMADILLO_SCUTE))
+                .save(recipeExporter);
 
-        ShapedRecipeJsonBuilder.create(RecipeCategory.TOOLS, InitItem.DOG_WHISTLE_ITEM)
-                .input('I', Items.IRON_INGOT)
+        ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, ModItems.DOG_WHISTLE)
+                .define('I', Items.IRON_INGOT)
                 .pattern("   ")
                 .pattern("III")
                 .pattern(" II")
-                .criterion(hasItem(Items.IRON_INGOT), conditionsFromItem(Items.IRON_INGOT))
-                .offerTo(recipeExporter);
+                .unlockedBy(getHasName(Items.IRON_INGOT), has(Items.IRON_INGOT))
+                .save(recipeExporter);
     }
 }

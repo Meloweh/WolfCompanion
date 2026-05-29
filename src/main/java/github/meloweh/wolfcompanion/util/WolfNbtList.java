@@ -1,31 +1,29 @@
 package github.meloweh.wolfcompanion.util;
 
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 
 public class WolfNbtList {
-    final private List<NbtCompound> wolfNbts = new ArrayList<>();
+    final private List<CompoundTag> wolfNbts = new ArrayList<>();
 
-    public void writeDataToNbt(final NbtCompound nbt, final String KEY) {
+    public void writeDataToNbt(final CompoundTag nbt, final String KEY) {
         if (!this.wolfNbts.isEmpty()) {
             for (int i = 0; i < this.wolfNbts.size(); i++) {
-                final NbtCompound wolfNbt = this.wolfNbts.get(i);
+                final CompoundTag wolfNbt = this.wolfNbts.get(i);
                 nbt.put(KEY + i, wolfNbt);
             }
         }
     }
 
-    public void readDataToNbt(NbtCompound nbt, final String KEY) {
+    public void readDataToNbt(CompoundTag nbt, final String KEY) {
         for (int i = 0; nbt.contains(KEY + i); i++) {
-            final NbtElement wolfElement = nbt.get(KEY + i);
-            if (!(wolfElement instanceof NbtCompound)) {
-                throw new IllegalStateException("nbt should be compound");
+            Tag wolfElement = nbt.get(KEY + i);
+            if (wolfElement instanceof CompoundTag wolfNbt) {
+                queueWolfNbt(wolfNbt);
             }
-            queueWolfNbt((NbtCompound) wolfElement);
         }
     }
 
@@ -44,8 +42,8 @@ public class WolfNbtList {
         });
     }
 
-    public List<NbtCompound> dequeueElapsedTimeout() {
-        final List<NbtCompound> results = new ArrayList<>();
+    public List<CompoundTag> dequeueElapsedTimeout() {
+        final List<CompoundTag> results = new ArrayList<>();
 
         this.wolfNbts.forEach(nbt -> {
             final int remainingTimeoutTicks = getIntOrDefault(nbt, "RescueTimeout", 0);
@@ -64,11 +62,11 @@ public class WolfNbtList {
         return results;
     }
 
-    public void queueWolfNbt(NbtCompound nbt) {
+    public void queueWolfNbt(CompoundTag nbt) {
         this.wolfNbts.add(nbt);
     }
 
-    public List<NbtCompound> getWolfNbts() {
+    public List<CompoundTag> getWolfNbts() {
         return this.wolfNbts;
     }
 
@@ -94,11 +92,12 @@ public class WolfNbtList {
                 .min(Integer::compare);
     }
 
-    public static int getIntOrDefault(NbtCompound nbt, String key, int fallback) {
-        return nbt.contains(key) ? nbt.getInt(key) : fallback;
-    }
 
     public void clear() {
         this.wolfNbts.clear();
+    }
+
+    public static int getIntOrDefault(CompoundTag nbt, String key, int fallback) {
+        return nbt.contains(key) ? nbt.getInt(key) : fallback;
     }
 }

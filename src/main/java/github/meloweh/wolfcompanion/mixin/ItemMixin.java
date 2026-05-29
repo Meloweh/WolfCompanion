@@ -1,7 +1,7 @@
 package github.meloweh.wolfcompanion.mixin;
 
-import net.minecraft.item.AnimalArmorItem;
-import net.minecraft.item.Item;
+import net.minecraft.world.item.AnimalArmorItem;
+import net.minecraft.world.item.Item;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -9,18 +9,14 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(Item.class)
 public class ItemMixin {
-    @Inject(method = "getEnchantability", at = @At("HEAD"), cancellable = true)
-    public void increaseWolfArmorEnchantability(CallbackInfoReturnable<Integer> cir) {
-        final Item self = (Item) (Object) this;
+    @Inject(method = "getEnchantmentValue", at = @At("HEAD"), cancellable = true)
+    private void increaseWolfArmorEnchantability(CallbackInfoReturnable<Integer> cir) {
+        Item self = (Item) (Object) this;
 
-        if (self instanceof AnimalArmorItem) {
-            final AnimalArmorItem animalItem = (AnimalArmorItem) self;
-
-            if (animalItem.getType().equals(AnimalArmorItem.Type.CANINE)) {
-                cir.setReturnValue(15);
-                cir.cancel();
-            }
+        if (self instanceof AnimalArmorItem animalItem
+                && animalItem.getBodyType() == AnimalArmorItem.BodyType.CANINE) {
+            cir.setReturnValue(15);
+            cir.cancel();
         }
-
     }
 }

@@ -1,25 +1,24 @@
 package github.meloweh.wolfcompanion.goals;
 
 import github.meloweh.wolfcompanion.accessor.WolfEntityProvider;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.FoodComponent;
-import net.minecraft.entity.EntityStatuses;
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.entity.ai.goal.Goal;
-import net.minecraft.entity.passive.WolfEntity;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.inventory.InventoryChangedListener;
-import net.minecraft.item.*;
-import net.minecraft.sound.SoundEvent;
-import net.minecraft.sound.SoundEvents;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.Container;
+import net.minecraft.world.entity.EntityEvent;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.entity.animal.Wolf;
+import net.minecraft.world.food.FoodProperties;
+import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-public class EatFoodGoal extends Goal implements InventoryChangedListener {
-    private final WolfEntity entity;
+public class EatFoodGoal extends Goal {
+    private final Wolf entity;
     private final WolfEntityProvider armoredWolf;
 
     private final List<ItemStack> inventoryContents;
@@ -31,43 +30,30 @@ public class EatFoodGoal extends Goal implements InventoryChangedListener {
 
     private static final float DEFAULT_EAT_SECONDS = 1.6F;
 
-    public EatFoodGoal(@NotNull WolfEntity wolf) {
+    public EatFoodGoal(@NotNull Wolf wolf) {
         this.entity = wolf;
         this.armoredWolf = (WolfEntityProvider) wolf;
         this.inventoryContents = new ArrayList<>();
     }
 
-    /*
-    @Override
-    public boolean canStart() {
-        return this.wolfProvider.hasChestEquipped() && this.entity.hurtTime == 0;
-    }
-
-    @Override
-    public void onInventoryChanged(Inventory sender) {
-
-    }*/
-
     private void inventoryInit() {
-        armoredWolf.getInventory().removeListener(this);
-        armoredWolf.getInventory().addListener(this);
         refreshInventoryContents(armoredWolf.getInventory());
     }
 
 
     @Override
-    public boolean canStart() {
+    public boolean canUse() {
 
         final boolean wouldStart = !this.entity.isInvulnerable()
-                && this.entity.hurtTime == 0 && !this.entity.getWorld().isClient;
+                && this.entity.hurtTime == 0 && !this.entity.level().isClientSide();
 
-        if (!this.armoredWolf.hasChestEquipped() && this.entity.getEquippedStack(EquipmentSlot.MAINHAND).contains(DataComponentTypes.FOOD)) {
+        if (!this.armoredWolf.hasChestEquipped() && this.entity.getItemBySlot(EquipmentSlot.MAINHAND).has(DataComponents.FOOD)) {
             return wouldStart;
         }
 
         if (this.armoredWolf.hasChestEquipped()) {
-            if (!this.entity.getEquippedStack(EquipmentSlot.MAINHAND).contains(DataComponentTypes.FOOD)) {
-                this.entity.equipStack(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
+            if (!this.entity.getItemBySlot(EquipmentSlot.MAINHAND).has(DataComponents.FOOD)) {
+                this.entity.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
             }
             return wouldStart && PickUpFoodGoal.playerFoodEnough(this.entity); // && this.entity.getEquippedStack(EquipmentSlot.MAINHAND).isEmpty();
         }
@@ -77,13 +63,13 @@ public class EatFoodGoal extends Goal implements InventoryChangedListener {
 
     @Override
     public void start() {
-        if (eatingTime > 0 || this.entity.getTarget() != null || this.entity.getWorld().isClient) return;
+        if (eatingTime > 0 || this.entity.getTarget() != null || this.entity.level().isClientSide()) return;
 
-        ItemStack mostEfficientFood = this.armoredWolf.hasChestEquipped() ? findFood() : this.entity.getEquippedStack(EquipmentSlot.MAINHAND);
+        ItemStack mostEfficientFood = this.armoredWolf.hasChestEquipped() ? findFood() : this.entity.getItemBySlot(EquipmentSlot.MAINHAND);
 
         if (mostEfficientFood.isEmpty()) return;
 
-        final FoodComponent foodComponent = mostEfficientFood.get(DataComponentTypes.FOOD);
+        final FoodProperties foodComponent = mostEfficientFood.get(DataComponents.FOOD);
 
         if (foodComponent == null) return;
 
@@ -91,7 +77,7 @@ public class EatFoodGoal extends Goal implements InventoryChangedListener {
 
         if (damageAmount < 1.0F || damageAmount < foodComponent.nutrition()) {
             if (!this.armoredWolf.hasChestEquipped()) {
-                armoredWolf.spit__(this.entity.getEquippedStack(EquipmentSlot.MAINHAND));
+                armoredWolf.spit__(this.entity.getItemBySlot(EquipmentSlot.MAINHAND));
             }
             return;
         }
@@ -99,29 +85,24 @@ public class EatFoodGoal extends Goal implements InventoryChangedListener {
         this.eatingFood = mostEfficientFood;
         foodEatTime = (int) DEFAULT_EAT_SECONDS * 20;
         eatingTime = foodEatTime / 2 + entity.getRandom().nextInt(foodEatTime);
-        this.entity.equipStack(EquipmentSlot.MAINHAND, this.eatingFood);
+        this.entity.setItemSlot(EquipmentSlot.MAINHAND, this.eatingFood);
     }
 
     @Override
-    public boolean shouldContinue() {
+    public boolean canContinueToUse() {
         return eatingTime > 0;
     }
 
     public SoundEvent getEatSound(ItemStack stack) {
-        return SoundEvents.ENTITY_FOX_EAT;
+        return SoundEvents.FOX_EAT;
     }
 
     @Override
     public void tick() {
-        if (!this.entity.getWorld().isClient &&
+        if (!this.entity.level().isClientSide() &&
                 this.entity.isAlive() &&
-                this.entity.canMoveVoluntarily()) {
+                this.entity.isEffectiveAi()) {
             if (!this.eatingFood.isEmpty()) {
-//                if (this.armoredWolf.hasChestEquipped() && !this.inventoryContents.contains(this.eatingFood)) {
-//                    stop();
-//                    return;
-//                }
-
                 ItemStack itemStack = this.eatingFood;
                 if (!itemStack.isEmpty()) {
                     this.eatingTime--;
@@ -131,20 +112,19 @@ public class EatFoodGoal extends Goal implements InventoryChangedListener {
                 }
 
                 if (this.eatingTime == 0) {
-                    final FoodComponent foodComponent = itemStack.get(DataComponentTypes.FOOD);
+                    final FoodProperties foodComponent = itemStack.get(DataComponents.FOOD);
                     if (foodComponent == null) {
                         this.eatingTime++;
                         return;
                     }
                     this.entity.heal(foodComponent.nutrition());
-                    //itemStack.decrement(1);
-                    ItemStack itemStack2 = itemStack.finishUsing(this.entity.getWorld(), this.entity);
-                    this.entity.equipStack(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
+                    ItemStack itemStack2 = itemStack.finishUsingItem(this.entity.level(), this.entity);
+                    this.entity.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
                     this.eatingTime = -1;
                 } else if (this.eatingTime > 0) {
                     if (this.eatingTime % 2 == 0 && this.entity.getRandom().nextFloat() < 0.5F) {
                         this.entity.playSound(this.getEatSound(itemStack), 1.0F, 1.0F);
-                        this.entity.getWorld().sendEntityStatus(this.entity, EntityStatuses.CREATE_EATING_PARTICLES);
+                        this.entity.level().broadcastEntityEvent(this.entity, EntityEvent.FOX_EAT);
                     }
 
                 }
@@ -161,21 +141,16 @@ public class EatFoodGoal extends Goal implements InventoryChangedListener {
         this.eatingTime = 0;
         hasHealedSinceLastReset = false;
         eatingFood = ItemStack.EMPTY;
-        this.entity.equipStack(EquipmentSlot.MAINHAND, this.eatingFood);
+        this.entity.setItemSlot(EquipmentSlot.MAINHAND, this.eatingFood);
         inventoryInit();
     }
 
-    @Override
-    public void onInventoryChanged(Inventory sender) {
-        this.refreshInventoryContents(sender);
-    }
-
-    private void refreshInventoryContents(Inventory invBasic) {
+    private void refreshInventoryContents(Container invBasic) {
         this.inventoryContents.clear();
         for(int slotIndex = 1;
-            slotIndex < invBasic.size();
+            slotIndex < invBasic.getContainerSize();
             ++slotIndex) {
-            this.inventoryContents.add(invBasic.getStack(slotIndex));
+            this.inventoryContents.add(invBasic.getItem(slotIndex));
         }
     }
 
@@ -184,7 +159,7 @@ public class EatFoodGoal extends Goal implements InventoryChangedListener {
     }
 
     private boolean canEat(final ItemStack itemStack) {
-        return !itemStack.isEmpty() && entity.isBreedingItem(itemStack) && itemStack.contains(DataComponentTypes.FOOD);
+        return !itemStack.isEmpty() && entity.isFood(itemStack) && itemStack.has(DataComponents.FOOD);
     }
 
     @NotNull
@@ -193,7 +168,7 @@ public class EatFoodGoal extends Goal implements InventoryChangedListener {
         return this.inventoryContents.stream()
                 .filter(this::canEat)
                 .min(Comparator.comparing(itemStack
-                        -> Math.abs(healthDiff - itemStack.get(DataComponentTypes.FOOD).nutrition())))
+                        -> Math.abs(healthDiff - itemStack.get(DataComponents.FOOD).nutrition())))
                 .orElse(ItemStack.EMPTY);
     }
 }

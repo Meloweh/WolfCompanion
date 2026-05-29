@@ -1,8 +1,8 @@
 package github.meloweh.wolfcompanion.accessor;
 
-import net.minecraft.entity.passive.WolfEntity;
+import net.minecraft.world.entity.animal.Wolf;
 
 public interface WolfEntityAccessor {
-    WolfEntity getWolfEntity();
+    Wolf getWolfEntity();
 
 }

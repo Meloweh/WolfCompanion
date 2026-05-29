@@ -1,30 +1,22 @@
 package github.meloweh.wolfcompanion;
 
-import github.meloweh.wolfcompanion.accessor.WolfEntityProvider;
+import github.meloweh.wolfcompanion.config.WolfCompanionConfig;
 import github.meloweh.wolfcompanion.effects.ModEffects;
 import github.meloweh.wolfcompanion.events.WolfEventHandler;
-import github.meloweh.wolfcompanion.init.*;
-import github.meloweh.wolfcompanion.network.AggressionWolfC2SPayload;
-import github.meloweh.wolfcompanion.network.DropWolfChestC2SPayload;
-import github.meloweh.wolfcompanion.network.LockWolfC2SPayload;
-import github.meloweh.wolfcompanion.network.ReleaseWolfC2SPayload;
-import github.meloweh.wolfcompanion.util.ConfigManager;
+import github.meloweh.wolfcompanion.network.ModNetwork;
+import github.meloweh.wolfcompanion.registry.ModItems;
+import github.meloweh.wolfcompanion.registry.ModMenuTypes;
+import github.meloweh.wolfcompanion.registry.ModSounds;
 import net.fabricmc.api.ModInitializer;
 
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.enchantment.Enchantment;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.passive.WolfEntity;
-import net.minecraft.registry.DynamicRegistryManager;
-import net.minecraft.registry.Registry;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.Holder;
+import net.minecraft.core.Registry;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.item.enchantment.Enchantment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,104 +26,37 @@ public class WolfCompanion implements ModInitializer {
 
 	public static final String CUSTOM_INVENTORY_UPDATE_ID = "custom_inventory_update";
 
-	public static DynamicRegistryManager dynamicRegistryManager;
-
-	//public static final WolfConfig CONFIG = WolfConfig.createAndLoad();
+	public static RegistryAccess dynamicRegistryManager;
 
 	@Override
 	public void onInitialize() {
 		LOGGER.info("Loading...");
-		ConfigManager.loadConfig();
-		InitItem.load();
-		InitBlock.load();
-		InitSound.load();
-		//BlockEntityTypeInit.load();
-		ScreenHandlerTypeInit.load();
+		WolfCompanionConfig.load();
+		ModItems.register();
+		ModSounds.register();
+		ModMenuTypes.register();
 		WolfEventHandler.init();
 		ModEffects.register();
 
-		ServerLifecycleEvents.SERVER_STARTED.register(minecraftServer -> {
-			dynamicRegistryManager = minecraftServer.getRegistryManager();
-		});
+		ServerLifecycleEvents.SERVER_STARTED.register(minecraftServer ->
+				dynamicRegistryManager = minecraftServer.registryAccess());
 
-		PayloadTypeRegistry.playC2S().register(DropWolfChestC2SPayload.ID, DropWolfChestC2SPayload.PACKET_CODEC);
-		PayloadTypeRegistry.playC2S().register(ReleaseWolfC2SPayload.ID, ReleaseWolfC2SPayload.PACKET_CODEC);
-		PayloadTypeRegistry.playC2S().register(AggressionWolfC2SPayload.ID, AggressionWolfC2SPayload.PACKET_CODEC);
-		PayloadTypeRegistry.playC2S().register(LockWolfC2SPayload.ID, LockWolfC2SPayload.PACKET_CODEC);
-
-		ServerPlayNetworking.registerGlobalReceiver(DropWolfChestC2SPayload.ID, (payload, context) -> {
-			context.server().execute(() -> {
-				context.server().getWorlds().forEach(serverWorld -> {
-					final Entity entity = serverWorld.getEntity(payload.wolfUUID());
-					if (entity != null) {
-						final WolfEntity wolf = (WolfEntity) entity;
-						final WolfEntityProvider provider = (WolfEntityProvider) wolf;
-						provider.setShouldDropChest(true);
-						final LivingEntity owner = wolf.getOwner();
-						if (owner instanceof ServerPlayerEntity) {
-							((ServerPlayerEntity) owner).closeHandledScreen();
-						}
-						provider.wolfcompanion_template_1_21_1$dropInventoryByButton();
-					}
-				});
-			});
-		});
-		ServerPlayNetworking.registerGlobalReceiver(ReleaseWolfC2SPayload.ID, (payload, context) -> {
-			context.server().execute(() -> {
-				context.server().getWorlds().forEach(serverWorld -> {
-					final Entity entity = serverWorld.getEntity(payload.wolfUUID());
-					if (entity != null) {
-						final WolfEntity wolf = (WolfEntity) entity;
-						final WolfEntityProvider provider = (WolfEntityProvider) wolf;
-						provider.setShouldReleaseWolf(true);
-						final LivingEntity owner = wolf.getOwner();
-						if (owner instanceof ServerPlayerEntity) {
-							((ServerPlayerEntity) owner).closeHandledScreen();
-						}
-						provider.releaseWolfButton();
-					}
-				});
-			});
-		});
-		ServerPlayNetworking.registerGlobalReceiver(AggressionWolfC2SPayload.ID, (payload, context) -> {
-			context.server().execute(() -> {
-				context.server().getWorlds().forEach(serverWorld -> {
-					final Entity entity = serverWorld.getEntity(payload.wolfUUID());
-					if (entity != null) {
-						final WolfEntity wolf = (WolfEntity) entity;
-						final WolfEntityProvider provider = (WolfEntityProvider) wolf;
-						provider.setAggressive__(!provider.isAggressive__());
-					}
-				});
-			});
-		});
-		ServerPlayNetworking.registerGlobalReceiver(LockWolfC2SPayload.ID, (payload, context) -> {
-			context.server().execute(() -> {
-				context.server().getWorlds().forEach(serverWorld -> {
-					final Entity entity = serverWorld.getEntity(payload.wolfUUID());
-					if (entity != null) {
-						final WolfEntity wolf = (WolfEntity) entity;
-						final WolfEntityProvider provider = (WolfEntityProvider) wolf;
-						provider.setLock__(!provider.isLock__());
-					}
-				});
-			});
-		});
-
+		ModNetwork.registerServerPayloads();
+		ModNetwork.registerServerReceivers();
 	}
 
-	public static Identifier id(String path) {
-		return Identifier.of(MOD_ID, path);
+	public static ResourceLocation id(String path) {
+		return ResourceLocation.fromNamespaceAndPath(MOD_ID, path);
 	}
 
-	public static boolean isSameEnchantment(Enchantment enchantment, RegistryKey<Enchantment> enchantmentRegistryKey) {
+	public static boolean isSameEnchantment(Enchantment enchantment, ResourceKey<Enchantment> enchantmentRegistryKey) {
 		if (dynamicRegistryManager == null) {
-			System.out.println("ERROR: dynamic registry manager was null");
+			LOGGER.error("Dynamic registry manager was not available while checking enchantments.");
 			return false;
 		}
-		Registry<Enchantment> enchantmentRegistry = dynamicRegistryManager.get(RegistryKeys.ENCHANTMENT);
+		Registry<Enchantment> enchantmentRegistry = dynamicRegistryManager.registryOrThrow(Registries.ENCHANTMENT);
 
-		RegistryEntry<Enchantment> enchantmentEntry = enchantmentRegistry.getEntry(enchantment);
-		return enchantmentEntry != null && enchantmentEntry.matchesKey(enchantmentRegistryKey);
+		Holder<Enchantment> enchantmentEntry = enchantmentRegistry.wrapAsHolder(enchantment);
+		return enchantmentEntry != null && enchantmentEntry.is(enchantmentRegistryKey);
 	}
 }

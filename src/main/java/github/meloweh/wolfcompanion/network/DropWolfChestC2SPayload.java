@@ -1,24 +1,22 @@
 package github.meloweh.wolfcompanion.network;
 
 import github.meloweh.wolfcompanion.WolfCompanion;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.network.packet.CustomPayload;
-import net.minecraft.util.Uuids;
-
 import java.util.UUID;
+import net.minecraft.core.UUIDUtil;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 
-public record DropWolfChestC2SPayload(UUID wolfUUID) implements CustomPayload {
+public record DropWolfChestC2SPayload(UUID wolfUUID) implements CustomPacketPayload {
 
-    public static final Id<DropWolfChestC2SPayload> ID = new Id<>(WolfCompanion.id("gui_interact_c2s_payload"));
-    public static final PacketCodec<RegistryByteBuf, DropWolfChestC2SPayload> PACKET_CODEC = PacketCodec.tuple(
-            Uuids.PACKET_CODEC, DropWolfChestC2SPayload::wolfUUID,
+    public static final Type<DropWolfChestC2SPayload> ID = new Type<>(WolfCompanion.id("gui_interact_c2s_payload"));
+    public static final StreamCodec<RegistryFriendlyByteBuf, DropWolfChestC2SPayload> PACKET_CODEC = StreamCodec.composite(
+            UUIDUtil.STREAM_CODEC, DropWolfChestC2SPayload::wolfUUID,
             DropWolfChestC2SPayload::new);
 
 
     @Override
-    public Id<? extends CustomPayload> getId() {
+    public Type<? extends CustomPacketPayload> type() {
         return ID;
     }
 }

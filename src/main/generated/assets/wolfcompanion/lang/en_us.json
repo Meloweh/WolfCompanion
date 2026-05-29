@@ -12,5 +12,7 @@
   "effect.wolfcompanion.defeated_wolves_8": "Defeated Wolves VIII",
   "effect.wolfcompanion.defeated_wolves_9": "Defeated Wolves IX",
   "effect.wolfcompanion.defeated_wolves_10": "Defeated Wolves X",
-  "effect.wolfcompanion.defeated_wolves_11": "Defeated Wolves X+"
+  "effect.wolfcompanion.defeated_wolves_11": "Defeated Wolves X+",
+  "key.wolfcompanion.open_config": "Open Wolf Companion Config",
+  "screen.wolfcompanion.config": "Wolf Companion Config"
 }

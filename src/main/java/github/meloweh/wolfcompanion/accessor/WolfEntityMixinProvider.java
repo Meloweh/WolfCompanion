@@ -1,7 +1,7 @@
 package github.meloweh.wolfcompanion.accessor;
 
-import net.minecraft.inventory.SimpleInventory;
+import net.minecraft.world.SimpleContainer;
 
 public interface WolfEntityMixinProvider {
-    SimpleInventory wolfcompanion_template_1_21_1$getItemsInventory();
+    SimpleContainer wolfcompanion_template_1_21_1$getItemsInventory();
 }

@@ -5,6 +5,7 @@
   "canRespawn": true,
   "keepWolfBag": true,
   "keepWolfInventory": false,
+  "keepWolfArmor": false,
   "canPickupFood": true,
   "maxPickupFood": 10,
   "pickAllRottenFlesh": true,
@@ -12,11 +13,16 @@
   "requiredPlayerFood": 10,
   "doNotAttackMobs": [],
   "keepXp": false,
-  "extraHealth": 0,
   "allowTeleport": true,
   "teleportAtDistance": 3300,
   "attackAcceleration": 1.2,
   "maxSpeed": 3,
   "allowPassiveRegeneration": true,
-  "passiveRegenerationRate": 15
+  "passiveRegenerationRate": 15,
+  "limitTamedWolves": false,
+  "maxTamedWolves": 8,
+  "limitWolfBags": false,
+  "maxWolfBags": 8,
+  "limitWolfBagInventoryStackSize": false,
+  "wolfBagInventoryStackSize": 32
 }

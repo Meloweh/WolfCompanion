@@ -3,86 +3,79 @@ package github.meloweh.wolfcompanion.item;
 import github.meloweh.wolfcompanion.accessor.MobEntityAccessor;
 import github.meloweh.wolfcompanion.accessor.ServerPlayerAccessor;
 import github.meloweh.wolfcompanion.accessor.WolfEntityProvider;
-import github.meloweh.wolfcompanion.init.InitSound;
-import github.meloweh.wolfcompanion.util.ConfigManager;
+import github.meloweh.wolfcompanion.registry.ModSounds;
+import github.meloweh.wolfcompanion.config.WolfCompanionConfig;
 import github.meloweh.wolfcompanion.util.NBTHelper;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.projectile.ProjectileUtil;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtHelper;
-import net.minecraft.particle.ParticleEffect;
-import net.minecraft.particle.ParticleTypes;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvent;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.TypedActionResult;
-import net.minecraft.util.UseAction;
-import net.minecraft.util.hit.EntityHitResult;
-import net.minecraft.util.math.Box;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
-
 import java.util.Optional;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.projectile.ProjectileUtil;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.UseAnim;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.EntityHitResult;
+import net.minecraft.world.phys.Vec3;
 
 public class WhistleItem extends Item {
     private static final int SECOND_WHISTLE_TICKS = 30; // 20
 
-    public WhistleItem(Settings settings) {
+    public WhistleItem(Properties settings) {
         super(settings);
     }
 
     @Override
-    public UseAction getUseAction(ItemStack stack) { return UseAction.NONE; } // visual; change if desired
-
-    @Override
-    public int getMaxUseTime(ItemStack stack, LivingEntity user) { return 72000; } // hold-to-use behavior
-
-    @Override
-    public void onStoppedUsing(ItemStack stack, World world, LivingEntity user, int remainingUseTicks) {
-        // No state to clear; next press will retrigger 1st then 2nd.
+    public UseAnim getUseAnimation(ItemStack stack) {
+        return UseAnim.NONE;
     }
 
     @Override
-    public void usageTick(World world, LivingEntity user, ItemStack stack, int remainingUseTicks) {
-        if (world.isClient) return;
-        int used = getMaxUseTime(stack, user) - remainingUseTicks;
+    public int getUseDuration(ItemStack stack, LivingEntity user) { return 72000; } // hold-to-use behavior
+
+    @Override
+    public void releaseUsing(ItemStack stack, Level world, LivingEntity user, int remainingUseTicks) {
+        // No state to clear; next press will retrigger first then second whistle.
+    }
+
+    @Override
+    public void onUseTick(Level world, LivingEntity user, ItemStack stack, int remainingUseTicks) {
+        if (world.isClientSide()) return;
+        int used = getUseDuration(stack, user) - remainingUseTicks;
 
         if (used == SECOND_WHISTLE_TICKS) {          // fires once per hold
             playWhistle(world, user, stack, 2);
             onSecondWhistle(world, user, stack);     // your custom second-whistle logic
-            // Optional hard stop after second:
-            // user.stopUsingItem();
         }
     }
 
     /** Override or fill with effects for the second whistle. */
-    protected void onSecondWhistle(World world, LivingEntity user, ItemStack stack) {
-        if (user instanceof ServerPlayerEntity serverPlayer) {
+    protected void onSecondWhistle(Level world, LivingEntity user, ItemStack stack) {
+        if (user instanceof ServerPlayer serverPlayer) {
             final ServerPlayerAccessor serverPlayerAccessor = (ServerPlayerAccessor) serverPlayer;
 
             if (serverPlayerAccessor.getWhistleWolfNbts__().isEmpty() && !serverPlayerAccessor.hasElapsed__() ) {
-                serverPlayerAccessor.getServer__().getWorlds().forEach(world2 -> {
-                    world2.getEntitiesByType(EntityType.WOLF, wolf ->
-                            wolf.isTamed() &&
+                serverPlayerAccessor.getServer__().getAllLevels().forEach(world2 -> {
+                    world2.getEntities(EntityType.WOLF, wolf ->
+                            wolf.isTame() &&
                                     wolf.getOwner() != null &&
-                                    wolf.getOwner().getUuid() == user.getUuid() &&
+                                    wolf.getOwner().getUUID().equals(user.getUUID()) &&
                                     !((WolfEntityProvider) wolf).isLock__()
                     ).forEach(wolf -> {
-                        final NbtCompound nbt = NBTHelper.getWolfNBT(wolf);
+                        final CompoundTag nbt = NBTHelper.getWolfNBT(wolf);
                         serverPlayerAccessor.queueWhistleWolfNbt__(nbt);
 
-                        ServerWorld sw = (ServerWorld) wolf.getWorld();
-                        //double x = wolf.getX(), y = wolf.getBodyY(0.5), z = wolf.getZ();
-                        sw.spawnParticles(ParticleTypes.POOF,  wolf.getX(), wolf.getBodyY(0.5), wolf.getZ(), 9, 0.25, 0.20, 0.25, 0.01);
-                        sw.spawnParticles(ParticleTypes.CLOUD, wolf.getX(), wolf.getBodyY(0.5), wolf.getZ(),  4, 0.20, 0.10, 0.20, 0.00);
+                        ServerLevel sw = (ServerLevel) wolf.level();
+                        sw.sendParticles(ParticleTypes.POOF,  wolf.getX(), wolf.getY(0.5), wolf.getZ(), 9, 0.25, 0.20, 0.25, 0.01);
+                        sw.sendParticles(ParticleTypes.CLOUD, wolf.getX(), wolf.getY(0.5), wolf.getZ(),  4, 0.20, 0.10, 0.20, 0.00);
 
                         wolf.discard();
                     });
@@ -95,57 +88,54 @@ public class WhistleItem extends Item {
     }
 
     @Override
-    public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
-        ItemStack stack = user.getStackInHand(hand);
-        user.setCurrentHand(hand);                    // start “using” on hold
+    public InteractionResultHolder<ItemStack> use(Level world, Player user, InteractionHand hand) {
+        ItemStack stack = user.getItemInHand(hand);
+        user.startUsingItem(hand);                    // start “using” on hold
 
-        if (!world.isClient) playWhistle(world, user, stack, 1);
-        return TypedActionResult.success(stack, world.isClient());
+        if (!world.isClientSide()) playWhistle(world, user, stack, 1);
+        return InteractionResultHolder.sidedSuccess(stack, world.isClientSide());
     }
 
-    private void playWhistle(World world, LivingEntity user, ItemStack stack, int stage) {
+    private void playWhistle(Level world, LivingEntity user, ItemStack stack, int stage) {
         // Positional attenuation from the moving entity
-        world.playSoundFromEntity(
+        world.playSound(
                 null,
                 user,
-                InitSound.WHISTLE_SOUND_EVENT,
-                SoundCategory.PLAYERS,
+                ModSounds.WHISTLE_SOUND_EVENT,
+                SoundSource.PLAYERS,
                 1.0f,
                 stage == 2 ? 1.0f : 1.1f
         );
-
-        //user.setCurrentHand(hand);
-
         if (stage == 1) {
-            if (user instanceof ServerPlayerEntity serverPlayer) {
+            if (user instanceof ServerPlayer serverPlayer) {
                 final Optional<LivingEntity> target = getLookedAtEntity(serverPlayer);
                 final ServerPlayerAccessor serverPlayerAccessor = (ServerPlayerAccessor) serverPlayer;
 
                 if (target.isEmpty()) {
-                    serverPlayerAccessor.getServer__().getWorlds().forEach(world2 -> {
-                        world2.getEntitiesByType(EntityType.WOLF, wolf ->
-                                wolf.isTamed() &&
+                    serverPlayerAccessor.getServer__().getAllLevels().forEach(world2 -> {
+                        world2.getEntities(EntityType.WOLF, wolf ->
+                                wolf.isTame() &&
                                         wolf.getOwner() != null &&
-                                        wolf.getOwner().getUuid() == user.getUuid() &&
+                                        wolf.getOwner().getUUID().equals(user.getUUID()) &&
                                         !((WolfEntityProvider) wolf).isLock__()
                         ).forEach(wolf -> {
-                            if (ConfigManager.config.canTeleportSitting)
-                                wolf.setSitting(false);
+                            if (WolfCompanionConfig.current().canTeleportSitting)
+                                wolf.setOrderedToSit(false);
 
-                            wolf.refreshPositionAndAngles(user.getX(), user.getY(), user.getZ(), user.getYaw(), user.getPitch());
-                            wolf.stopAnger();
+                            wolf.moveTo(user.getX(), user.getY(), user.getZ(), user.getYRot(), user.getXRot());
+                            wolf.stopBeingAngry();
                             ((MobEntityAccessor) wolf).getNavigator__().stop();
                         });
                     });
                 } else {
-                    serverPlayerAccessor.getServer__().getWorlds().forEach(world2 -> {
-                        world2.getEntitiesByType(EntityType.WOLF, wolf ->
-                                wolf.isTamed() &&
+                    serverPlayerAccessor.getServer__().getAllLevels().forEach(world2 -> {
+                        world2.getEntities(EntityType.WOLF, wolf ->
+                                wolf.isTame() &&
                                         wolf.getOwner() != null &&
-                                        wolf.getOwner().getUuid() == user.getUuid() &&
-                                    !((WolfEntityProvider) wolf).isLock__()
+                                        wolf.getOwner().getUUID().equals(user.getUUID()) &&
+                                        !((WolfEntityProvider) wolf).isLock__()
                         ).forEach(wolf -> {
-                            if (!wolf.isSitting() && target.get() != wolf) {
+                            if (!wolf.isOrderedToSit() && target.get() != wolf) {
                                 wolf.setTarget(target.get());
                             }
                         });
@@ -155,31 +145,31 @@ public class WhistleItem extends Item {
         }
     }
 
-    public static Optional<LivingEntity> getLookedAtEntity(ServerPlayerEntity player) {
+    public static Optional<LivingEntity> getLookedAtEntity(ServerPlayer player) {
         float tickDelta = 1.0F;
 
         // Camera position
-        Vec3d cameraPos = player.getCameraPosVec(tickDelta);
+        Vec3 cameraPos = player.getEyePosition(tickDelta);
 
         // Look direction
-        Vec3d rotationVec = player.getRotationVec(tickDelta);
+        Vec3 rotationVec = player.getViewVector(tickDelta);
 
         // End of ray
-        Vec3d endPos = cameraPos.add(rotationVec.multiply(ConfigManager.config.teleportAtDistance));
+        Vec3 endPos = cameraPos.add(rotationVec.scale(WolfCompanionConfig.current().teleportAtDistance));
 
         // Expand search box along ray
-        Box searchBox = player.getBoundingBox()
-                .stretch(rotationVec.multiply(ConfigManager.config.teleportAtDistance))
-                .expand(1.0D);
+        AABB searchBox = player.getBoundingBox()
+                .expandTowards(rotationVec.scale(WolfCompanionConfig.current().teleportAtDistance))
+                .inflate(1.0D);
 
         // Perform entity raycast
-        EntityHitResult entityHit = ProjectileUtil.raycast(
+        EntityHitResult entityHit = ProjectileUtil.getEntityHitResult(
                 player,
                 cameraPos,
                 endPos,
                 searchBox,
-                entity -> !entity.isSpectator() && entity.canHit() && entity instanceof LivingEntity && entity.isAlive(),
-                ConfigManager.config.teleportAtDistance * ConfigManager.config.teleportAtDistance
+                entity -> !entity.isSpectator() && entity.isPickable() && entity instanceof LivingEntity && entity.isAlive(),
+                WolfCompanionConfig.current().teleportAtDistance * WolfCompanionConfig.current().teleportAtDistance
         );
 
         if (entityHit != null) {

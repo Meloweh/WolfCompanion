@@ -1,60 +1,51 @@
 package github.meloweh.wolfcompanion.goals;
 
 import github.meloweh.wolfcompanion.accessor.WolfEntityProvider;
-import github.meloweh.wolfcompanion.util.ConfigManager;
+import github.meloweh.wolfcompanion.config.WolfCompanionConfig;
 import github.meloweh.wolfcompanion.util.WolfInventoryProvider;
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.entity.ItemEntity;
-import net.minecraft.entity.ai.goal.Goal;
-import net.minecraft.entity.passive.WolfEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.inventory.InventoryChangedListener;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.world.GameRules;
-
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.function.Predicate;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.entity.animal.Wolf;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.GameRules;
 
-public class PickUpFoodGoal extends Goal implements InventoryChangedListener {
-    final WolfEntity wolf;
+public class PickUpFoodGoal extends Goal {
+    final Wolf wolf;
     final WolfEntityProvider provider;
     int scanCooldown;
-    //final int SCAN_COOLDOWN = 20 * 10;
     final WolfInventoryProvider inventory;
 
     final Predicate<ItemEntity> PICKABLE_DROP_FILTER = (item)
-            -> !item.cannotPickup() && item.isAlive() && WolfInventoryProvider.canEat(item.getStack());
+            -> !item.hasPickUpDelay() && item.isAlive() && WolfInventoryProvider.canEat(item.getItem());
 
-    public PickUpFoodGoal(final WolfEntity wolf) {
-        this.setControls(EnumSet.of(Control.MOVE));
+    public PickUpFoodGoal(final Wolf wolf) {
+        this.setFlags(EnumSet.of(Flag.MOVE));
         this.wolf = wolf;
         this.provider = (WolfEntityProvider) wolf;
         this.scanCooldown = 0;
         this.inventory = new WolfInventoryProvider(this.wolf);
     }
 
-    @Override
-    public void onInventoryChanged(Inventory sender) {
-        if (provider.hasChestEquipped()) this.inventory.refreshInventoryContents(sender);
-    }
-
-    public static boolean playerFoodEnough(final WolfEntity wolf) {
-        if (!ConfigManager.config.shouldCarePlayerFood) return true;
+    public static boolean playerFoodEnough(final Wolf wolf) {
+        if (!WolfCompanionConfig.current().shouldCarePlayerFood) return true;
         if (wolf.getOwner() != null) {
-            final PlayerInventory inv = ((PlayerEntity)wolf.getOwner()).getInventory();
+            final Inventory inv = ((Player)wolf.getOwner()).getInventory();
             final List<ItemStack> ic = new ArrayList<>();
             for(int slotIndex = 0;
-                slotIndex < inv.size();
+                slotIndex < inv.getContainerSize();
                 ++slotIndex) {
-                ic.add(inv.getStack(slotIndex));
+                ic.add(inv.getItem(slotIndex));
             }
-            return ic.stream().filter(WolfInventoryProvider::canPlayerEat).mapToInt(ItemStack::getCount).sum() >= ConfigManager.config.requiredPlayerFood;
+            return ic.stream().filter(WolfInventoryProvider::canPlayerEat).mapToInt(ItemStack::getCount).sum() >= WolfCompanionConfig.current().requiredPlayerFood;
         }
         return true;
     }
@@ -62,16 +53,16 @@ public class PickUpFoodGoal extends Goal implements InventoryChangedListener {
     private boolean nakedAndHungry() {
         return !this.provider.hasChestEquipped()
                 && this.wolf.getHealth() <= this.wolf.getMaxHealth() * 0.8f
-                && this.wolf.getEquippedStack(EquipmentSlot.MAINHAND).isEmpty();
+                && this.wolf.getItemBySlot(EquipmentSlot.MAINHAND).isEmpty();
     }
 
     private boolean wantsToPickupItem() {
-        if (!ConfigManager.config.canPickupFood) return false;
+        if (!WolfCompanionConfig.current().canPickupFood) return false;
         if (provider.hasChestEquipped()) {
-            this.inventory.inventoryInit(this);
+            this.inventory.inventoryInit();
 
-            if (this.inventory.hasSpace() && (this.inventory.getFoodCount() <= ConfigManager.config.maxPickupFood
-                    || ConfigManager.config.pickAllRottenFlesh && this.inventory.onlyFood(Items.ROTTEN_FLESH))) {
+            if (this.inventory.hasSpace() && (this.inventory.getFoodCount() <= WolfCompanionConfig.current().maxPickupFood
+                    || WolfCompanionConfig.current().pickAllRottenFlesh && this.inventory.onlyFood(Items.ROTTEN_FLESH))) {
                 return true;
             }
         }
@@ -79,21 +70,22 @@ public class PickUpFoodGoal extends Goal implements InventoryChangedListener {
     }
 
     private List<ItemEntity> findPickups() {
-        return wolf.getWorld().getEntitiesByClass(ItemEntity.class, wolf.getBoundingBox()
-                .expand(8.0, 8.0, 8.0), PICKABLE_DROP_FILTER);
+        return wolf.level().getEntitiesOfClass(ItemEntity.class, wolf.getBoundingBox()
+                .inflate(8.0, 8.0, 8.0), PICKABLE_DROP_FILTER);
     }
 
     @Override
-    public boolean canStart() {
-        if (!wolf.getWorld().isClient && wolf.isAlive() && !wolf.isDead() && ((ServerWorld)wolf.getWorld()).getGameRules().getBoolean(GameRules.DO_MOB_GRIEFING)) {
-            if (wolf.isTamed()
-                    && !wolf.getWorld().isClient
-                    && !wolf.isSitting()
+    public boolean canUse() {
+        final boolean can_mob_grief = ((ServerLevel)wolf.level()).getGameRules().getBoolean(GameRules.RULE_MOBGRIEFING);
+        if (!wolf.level().isClientSide() && wolf.isAlive() && !wolf.isDeadOrDying() && can_mob_grief) {
+            if (wolf.isTame()
+                    && !wolf.level().isClientSide()
+                    && !wolf.isOrderedToSit()
                     && wolf.getTarget() == null
-                    && wolf.getAttacker() == null) {
+                    && wolf.getLastHurtByMob() == null) {
                 if (!wantsToPickupItem()) {
                     return false;
-                } else if (wolf.getRandom().nextInt(toGoalTicks(10)) != 0) {
+                } else if (wolf.getRandom().nextInt(reducedTickDelay(10)) != 0) {
                     return false;
                 } else {
                     List<ItemEntity> list = findPickups();
@@ -113,7 +105,7 @@ public class PickUpFoodGoal extends Goal implements InventoryChangedListener {
     }
 
     @Override
-    public boolean shouldContinue() {
+    public boolean canContinueToUse() {
         return wantsToPickupItem();
     }
 
@@ -122,7 +114,7 @@ public class PickUpFoodGoal extends Goal implements InventoryChangedListener {
         if (!list.isEmpty()) {
             final ItemEntity first = list.getFirst();
             provider.setTargetPickup__(first);
-            wolf.getNavigation().startMovingTo(first, 1.2000000476837158);
+            wolf.getNavigation().moveTo(first, 1.2000000476837158);
         }
     }
 
@@ -134,7 +126,7 @@ public class PickUpFoodGoal extends Goal implements InventoryChangedListener {
     @Override
     public void stop() {
         super.stop();
-        if (provider.hasChestEquipped()) this.inventory.inventoryInit(this);
+        if (provider.hasChestEquipped()) this.inventory.inventoryInit();
         provider.setTargetPickup__(null);
     }
 }
