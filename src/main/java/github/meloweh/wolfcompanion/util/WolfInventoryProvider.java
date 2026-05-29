@@ -1,11 +1,11 @@
 package github.meloweh.wolfcompanion.util;
 
 import github.meloweh.wolfcompanion.accessor.WolfEntityProvider;
+import github.meloweh.wolfcompanion.config.WolfCompanionConfig;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.Iterator;
 import java.util.List;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.tags.ItemTags;
@@ -70,11 +70,19 @@ public class WolfInventoryProvider {
     }
 
     public boolean hasSpace() {
-        Iterator<ItemStack> it = this.armoredWolf.getInventory().items.iterator();
+        Container inventory = this.armoredWolf.getInventory();
+        int stackLimit = WolfCompanionConfig.current().wolfBagInventoryStackLimit();
 
-        for (ItemStack itemStack = Items.POTATO.getDefaultInstance(); it.hasNext(); itemStack = it.next()) {
-            if (itemStack.isEmpty()) return true;
+        for (int slot = 1; slot < inventory.getContainerSize(); slot++) {
+            ItemStack itemStack = inventory.getItem(slot);
+            if (itemStack.isEmpty()) {
+                return true;
+            }
+            if (itemStack.getCount() < Math.min(itemStack.getMaxStackSize(), stackLimit)) {
+                return true;
+            }
         }
+
         return false;
     }
 

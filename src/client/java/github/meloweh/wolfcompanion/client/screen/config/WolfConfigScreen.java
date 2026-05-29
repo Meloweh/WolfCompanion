@@ -110,6 +110,24 @@ public class WolfConfigScreen extends Screen {
         return y + ROW_HEIGHT;
     }
 
+    int addIntegerChoice(int left, int y, int width, String label, int value, Consumer<Integer> setter, int... allowedValues) {
+        addField(left, y, width, label, Integer.toString(value), raw -> {
+            try {
+                int parsed = Integer.parseInt(raw.trim());
+                for (int allowedValue : allowedValues) {
+                    if (parsed == allowedValue) {
+                        setter.accept(parsed);
+                        return true;
+                    }
+                }
+                return false;
+            } catch (NumberFormatException ignored) {
+                return false;
+            }
+        });
+        return y + ROW_HEIGHT;
+    }
+
     int addDouble(int left, int y, int width, String label, double value, double minimum, Consumer<Double> setter) {
         addField(left, y, width, label, Double.toString(value), raw -> {
             try {

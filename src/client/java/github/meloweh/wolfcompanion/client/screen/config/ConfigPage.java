@@ -47,6 +47,17 @@ enum ConfigPage {
             y = screen.addDouble(left, y, width, "Max attack speed", draft.maxSpeed, 0.0, value -> draft.maxSpeed = value);
             screen.addStringList(left, y, width, "Do not attack mobs/tags", draft.doNotAttackMobs, value -> draft.doNotAttackMobs = value);
         }
+    },
+    LIMITS("Limits") {
+        @Override
+        void build(WolfConfigScreen screen, WolfConfig draft, int left, int y, int width) {
+            y = screen.addBoolean(left, y, width, "Limit tamed wolves", draft.limitTamedWolves, value -> draft.limitTamedWolves = value);
+            y = screen.addInteger(left, y, width, "Max tamed wolves", draft.maxTamedWolves, 0, value -> draft.maxTamedWolves = value);
+            y = screen.addBoolean(left, y, width, "Limit equipped bags", draft.limitWolfBags, value -> draft.limitWolfBags = value);
+            y = screen.addInteger(left, y, width, "Max equipped bags", draft.maxWolfBags, 0, value -> draft.maxWolfBags = value);
+            y = screen.addBoolean(left, y, width, "Limit bag stack size", draft.limitWolfBagInventoryStackSize, value -> draft.limitWolfBagInventoryStackSize = value);
+            screen.addIntegerChoice(left, y, width, "Bag stack size", draft.wolfBagInventoryStackSize, value -> draft.wolfBagInventoryStackSize = value, 32, 16, 8);
+        }
     };
 
     private final String title;

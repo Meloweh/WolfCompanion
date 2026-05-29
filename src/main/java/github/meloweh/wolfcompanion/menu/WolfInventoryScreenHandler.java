@@ -91,7 +91,7 @@ public class WolfInventoryScreenHandler extends AbstractContainerMenu {
         if (((WolfEntityProvider)wolf).hasChestEquipped()) {
             for (int k = 0; k < WOLF_SLOTS / 5; k++) {
                 for (int l = 0; l < WOLF_SLOTS / 3; l++) {
-                    addSlot(new Slot(inventory, 1 + l + k * 5, 80 + l * 18, 18 + k * 18));
+                    addSlot(new WolfBagInventorySlot(inventory, 1 + l + k * 5, 80 + l * 18, 18 + k * 18));
                 }
             }
         }

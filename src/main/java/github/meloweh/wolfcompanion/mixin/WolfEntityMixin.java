@@ -11,6 +11,7 @@ import github.meloweh.wolfcompanion.menu.WolfInventoryScreenHandler;
 import github.meloweh.wolfcompanion.config.WolfCompanionConfig;
 import github.meloweh.wolfcompanion.util.LineScan;
 import github.meloweh.wolfcompanion.util.NBTHelper;
+import github.meloweh.wolfcompanion.util.WolfOwnershipLimits;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.menu.v1.ExtendedMenuProvider;
 import net.minecraft.core.Holder;
@@ -56,6 +57,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemStackTemplate;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.EnchantedItemInUse;
 import net.minecraft.world.item.enchantment.EnchantmentEffectComponents;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
@@ -701,22 +703,6 @@ public abstract class WolfEntityMixin implements
     }
 
     @Unique
-    private SimpleContainer getReducedInventory() {
-        final SimpleContainer inv = new SimpleContainer(15);
-        for (int i = 1; i < this.items.getContainerSize(); i++) {
-            inv.setItem(i - 1, this.items.getItem(i));
-        }
-        return inv;
-    }
-
-    @Unique
-    private void transferReducedInventory(final SimpleContainer inv) {
-        for (int i = 1; i < this.items.getContainerSize(); i++) {
-            this.items.setItem(i, inv.getItem(i - 1));
-        }
-    }
-
-    @Unique
     private void dropItem(ItemStack stack) {
         ItemEntity itemEntity = new ItemEntity(this.self.level(), this.self.getX(), this.self.getY(), this.self.getZ(), stack);
         this.self.level().addFreshEntity(itemEntity);
@@ -740,17 +726,12 @@ public abstract class WolfEntityMixin implements
         ItemStack itemStack = item.getItem();
         if (!itemStack.isEmpty()) {
             if (this.hasChestEquipped()) {
-                if (this.items.canAddItem(itemStack)) {
+                int transferred = this.insertIntoBagInventory(itemStack);
+                if (transferred > 0) {
                     this.self.onItemPickup(item);
 
-                    final SimpleContainer reducedInventory = getReducedInventory();
-                    final ItemStack itemStack2 = reducedInventory.addItem(itemStack); //this.items.addStack(itemStack);
-                    transferReducedInventory(reducedInventory);
-
-                    final int transfered = itemStack.getCount() - itemStack2.getCount();
-
-                    this.self.take(item, transfered);
-                    itemStack.shrink(transfered);
+                    this.self.take(item, transferred);
+                    itemStack.shrink(transferred);
 
                     if (itemStack.isEmpty()) {
                         item.discard();
@@ -771,6 +752,51 @@ public abstract class WolfEntityMixin implements
                 item.discard();
             }
         }
+    }
+
+    @Unique
+    private int insertIntoBagInventory(ItemStack stack) {
+        ItemStack remaining = stack.copy();
+        int originalCount = remaining.getCount();
+
+        fillExistingBagStacks(remaining);
+        fillEmptyBagSlots(remaining);
+
+        return originalCount - remaining.getCount();
+    }
+
+    @Unique
+    private void fillExistingBagStacks(ItemStack remaining) {
+        for (int slot = 1; slot < this.items.getContainerSize() && !remaining.isEmpty(); slot++) {
+            ItemStack bagStack = this.items.getItem(slot);
+            if (bagStack.isEmpty() || !ItemStack.isSameItemSameComponents(bagStack, remaining)) {
+                continue;
+            }
+
+            int slotLimit = getBagSlotStackLimit(bagStack);
+            int accepted = java.lang.Math.min(slotLimit - bagStack.getCount(), remaining.getCount());
+            if (accepted > 0) {
+                bagStack.grow(accepted);
+                remaining.shrink(accepted);
+            }
+        }
+    }
+
+    @Unique
+    private void fillEmptyBagSlots(ItemStack remaining) {
+        for (int slot = 1; slot < this.items.getContainerSize() && !remaining.isEmpty(); slot++) {
+            if (!this.items.getItem(slot).isEmpty()) {
+                continue;
+            }
+
+            int accepted = java.lang.Math.min(getBagSlotStackLimit(remaining), remaining.getCount());
+            this.items.setItem(slot, remaining.split(accepted));
+        }
+    }
+
+    @Unique
+    private int getBagSlotStackLimit(ItemStack stack) {
+        return java.lang.Math.min(stack.getMaxStackSize(), WolfCompanionConfig.current().wolfBagInventoryStackLimit());
     }
 
     @Inject(method = "aiStep", at = @At("TAIL"))
@@ -833,24 +859,51 @@ public abstract class WolfEntityMixin implements
 
     @Inject(method = "mobInteract", at = @At("HEAD"), cancellable = true)
     private void onRightClick(Player player, InteractionHand hand, CallbackInfoReturnable<InteractionResult> cir) {
-        if (!player.level().isClientSide() &&
-                hand == InteractionHand.MAIN_HAND &&
-                self.isTame() &&
+        if (player.level().isClientSide() || hand != InteractionHand.MAIN_HAND) {
+            return;
+        }
+
+        final ItemStack itemStack = player.getItemInHand(hand);
+        if (isTameLimitReached(player, itemStack)) {
+            cir.setReturnValue(InteractionResult.FAIL);
+            cir.cancel();
+            return;
+        }
+
+        if (self.isTame() &&
                 self.isOwnedBy(player) &&
                 !self.isBaby()
         ) {
-            final ItemStack itemStack = player.getItemInHand(hand);
             if (!this.hasChest() && itemStack.is(ModItems.WOLF_BAG)) {
+                if (isBagLimitReached(player)) {
+                    cir.setReturnValue(InteractionResult.FAIL);
+                    cir.cancel();
+                    return;
+                }
+
                 this.addChest(player, itemStack);
-                final InteractionResult result = self.level().isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
-                cir.setReturnValue(result);
+                cir.setReturnValue(InteractionResult.SUCCESS_SERVER);
                 cir.cancel();
             } else if (player.isShiftKeyDown()) {
                 this.openCustomInventoryScreen(player);
-                final InteractionResult result = self.level().isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
-                cir.setReturnValue(result);
+                cir.setReturnValue(InteractionResult.SUCCESS_SERVER);
                 cir.cancel();
             }
         }
+    }
+
+    @Unique
+    private boolean isTameLimitReached(Player player, ItemStack itemStack) {
+        return !self.isTame()
+                && !self.isAngry()
+                && itemStack.is(Items.BONE)
+                && player instanceof ServerPlayer serverPlayer
+                && !WolfOwnershipLimits.canTameMoreWolves(serverPlayer);
+    }
+
+    @Unique
+    private boolean isBagLimitReached(Player player) {
+        return player instanceof ServerPlayer serverPlayer
+                && !WolfOwnershipLimits.canEquipMoreWolfBags(serverPlayer);
     }
 }

@@ -18,5 +18,11 @@
   "attackAcceleration": 1.2,
   "maxSpeed": 3,
   "allowPassiveRegeneration": true,
-  "passiveRegenerationRate": 15
+  "passiveRegenerationRate": 15,
+  "limitTamedWolves": false,
+  "maxTamedWolves": 8,
+  "limitWolfBags": false,
+  "maxWolfBags": 8,
+  "limitWolfBagInventoryStackSize": false,
+  "wolfBagInventoryStackSize": 32
 }

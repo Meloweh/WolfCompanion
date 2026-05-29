@@ -24,6 +24,12 @@ public class WolfConfig {
     public double maxSpeed = 3f;
     public boolean allowPassiveRegeneration = true;
     public int passiveRegenerationRate = 15;
+    public boolean limitTamedWolves = false;
+    public int maxTamedWolves = 8;
+    public boolean limitWolfBags = false;
+    public int maxWolfBags = 8;
+    public boolean limitWolfBagInventoryStackSize = false;
+    public int wolfBagInventoryStackSize = 32;
 
     public WolfConfig copy() {
         WolfConfig copy = new WolfConfig();
@@ -47,6 +53,12 @@ public class WolfConfig {
         copy.maxSpeed = this.maxSpeed;
         copy.allowPassiveRegeneration = this.allowPassiveRegeneration;
         copy.passiveRegenerationRate = this.passiveRegenerationRate;
+        copy.limitTamedWolves = this.limitTamedWolves;
+        copy.maxTamedWolves = this.maxTamedWolves;
+        copy.limitWolfBags = this.limitWolfBags;
+        copy.maxWolfBags = this.maxWolfBags;
+        copy.limitWolfBagInventoryStackSize = this.limitWolfBagInventoryStackSize;
+        copy.wolfBagInventoryStackSize = this.wolfBagInventoryStackSize;
         return copy;
     }
 
@@ -54,5 +66,14 @@ public class WolfConfig {
         if (this.doNotAttackMobs == null) {
             this.doNotAttackMobs = new ArrayList<>();
         }
+        this.maxTamedWolves = Math.max(0, this.maxTamedWolves);
+        this.maxWolfBags = Math.max(0, this.maxWolfBags);
+        if (this.wolfBagInventoryStackSize != 8 && this.wolfBagInventoryStackSize != 16 && this.wolfBagInventoryStackSize != 32) {
+            this.wolfBagInventoryStackSize = 32;
+        }
+    }
+
+    public int wolfBagInventoryStackLimit() {
+        return this.limitWolfBagInventoryStackSize ? this.wolfBagInventoryStackSize : 64;
     }
 }
