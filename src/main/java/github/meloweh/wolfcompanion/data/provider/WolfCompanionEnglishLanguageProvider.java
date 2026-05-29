@@ -22,6 +22,8 @@ public class WolfCompanionEnglishLanguageProvider extends FabricLanguageProvider
         translationBuilder.add(InitItem.ITEM_SINGLE_WOLF_BAG, "Single Wolf Bag");
         translationBuilder.add(InitItem.ITEM_WOLF_BAG, "Wolf Bag");
         translationBuilder.add(InitItem.DOG_WHISTLE_ITEM, "Pet Whistle");
+        translationBuilder.add("key.wolfcompanion.open_config", "Open Wolf Companion Config");
+        translationBuilder.add("screen.wolfcompanion.config", "Wolf Companion Config");
 
     }
 }

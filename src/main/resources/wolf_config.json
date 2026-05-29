@@ -5,6 +5,7 @@
   "canRespawn": true,
   "keepWolfBag": true,
   "keepWolfInventory": false,
+  "keepWolfArmor": false,
   "canPickupFood": true,
   "maxPickupFood": 10,
   "pickAllRottenFlesh": true,

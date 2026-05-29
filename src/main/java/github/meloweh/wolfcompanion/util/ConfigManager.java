@@ -38,6 +38,10 @@ public class ConfigManager {
         if (CONFIG_FILE.exists()) {
             try (FileReader reader = new FileReader(CONFIG_FILE)) {
                 config = GSON.fromJson(reader, WolfConfig.class);
+                if (config == null) {
+                    config = new WolfConfig();
+                }
+                config.normalize();
                 System.out.println("Config loaded: " + config);
             } catch (IOException e) {
                 e.printStackTrace();
@@ -51,12 +55,20 @@ public class ConfigManager {
     }
 
     public static void saveConfig() {
+        config.normalize();
         try (FileWriter writer = new FileWriter(CONFIG_FILE)) {
             GSON.toJson(config, writer);
             System.out.println("Config saved: " + config);
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public static void applyConfig(WolfConfig nextConfig) {
+        config = nextConfig.copy();
+        config.normalize();
+        saveConfig();
+        reload(config.doNotAttackMobs);
     }
 
     public static void reload(List<String> entries) {
