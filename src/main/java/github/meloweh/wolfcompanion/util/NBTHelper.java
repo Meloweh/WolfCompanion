@@ -1,6 +1,8 @@
 package github.meloweh.wolfcompanion.util;
 
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import github.meloweh.wolfcompanion.WolfCompanion;
+import github.meloweh.wolfcompanion.config.WolfCompanionConfig;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.commands.data.EntityDataAccessor;
@@ -38,14 +40,14 @@ public class NBTHelper {
         wolfNbt.putFloat(Wolf.TAG_FALL_DISTANCE, 0f);
         wolfNbt.putFloat(Wolf.TAG_HEALTH, health);
 
-        if (!ConfigManager.config.keepWolfInventory) {
-            if (!ConfigManager.config.keepWolfArmor)
+        if (!WolfCompanionConfig.current().keepWolfInventory) {
+            if (!WolfCompanionConfig.current().keepWolfArmor)
                 wolfNbt.remove("ArmorItems");
-            if (!ConfigManager.config.keepWolfBag)
+            if (!WolfCompanionConfig.current().keepWolfBag)
                 wolfNbt.remove("ChestedWolf");
             wolfNbt.remove("Items");
 
-            if (!ConfigManager.config.keepXp)
+            if (!WolfCompanionConfig.current().keepXp)
                 wolfNbt.putInt("XP", 0);
         }
     }
@@ -76,7 +78,7 @@ public class NBTHelper {
             );
 
             if (newWolf == null) {
-                System.out.println("ERROR: New wolf is null.");
+                WolfCompanion.LOGGER.error("Failed to create wolf from NBT.");
                 return false;
             }
 

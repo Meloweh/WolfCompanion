@@ -1,6 +1,6 @@
 {
   "required": true,
-  "package": "github.meloweh.wolfcompanion.mixin.client",
+  "package": "github.meloweh.wolfcompanion.client.mixin",
   "compatibilityLevel": "JAVA_25",
   "client": [
     "WolfEntityModelMixin",

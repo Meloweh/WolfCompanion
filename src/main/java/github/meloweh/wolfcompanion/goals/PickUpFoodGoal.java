@@ -1,7 +1,7 @@
 package github.meloweh.wolfcompanion.goals;
 
 import github.meloweh.wolfcompanion.accessor.WolfEntityProvider;
-import github.meloweh.wolfcompanion.util.ConfigManager;
+import github.meloweh.wolfcompanion.config.WolfCompanionConfig;
 import github.meloweh.wolfcompanion.util.WolfInventoryProvider;
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -37,7 +37,7 @@ public class PickUpFoodGoal extends Goal {
     }
 
     public static boolean playerFoodEnough(final Wolf wolf) {
-        if (!ConfigManager.config.shouldCarePlayerFood) return true;
+        if (!WolfCompanionConfig.current().shouldCarePlayerFood) return true;
         if (wolf.getOwner() != null) {
             final Inventory inv = ((Player)wolf.getOwner()).getInventory();
             final List<ItemStack> ic = new ArrayList<>();
@@ -46,7 +46,7 @@ public class PickUpFoodGoal extends Goal {
                 ++slotIndex) {
                 ic.add(inv.getItem(slotIndex));
             }
-            return ic.stream().filter(WolfInventoryProvider::canPlayerEat).mapToInt(ItemStack::getCount).sum() >= ConfigManager.config.requiredPlayerFood;
+            return ic.stream().filter(WolfInventoryProvider::canPlayerEat).mapToInt(ItemStack::getCount).sum() >= WolfCompanionConfig.current().requiredPlayerFood;
         }
         return true;
     }
@@ -58,12 +58,12 @@ public class PickUpFoodGoal extends Goal {
     }
 
     private boolean wantsToPickupItem() {
-        if (!ConfigManager.config.canPickupFood) return false;
+        if (!WolfCompanionConfig.current().canPickupFood) return false;
         if (provider.hasChestEquipped()) {
             this.inventory.inventoryInit();
 
-            if (this.inventory.hasSpace() && (this.inventory.getFoodCount() <= ConfigManager.config.maxPickupFood
-                    || ConfigManager.config.pickAllRottenFlesh && this.inventory.onlyFood(Items.ROTTEN_FLESH))) {
+            if (this.inventory.hasSpace() && (this.inventory.getFoodCount() <= WolfCompanionConfig.current().maxPickupFood
+                    || WolfCompanionConfig.current().pickAllRottenFlesh && this.inventory.onlyFood(Items.ROTTEN_FLESH))) {
                 return true;
             }
         }

@@ -9,7 +9,6 @@
     "EnchantmentScreenHandlerMixin",
     "EntityMixin",
     "ItemMixin",
-    "LivingEntityMixin",
     "MobEntityMixin",
     "ServerPlayerEntityMixin",
     "TameableEntityMixin",

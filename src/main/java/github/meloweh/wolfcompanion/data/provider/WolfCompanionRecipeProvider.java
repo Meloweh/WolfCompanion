@@ -1,6 +1,6 @@
 package github.meloweh.wolfcompanion.data.provider;
 
-import github.meloweh.wolfcompanion.init.InitItem;
+import github.meloweh.wolfcompanion.registry.ModItems;
 import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricRecipeProvider;
 import net.minecraft.core.HolderLookup;
@@ -20,7 +20,7 @@ public class WolfCompanionRecipeProvider extends FabricRecipeProvider {
         return new RecipeProvider(wrapperLookup, recipeExporter) {
             @Override
             public void buildRecipes() {
-                shaped(RecipeCategory.TOOLS, InitItem.ITEM_SINGLE_WOLF_BAG)
+                shaped(RecipeCategory.TOOLS, ModItems.SINGLE_WOLF_BAG)
                         .define('A', Items.ARMADILLO_SCUTE)
                         .define('C', Items.CHEST)
                         .pattern(" A ")
@@ -30,17 +30,17 @@ public class WolfCompanionRecipeProvider extends FabricRecipeProvider {
                         .unlockedBy(getHasName(Items.ARMADILLO_SCUTE), has(Items.ARMADILLO_SCUTE))
                         .save(recipeExporter);
 
-                shaped(RecipeCategory.TOOLS, InitItem.ITEM_WOLF_BAG)
+                shaped(RecipeCategory.TOOLS, ModItems.WOLF_BAG)
                         .define('A', Items.ARMADILLO_SCUTE)
-                        .define('C', InitItem.ITEM_SINGLE_WOLF_BAG)
+                        .define('C', ModItems.SINGLE_WOLF_BAG)
                         .pattern(" A ")
                         .pattern("C C")
                         .pattern(" A ")
-                        .unlockedBy(getHasName(InitItem.ITEM_SINGLE_WOLF_BAG), has(InitItem.ITEM_SINGLE_WOLF_BAG))
+                        .unlockedBy(getHasName(ModItems.SINGLE_WOLF_BAG), has(ModItems.SINGLE_WOLF_BAG))
                         .unlockedBy(getHasName(Items.ARMADILLO_SCUTE), has(Items.ARMADILLO_SCUTE))
                         .save(recipeExporter);
 
-                shaped(RecipeCategory.TOOLS, InitItem.DOG_WHISTLE_ITEM)
+                shaped(RecipeCategory.TOOLS, ModItems.DOG_WHISTLE)
                         .define('I', Items.IRON_INGOT)
                         .pattern("   ")
                         .pattern("III")

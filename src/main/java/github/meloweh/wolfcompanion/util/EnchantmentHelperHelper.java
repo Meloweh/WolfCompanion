@@ -60,7 +60,6 @@ public class EnchantmentHelperHelper {
 //        possibleEnchantments.filter((enchantment) -> {
 //            boolean hasMending = WolfCompanion.isSameEnchantment(enchantment.value(), Enchantments.MENDING);
 //            boolean hasUnbreaking = WolfCompanion.isSameEnchantment(enchantment.value(), Enchantments.UNBREAKING);
-//            System.out.println(enchantment.value().description().getString());
 //            return hasMending || hasUnbreaking;
 //        }).forEach((enchantmentx) -> {
 //            Enchantment enchantment = (Enchantment)enchantmentx.value();

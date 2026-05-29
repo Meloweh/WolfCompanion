@@ -149,7 +149,6 @@ public class RescueOwnerFromLavaGoal extends Goal {
 //            }
 
             if (WolfInventoryHelper.hasFittingLifesavingEffect(this.owner, inventoryContents)) return;
-            //System.out.println("A1");
             //if (WolfInventoryHelper.findLifesavingPotions(inventoryContents, this.owner).first.isEmpty()) return;
 
             if (this.teleportCooldown > 0) this.teleportCooldown--;

@@ -129,7 +129,6 @@ public class WolfInventoryHelper {
     }
 
     private static List<Holder<MobEffect>> getLifeSavingEffects(final boolean withFire) {
-        //System.out.println(withFire);
         final List<Holder<MobEffect>> acceptableStatusEffects = new ArrayList<>();
         if (withFire)
             acceptableStatusEffects.add(MobEffects.FIRE_RESISTANCE);
@@ -218,11 +217,8 @@ public class WolfInventoryHelper {
         return getPotion(statusEffect, ampl, duration);
     }
     private static Pair<ItemStack, Holder<Potion>> findPotion(final List<ItemStack> inventoryContents, final Holder<MobEffect> statusEffect) {
-        //System.out.println(inventoryContents.size());
         final ItemStack stack = inventoryContents.stream()
                 .filter(itemStack -> {
-                    //itemStack.getComponents().forEach(e -> System.out.println(e.toString()));
-                    //System.out.println(itemStack.getComponents());
                     return !itemStack.isEmpty() && itemStack.has(DataComponents.POTION_CONTENTS);
                 })
                 .filter(itemStack -> {

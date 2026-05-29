@@ -19,7 +19,7 @@
 			"github.meloweh.wolfcompanion.WolfCompanion"
 		],
 		"client": [
-			"github.meloweh.wolfcompanion.WolfCompanionClient"
+			"github.meloweh.wolfcompanion.client.WolfCompanionClient"
 		],
 		"fabric-datagen": [
 			"github.meloweh.wolfcompanion.WolfCompanionDataGenerator"
