@@ -569,6 +569,7 @@ public abstract class WolfEntityMixin implements
     public void releaseWolfButton() {
         setShouldDropChest(true);
         wolfcompanion_template_1_21_1$dropInventoryByButton();
+        this.self.setInSittingPose(false);
         if (this.self.getOwner() != null) {
             this.self.setTame(false, true);
             this.self.setOwner((LivingEntity) null);
