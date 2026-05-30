@@ -1,9 +1,11 @@
 package github.meloweh.wolfcompanion.client;
 
 import com.mojang.blaze3d.platform.InputConstants;
+import github.meloweh.wolfcompanion.client.renderer.ArmadilloRenderer;
 import github.meloweh.wolfcompanion.client.renderer.CustomWolfEntityRenderer;
 import github.meloweh.wolfcompanion.client.screen.config.WolfConfigScreen;
 import github.meloweh.wolfcompanion.client.screen.inventory.WolfInventoryScreen;
+import github.meloweh.wolfcompanion.registry.ModEntities;
 import github.meloweh.wolfcompanion.registry.ModMenuTypes;
 
 import net.fabricmc.api.ClientModInitializer;
@@ -34,6 +36,7 @@ public final class WolfCompanionClient implements ClientModInitializer {
 
 	private static void registerRenderers() {
 		EntityRendererRegistry.register(EntityType.WOLF, CustomWolfEntityRenderer::new);
+		EntityRendererRegistry.register(ModEntities.ARMADILLO, ArmadilloRenderer::new);
 	}
 
 	private static void registerConfigShortcut() {

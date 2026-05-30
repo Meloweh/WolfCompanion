@@ -35,8 +35,8 @@ public class WolfBagStraps extends Model {
     }
 
     @Override
-    public void renderToBuffer(PoseStack matrices, VertexConsumer vertexConsumer, int light, int overlay, int color) {
-        this.main.render(matrices, vertexConsumer, light, overlay, color);
+    public void renderToBuffer(PoseStack matrices, VertexConsumer vertexConsumer, int light, int overlay, float red, float green, float blue, float alpha) {
+        this.main.render(matrices, vertexConsumer, light, overlay, red, green, blue, alpha);
     }
 
     public void copyTransform(ModelPart part) {

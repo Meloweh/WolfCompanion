@@ -39,7 +39,7 @@ public class WhistleItem extends Item {
     }
 
     @Override
-    public int getUseDuration(ItemStack stack, LivingEntity user) { return 72000; } // hold-to-use behavior
+    public int getUseDuration(ItemStack stack) { return 72000; } // hold-to-use behavior
 
     @Override
     public void releaseUsing(ItemStack stack, Level world, LivingEntity user, int remainingUseTicks) {
@@ -49,7 +49,7 @@ public class WhistleItem extends Item {
     @Override
     public void onUseTick(Level world, LivingEntity user, ItemStack stack, int remainingUseTicks) {
         if (world.isClientSide()) return;
-        int used = getUseDuration(stack, user) - remainingUseTicks;
+        int used = getUseDuration(stack) - remainingUseTicks;
 
         if (used == SECOND_WHISTLE_TICKS) {          // fires once per hold
             playWhistle(world, user, stack, 2);

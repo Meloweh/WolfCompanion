@@ -8,8 +8,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
-import net.minecraft.core.Holder;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -20,13 +18,14 @@ import net.minecraft.world.entity.ai.navigation.FlyingPathNavigation;
 import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.animal.Wolf;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.ThrownPotion;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.Potion;
-import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.item.alchemy.Potions;
-import net.minecraft.world.level.pathfinder.PathType;
+import net.minecraft.world.item.alchemy.PotionUtils;
+import net.minecraft.world.level.pathfinder.BlockPathTypes;
 import net.minecraft.world.phys.Vec3;
 
 public class RescueOwnerFromLavaGoal extends Goal {
@@ -43,7 +42,7 @@ public class RescueOwnerFromLavaGoal extends Goal {
     private final List<ItemStack> inventoryContents;
     private int shootCooldown, teleportCooldown;
     private final static int TP_COOLDOWN = 45, SHOOT_COOLDOWN = 20;
-    private Pair<ItemStack, Holder<Potion>> usingPotion = Pair.of(ItemStack.EMPTY, Potions.AWKWARD);
+    private Pair<ItemStack, Potion> usingPotion = Pair.of(ItemStack.EMPTY, Potions.AWKWARD);
 
     public RescueOwnerFromLavaGoal(Wolf wolf, double speed, float minDistance, float maxDistance) {
         this.wolf = wolf;
@@ -78,7 +77,7 @@ public class RescueOwnerFromLavaGoal extends Goal {
         if (!this.armoredWolf.hasChestEquipped()) return false;
 
         this.owner = this.wolf.getOwner();
-        if (this.wolf.getItemBySlot(EquipmentSlot.MAINHAND).has(DataComponents.POTION_CONTENTS)) {
+        if (WolfInventoryHelper.hasPotionContents(this.wolf.getItemBySlot(EquipmentSlot.MAINHAND))) {
             this.wolf.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
         }
 
@@ -86,7 +85,7 @@ public class RescueOwnerFromLavaGoal extends Goal {
                 && this.armoredWolf.hasChestEquipped()
                 && this.owner != null
                 && !this.owner.isSpectator()
-                && !this.owner.hasInfiniteMaterials();
+                && !(this.owner instanceof Player ownerPlayer && ownerPlayer.isCreative());
 
         if (wouldStart) {
             refreshInventoryContents(armoredWolf.getInventory());
@@ -105,8 +104,8 @@ public class RescueOwnerFromLavaGoal extends Goal {
 
         this.shootCooldown = SHOOT_COOLDOWN;
         this.updateCountdownTicks = 0;
-        this.oldWaterPathfindingPenalty = this.wolf.getPathfindingMalus(PathType.WATER);
-        this.wolf.setPathfindingMalus(PathType.WATER, 0.0F);
+        this.oldWaterPathfindingPenalty = this.wolf.getPathfindingMalus(BlockPathTypes.WATER);
+        this.wolf.setPathfindingMalus(BlockPathTypes.WATER, 0.0F);
         this.teleportCooldown = TP_COOLDOWN;
         this.wolf.setOrderedToSit(false);
 
@@ -123,7 +122,7 @@ public class RescueOwnerFromLavaGoal extends Goal {
         shootCooldown = SHOOT_COOLDOWN;
         this.owner = null;
         this.navigation.stop();
-        this.wolf.setPathfindingMalus(PathType.WATER, this.oldWaterPathfindingPenalty);
+        this.wolf.setPathfindingMalus(BlockPathTypes.WATER, this.oldWaterPathfindingPenalty);
         teleportCooldown = TP_COOLDOWN;
         this.wolf.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
         inventoryInit();
@@ -135,7 +134,7 @@ public class RescueOwnerFromLavaGoal extends Goal {
                 this.wolf.isEffectiveAi()) {
             this.wolf.getLookControl().setLookAt(this.owner, 10.0F, (float) this.wolf.getMaxHeadXRot());
 
-            final Pair<ItemStack, Holder<Potion>> itemStack = usingPotion;
+            final Pair<ItemStack, Potion> itemStack = usingPotion;
             shootCooldown--;
 
             if (WolfInventoryHelper.hasFittingLifesavingEffect(this.owner, inventoryContents)) return;
@@ -145,7 +144,7 @@ public class RescueOwnerFromLavaGoal extends Goal {
             if (--this.updateCountdownTicks <= 0) {
                 this.updateCountdownTicks = this.adjustedTickDelay(10);
                 if (teleportCooldown <= 0) {
-                    this.wolf.tryToTeleportToOwner();
+                    this.wolf.teleportTo(this.owner.getX(), this.owner.getY(), this.owner.getZ());
                     this.teleportCooldown = wolf.getRandom().nextIntBetweenInclusive(TP_COOLDOWN / 2, TP_COOLDOWN + TP_COOLDOWN / 2);
                 } else {
 
@@ -167,24 +166,24 @@ public class RescueOwnerFromLavaGoal extends Goal {
         }
     }
 
-    private Pair<ItemStack, Holder<Potion>> nextPotion() {
-        final Pair<ItemStack, Holder<Potion>> itemStack = WolfInventoryHelper.findLifesavingPotions(inventoryContents, this.owner);
+    private Pair<ItemStack, Potion> nextPotion() {
+        final Pair<ItemStack, Potion> itemStack = WolfInventoryHelper.findLifesavingPotions(inventoryContents, this.owner);
         this.wolf.setItemSlot(EquipmentSlot.MAINHAND, itemStack.first);
 
         return itemStack;
     }
 
-    public void shoot(final Pair<ItemStack, Holder<Potion>> itemStack) {
+    public void shoot(final Pair<ItemStack, Potion> itemStack) {
         Vec3 vec3d = this.owner.getDeltaMovement();
         double d = this.owner.getX() + vec3d.x - this.wolf.getX();
         double e = this.owner.getEyeY() - 1.100000023841858 - this.wolf.getY();
         double f = this.owner.getZ() + vec3d.z - this.wolf.getZ();
         double g = Math.sqrt(d * d + f * f);
 
-        Holder<Potion> registryEntry = itemStack.second;
+        Potion registryEntry = itemStack.second;
 
         ThrownPotion potionEntity = new ThrownPotion(this.wolf.level(), this.wolf);
-        potionEntity.setItem(PotionContents.createItemStack(Items.SPLASH_POTION, registryEntry));
+        potionEntity.setItem(PotionUtils.setPotion(new ItemStack(Items.SPLASH_POTION), registryEntry));
         potionEntity.setXRot(potionEntity.getXRot() - -20.0F);
         potionEntity.shoot(d, e + g * 0.2, f, 0.75F, 0F);
         this.wolf.level().playSound(null, this.wolf.getX(), this.wolf.getY(), this.wolf.getZ(), SoundEvents.SPLASH_POTION_THROW, this.wolf.getSoundSource(), 1.0F, 0.4F + this.wolf.getRandom().nextFloat() * 0.4F);

@@ -112,7 +112,7 @@ public class PickUpFoodGoal extends Goal {
     private void navigate() {
         List<ItemEntity> list = findPickups();
         if (!list.isEmpty()) {
-            final ItemEntity first = list.getFirst();
+            final ItemEntity first = list.get(0);
             provider.setTargetPickup__(first);
             wolf.getNavigation().moveTo(first, 1.2000000476837158);
         }

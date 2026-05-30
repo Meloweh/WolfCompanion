@@ -1,5 +1,9 @@
 {
+  "entity.wolfcompanion.armadillo": "Armadillo",
+  "item.wolfcompanion.armadillo_scute": "Armadillo Scute",
+  "item.wolfcompanion.armadillo_spawn_egg": "Armadillo Spawn Egg",
   "item.wolfcompanion.dog_whistle_item": "Pet Whistle",
+  "item.wolfcompanion.wolf_armor": "Wolf Armor",
   "item.wolfcompanion.wolf_bag_item": "Wolf Bag",
   "item.wolfcompanion.wolf_single_bag": "Single Wolf Bag",
   "effect.wolfcompanion.defeated_wolves_1": "Defeated Wolves I",

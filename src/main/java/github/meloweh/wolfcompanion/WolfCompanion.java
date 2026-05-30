@@ -4,6 +4,7 @@ import github.meloweh.wolfcompanion.config.WolfCompanionConfig;
 import github.meloweh.wolfcompanion.effects.ModEffects;
 import github.meloweh.wolfcompanion.events.WolfEventHandler;
 import github.meloweh.wolfcompanion.network.ModNetwork;
+import github.meloweh.wolfcompanion.registry.ModEntities;
 import github.meloweh.wolfcompanion.registry.ModItems;
 import github.meloweh.wolfcompanion.registry.ModMenuTypes;
 import github.meloweh.wolfcompanion.registry.ModSounds;
@@ -33,6 +34,7 @@ public class WolfCompanion implements ModInitializer {
 		LOGGER.info("Loading...");
 		WolfCompanionConfig.load();
 		ModItems.register();
+		ModEntities.register();
 		ModSounds.register();
 		ModMenuTypes.register();
 		WolfEventHandler.init();
@@ -46,7 +48,7 @@ public class WolfCompanion implements ModInitializer {
 	}
 
 	public static ResourceLocation id(String path) {
-		return ResourceLocation.fromNamespaceAndPath(MOD_ID, path);
+		return new ResourceLocation(MOD_ID, path);
 	}
 
 	public static boolean isSameEnchantment(Enchantment enchantment, ResourceKey<Enchantment> enchantmentRegistryKey) {

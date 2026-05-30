@@ -20,17 +20,16 @@ public class ClearAllEffectsConsumeEffectMixin {
             return;
         }
 
-        for (int i = 1; i < ModEffects.DEFEATED_WOLVES_PARTICLE_EFFECT_ENTRY.length; i++) {
-            MobEffectInstance inst = self.getEffect(ModEffects.DEFEATED_WOLVES_PARTICLE_EFFECT_ENTRY[i]);
+        for (int i = 1; i < ModEffects.DEFEATED_WOLVES_PARTICLE_EFFECT.length; i++) {
+            MobEffectInstance inst = self.getEffect(ModEffects.DEFEATED_WOLVES_PARTICLE_EFFECT[i]);
             if (inst != null) {
                 SAVED.set(new MobEffectInstance(
-                        ModEffects.DEFEATED_WOLVES_PARTICLE_EFFECT_ENTRY[i],
+                        ModEffects.DEFEATED_WOLVES_PARTICLE_EFFECT[i],
                         inst.getDuration(),
                         inst.getAmplifier(),
                         inst.isAmbient(),
                         inst.isVisible(),
-                        inst.showIcon(),
-                        null
+                        inst.showIcon()
                 ));
                 return;
             }

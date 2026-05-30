@@ -51,11 +51,6 @@ public class WolfConfigScreen extends Screen {
     }
 
     @Override
-    public void renderBackground(GuiGraphics context, int mouseX, int mouseY, float deltaTicks) {
-        this.renderMenuBackground(context);
-    }
-
-    @Override
     public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
         super.render(context, mouseX, mouseY, delta);
         context.drawCenteredString(this.font, this.title, this.width / 2, 17, 0xFFFFFFFF);
@@ -81,15 +76,14 @@ public class WolfConfigScreen extends Screen {
     }
 
     int addBoolean(int left, int y, int width, String label, boolean selected, Consumer<Boolean> setter) {
-        Checkbox checkbox = Checkbox.builder(Component.literal(label), this.font)
-                .pos(left, y)
-                .selected(selected)
-                .maxWidth(width)
-                .onValueChange((box, value) -> {
-                    setter.accept(value);
-                    clearStatus();
-                })
-                .build();
+        Checkbox checkbox = new Checkbox(left, y, width, 20, Component.literal(label), selected) {
+            @Override
+            public void onPress() {
+                super.onPress();
+                setter.accept(this.selected());
+                clearStatus();
+            }
+        };
         addRenderableWidget(checkbox);
         return y + ROW_HEIGHT;
     }

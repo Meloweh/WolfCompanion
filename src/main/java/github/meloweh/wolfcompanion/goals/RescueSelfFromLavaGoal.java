@@ -7,8 +7,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
-import net.minecraft.core.Holder;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.AreaEffectCloud;
@@ -19,10 +17,10 @@ import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.animal.Wolf;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.alchemy.Potion;
-import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.item.alchemy.Potions;
+import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.pathfinder.PathType;
+import net.minecraft.world.level.pathfinder.BlockPathTypes;
 
 public class RescueSelfFromLavaGoal extends Goal {
     private final TamableAnimal wolf;
@@ -32,7 +30,7 @@ public class RescueSelfFromLavaGoal extends Goal {
     private final List<ItemStack> inventoryContents;
     private int shootCooldown, lavaTicks;
     private static final int SHOOT_COOLDOWN = 15, LAVA_TICKS = 10;
-    private Pair<ItemStack, Holder<Potion>> usingPotion = Pair.of(ItemStack.EMPTY, Potions.AWKWARD);
+    private Pair<ItemStack, Potion> usingPotion = Pair.of(ItemStack.EMPTY, Potions.AWKWARD);
 
     public RescueSelfFromLavaGoal(Wolf wolf) {
         this.wolf = wolf;
@@ -58,7 +56,7 @@ public class RescueSelfFromLavaGoal extends Goal {
 
     public boolean canUse() {
         if (!this.armoredWolf.hasChestEquipped()) return false;
-        if (this.wolf.getItemBySlot(EquipmentSlot.MAINHAND).has(DataComponents.POTION_CONTENTS)) {
+        if (WolfInventoryHelper.hasPotionContents(this.wolf.getItemBySlot(EquipmentSlot.MAINHAND))) {
             this.wolf.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
         }
 
@@ -81,7 +79,7 @@ public class RescueSelfFromLavaGoal extends Goal {
         inventoryInit();
 
         this.shootCooldown = SHOOT_COOLDOWN;
-        this.wolf.setPathfindingMalus(PathType.WATER, 0.0F);
+        this.wolf.setPathfindingMalus(BlockPathTypes.WATER, 0.0F);
         this.wolf.setOrderedToSit(false);
 
         usingPotion = nextPotion();
@@ -104,7 +102,7 @@ public class RescueSelfFromLavaGoal extends Goal {
                 this.wolf.isAlive() &&
                 this.wolf.isEffectiveAi()) {
 
-            Pair<ItemStack, Holder<Potion>> itemStack = usingPotion;
+            Pair<ItemStack, Potion> itemStack = usingPotion;
             shootCooldown--;
             if (WolfInventoryHelper.hasFittingLifesavingEffect(this.wolf, inventoryContents)) return;
 
@@ -122,14 +120,14 @@ public class RescueSelfFromLavaGoal extends Goal {
         }
     }
 
-    private Pair<ItemStack, Holder<Potion>> nextPotion() {
-        final Pair<ItemStack, Holder<Potion>> itemStack = WolfInventoryHelper.findLifesavingPotions(inventoryContents, this.wolf);
+    private Pair<ItemStack, Potion> nextPotion() {
+        final Pair<ItemStack, Potion> itemStack = WolfInventoryHelper.findLifesavingPotions(inventoryContents, this.wolf);
         this.wolf.setItemSlot(EquipmentSlot.MAINHAND, itemStack.first);
 
         return itemStack;
     }
 
-    public void applySplashPotionEffect(final Pair<ItemStack, Holder<Potion>> itemStack) {
+    public void applySplashPotionEffect(final Pair<ItemStack, Potion> itemStack) {
         Level world = this.wolf.level();
         double x = this.wolf.getX();
         double y = this.wolf.getY();
@@ -138,8 +136,7 @@ public class RescueSelfFromLavaGoal extends Goal {
         AreaEffectCloud effectCloud = new AreaEffectCloud(world, x, y + 0.5f, z);
         effectCloud.setOwner(this.wolf);
         effectCloud.setRadius(1F);
-        PotionContents potionContentsComponent = new PotionContents(itemStack.second);
-        effectCloud.setPotionContents(potionContentsComponent);
+        effectCloud.setPotion(itemStack.second);
         effectCloud.setDuration(15);
         effectCloud.setWaitTime(0);
 

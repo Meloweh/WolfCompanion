@@ -4,8 +4,10 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import github.meloweh.wolfcompanion.accessor.WolfEntityProvider;
+import github.meloweh.wolfcompanion.WolfCompanion;
 import github.meloweh.wolfcompanion.client.accessor.WolfEntityModelAccessor;
 import github.meloweh.wolfcompanion.client.model.WolfBagModelV2;
+import github.meloweh.wolfcompanion.util.WolfArmorHelper;
 import net.minecraft.client.model.WolfModel;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.renderer.ItemInHandRenderer;
@@ -16,12 +18,24 @@ import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.WolfRenderer;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.animal.Wolf;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 
 public final class CustomWolfEntityRenderer extends WolfRenderer {
+    private static final ResourceLocation WOLF_ARMOR_TEXTURE =
+            WolfCompanion.id("textures/entity/wolf_armor.png");
+    private static final ResourceLocation WOLF_ARMOR_OVERLAY_TEXTURE =
+            WolfCompanion.id("textures/entity/wolf_armor_overlay.png");
+    private static final ResourceLocation WOLF_ARMOR_CRACKINESS_LOW_TEXTURE =
+            WolfCompanion.id("textures/entity/wolf_armor_crackiness_low.png");
+    private static final ResourceLocation WOLF_ARMOR_CRACKINESS_MEDIUM_TEXTURE =
+            WolfCompanion.id("textures/entity/wolf_armor_crackiness_medium.png");
+    private static final ResourceLocation WOLF_ARMOR_CRACKINESS_HIGH_TEXTURE =
+            WolfCompanion.id("textures/entity/wolf_armor_crackiness_high.png");
+
     public CustomWolfEntityRenderer(EntityRendererProvider.Context context) {
         super(context);
         this.addLayer(new WolfCompanionFeatureRenderer(this, context.getItemInHandRenderer()));
@@ -59,7 +73,43 @@ public final class CustomWolfEntityRenderer extends WolfRenderer {
             }
 
             renderBag(poseStack, buffers, light, wolf);
+            renderArmor(poseStack, buffers, light, wolf);
             renderHeldItem(poseStack, buffers, light, wolf, partialTicks, netHeadYaw, headPitch);
+        }
+
+        private void renderArmor(PoseStack poseStack, MultiBufferSource buffers, int light, Wolf wolf) {
+            ItemStack armorStack = WolfArmorHelper.getArmorStack(wolf);
+            if (!WolfArmorHelper.isWolfArmor(armorStack)) {
+                return;
+            }
+
+            renderArmorTexture(poseStack, buffers, light, WOLF_ARMOR_TEXTURE);
+            renderArmorTexture(poseStack, buffers, light, WOLF_ARMOR_OVERLAY_TEXTURE);
+
+            ResourceLocation crackinessTexture = getCrackinessTexture(armorStack);
+            if (crackinessTexture != null) {
+                renderArmorTexture(poseStack, buffers, light, crackinessTexture);
+            }
+        }
+
+        private void renderArmorTexture(PoseStack poseStack, MultiBufferSource buffers, int light, ResourceLocation texture) {
+            VertexConsumer armor = buffers.getBuffer(RenderType.entityCutoutNoCull(texture));
+            this.getParentModel().renderToBuffer(poseStack, armor, light, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
+        }
+
+        private static ResourceLocation getCrackinessTexture(ItemStack armorStack) {
+            if (!armorStack.isDamageableItem() || !armorStack.isDamaged()) {
+                return null;
+            }
+
+            float damageRatio = (float) armorStack.getDamageValue() / (float) armorStack.getMaxDamage();
+            if (damageRatio < 0.33F) {
+                return WOLF_ARMOR_CRACKINESS_LOW_TEXTURE;
+            }
+            if (damageRatio < 0.66F) {
+                return WOLF_ARMOR_CRACKINESS_MEDIUM_TEXTURE;
+            }
+            return WOLF_ARMOR_CRACKINESS_HIGH_TEXTURE;
         }
 
         private void renderBag(PoseStack poseStack, MultiBufferSource buffers, int light, Wolf wolf) {
@@ -73,12 +123,16 @@ public final class CustomWolfEntityRenderer extends WolfRenderer {
                     poseStack,
                     buffers.getBuffer(RenderType.entitySolid(WolfBagModelV2.TEXTURE_LOCATION)),
                     light,
-                    OverlayTexture.NO_OVERLAY
+                    OverlayTexture.NO_OVERLAY,
+                    1.0F,
+                    1.0F,
+                    1.0F,
+                    1.0F
             );
 
-            if (!wolf.hasArmor()) {
+            if (!WolfArmorHelper.hasArmor(wolf)) {
                 VertexConsumer straps = buffers.getBuffer(RenderType.entityCutoutNoCull(WolfBagModelV2.STRAP_LAYER_TEXTURE));
-                this.getParentModel().renderToBuffer(poseStack, straps, light, OverlayTexture.NO_OVERLAY);
+                this.getParentModel().renderToBuffer(poseStack, straps, light, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
             }
             poseStack.popPose();
         }

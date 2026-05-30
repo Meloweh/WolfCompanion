@@ -90,10 +90,10 @@ public abstract class ServerPlayerEntityMixin implements ServerPlayerAccessor {
 
     @Unique
     private void clearTimeoutEffects() {
-        for (int i = 1; i < ModEffects.DEFEATED_WOLVES_PARTICLE_EFFECT_ENTRY.length; i++) {
-            final MobEffectInstance inst = this.self.getEffect(ModEffects.DEFEATED_WOLVES_PARTICLE_EFFECT_ENTRY[i]);
+        for (int i = 1; i < ModEffects.DEFEATED_WOLVES_PARTICLE_EFFECT.length; i++) {
+            final MobEffectInstance inst = this.self.getEffect(ModEffects.DEFEATED_WOLVES_PARTICLE_EFFECT[i]);
             if (inst != null) {
-                this.self.removeEffect(ModEffects.DEFEATED_WOLVES_PARTICLE_EFFECT_ENTRY[i]);
+                this.self.removeEffect(ModEffects.DEFEATED_WOLVES_PARTICLE_EFFECT[i]);
             }
         }
     }
@@ -109,17 +109,16 @@ public abstract class ServerPlayerEntityMixin implements ServerPlayerAccessor {
         }
 
         if (optBriefestTimeout.isPresent()) {
-            final MobEffectInstance inst = this.self.getEffect(ModEffects.DEFEATED_WOLVES_PARTICLE_EFFECT_ENTRY[level]);
+            final MobEffectInstance inst = this.self.getEffect(ModEffects.DEFEATED_WOLVES_PARTICLE_EFFECT[level]);
             if (inst == null) {
                 clearTimeoutEffects();
                 this.self.addEffect(new MobEffectInstance(
-                        ModEffects.DEFEATED_WOLVES_PARTICLE_EFFECT_ENTRY[level],
+                        ModEffects.DEFEATED_WOLVES_PARTICLE_EFFECT[level],
                         optBriefestTimeout.get(),     // duration ticks
                         0,           // amplifier
                         false,       // ambient
                         false,       // showParticles
-                        true,        // showIcon
-                        null         // hiddenEffect
+                        true         // showIcon
                 ));
             }
         }

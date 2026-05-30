@@ -18,6 +18,7 @@ import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.phys.AABB;
+import github.meloweh.wolfcompanion.util.WolfArmorHelper;
 
 public class WolfMeleeAttackGoal extends Goal {
     protected final Wolf mob;
@@ -65,18 +66,18 @@ public class WolfMeleeAttackGoal extends Goal {
         if (attackers.isEmpty()) return;
         attackers.sort(Comparator.comparingDouble(e -> e.distanceTo(player)));
 
-        if (!this.mob.isWearingBodyArmor() || pack.stream().anyMatch(e -> !e.isWearingBodyArmor())) {
+        if (!WolfArmorHelper.hasArmor(this.mob) || pack.stream().anyMatch(e -> !WolfArmorHelper.hasArmor(e))) {
             //Without spread
             final Optional<Mob> coop = attackers.stream().filter(attacker -> pack.stream().anyMatch(w ->
                     w.getTarget() != null && w.getTarget().getUUID().equals(attacker.getUUID()))).findFirst();
             if (coop.isPresent()) {
                 this.mob.setTarget(coop.get());
             } else if (!attackers.isEmpty()) {
-                this.mob.setTarget(attackers.getFirst());
+                this.mob.setTarget(attackers.get(0));
             }
         } else {
             //With spread
-            this.mob.setTarget(attackers.getFirst());
+            this.mob.setTarget(attackers.get(0));
         }
 
     }

@@ -6,8 +6,8 @@ import github.meloweh.wolfcompanion.registry.ModMenuTypes;
 import github.meloweh.wolfcompanion.network.UuidPayload;
 import github.meloweh.wolfcompanion.shadow.ShadowArmorSlot;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.SimpleContainer;
-import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.animal.Wolf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -48,6 +48,10 @@ public class WolfInventoryScreenHandler extends AbstractContainerMenu {
         this(syncId, playerInventory, WolfInventoryScreenHandler.getWolfEntity(playerInventory, payload), payload.nbt());
     }
 
+    public WolfInventoryScreenHandler(int syncId, Inventory playerInventory, FriendlyByteBuf buf) {
+        this(syncId, playerInventory, new UuidPayload(buf));
+    }
+
     public Wolf getWolf() {
         return wolf;
     }
@@ -84,9 +88,7 @@ public class WolfInventoryScreenHandler extends AbstractContainerMenu {
     }
 
     private void addWolfInventory(SimpleContainer inventory) {
-        armorSlot = addSlot(new ShadowArmorSlot(inventory, wolf, EquipmentSlot.BODY, 0, 8, 18, null));
-        final ItemStack armorStack = wolf.getItemBySlot(EquipmentSlot.BODY);
-        armorSlot.setByPlayer(armorStack);
+        armorSlot = addSlot(new ShadowArmorSlot(inventory, wolf, 0, 8, 18, null));
 
         if (((WolfEntityProvider)wolf).hasChestEquipped()) {
             for (int k = 0; k < WOLF_SLOTS / 5; k++) {
@@ -118,14 +120,6 @@ public class WolfInventoryScreenHandler extends AbstractContainerMenu {
         }
 
         return newStack;
-    }
-
-    @Override
-    public void clicked(int slotIndex, int button, ClickType actionType, Player player) {
-        super.clicked(slotIndex, button, actionType, player);
-        if (!armorSlot.getItem().isEmpty() && !wolf.isWearingBodyArmor()) {
-            wolf.setBodyArmorItem(armorSlot.getItem());
-        }
     }
 
     @Override

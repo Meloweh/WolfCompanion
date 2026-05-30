@@ -2,21 +2,26 @@ package github.meloweh.wolfcompanion.network;
 
 import github.meloweh.wolfcompanion.WolfCompanion;
 import java.util.UUID;
-import net.minecraft.core.UUIDUtil;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.fabricmc.fabric.api.networking.v1.FabricPacket;
+import net.fabricmc.fabric.api.networking.v1.PacketType;
+import net.minecraft.network.FriendlyByteBuf;
 
-public record ReleaseWolfC2SPayload(UUID wolfUUID) implements CustomPacketPayload {
+public record ReleaseWolfC2SPayload(UUID wolfUUID) implements FabricPacket {
 
-    public static final Type<ReleaseWolfC2SPayload> ID = new Type<>(WolfCompanion.id("gui_interact_c2s_payload2"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, ReleaseWolfC2SPayload> PACKET_CODEC = StreamCodec.composite(
-            UUIDUtil.STREAM_CODEC, ReleaseWolfC2SPayload::wolfUUID,
-            ReleaseWolfC2SPayload::new);
+    public static final PacketType<ReleaseWolfC2SPayload> ID =
+            PacketType.create(WolfCompanion.id("gui_interact_c2s_payload2"), ReleaseWolfC2SPayload::new);
 
+    public ReleaseWolfC2SPayload(FriendlyByteBuf buf) {
+        this(buf.readUUID());
+    }
 
     @Override
-    public Type<? extends CustomPacketPayload> type() {
+    public void write(FriendlyByteBuf buf) {
+        buf.writeUUID(this.wolfUUID);
+    }
+
+    @Override
+    public PacketType<?> getType() {
         return ID;
     }
 }

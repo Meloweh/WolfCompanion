@@ -1,6 +1,6 @@
 package github.meloweh.wolfcompanion.mixin;
 
-import net.minecraft.world.item.AnimalArmorItem;
+import github.meloweh.wolfcompanion.registry.ModItems;
 import net.minecraft.world.item.Item;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -13,8 +13,7 @@ public class ItemMixin {
     private void increaseWolfArmorEnchantability(CallbackInfoReturnable<Integer> cir) {
         Item self = (Item) (Object) this;
 
-        if (self instanceof AnimalArmorItem animalItem
-                && animalItem.getBodyType() == AnimalArmorItem.BodyType.CANINE) {
+        if (self == ModItems.WOLF_ARMOR) {
             cir.setReturnValue(15);
             cir.cancel();
         }

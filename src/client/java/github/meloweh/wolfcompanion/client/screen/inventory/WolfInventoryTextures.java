@@ -4,9 +4,7 @@ import github.meloweh.wolfcompanion.WolfCompanion;
 import net.minecraft.resources.ResourceLocation;
 
 final class WolfInventoryTextures {
-    static final ResourceLocation BACKGROUND = ResourceLocation.withDefaultNamespace("textures/gui/container/horse.png");
-    static final ResourceLocation CHEST_SLOTS = ResourceLocation.withDefaultNamespace("container/horse/chest_slots");
-    static final ResourceLocation SLOT = ResourceLocation.withDefaultNamespace("container/slot");
+    static final ResourceLocation BACKGROUND = new ResourceLocation("minecraft", "textures/gui/container/horse.png");
 
     static final ResourceLocation RELEASE_WOLF = WolfCompanion.id("textures/gui/container/release_wolf_available.png");
     static final ResourceLocation RELEASE_WOLF_HOVERED = WolfCompanion.id("textures/gui/container/release_wolf_highlighted.png");

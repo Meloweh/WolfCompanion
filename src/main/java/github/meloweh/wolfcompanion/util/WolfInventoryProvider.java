@@ -7,8 +7,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import net.minecraft.core.component.DataComponents;
-import net.minecraft.tags.ItemTags;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.animal.Wolf;
 import net.minecraft.world.item.Item;
@@ -40,11 +38,11 @@ public class WolfInventoryProvider {
     }
 
     public static boolean isBreedingItem(ItemStack stack) {
-        return stack.is(ItemTags.WOLF_FOOD);
+        return canPlayerEat(stack) && stack.getItem().getFoodProperties().isMeat();
     }
 
     public static boolean canPlayerEat(final ItemStack itemStack) {
-        return !itemStack.isEmpty() && itemStack.has(DataComponents.FOOD);
+        return !itemStack.isEmpty() && itemStack.isEdible();
     }
 
     public static boolean canEat(final ItemStack itemStack) {
@@ -52,7 +50,7 @@ public class WolfInventoryProvider {
     }
 
     public boolean canEat_(final ItemStack itemStack) {
-        return !itemStack.isEmpty() && this.entity.isFood(itemStack) && itemStack.has(DataComponents.FOOD);
+        return !itemStack.isEmpty() && this.entity.isFood(itemStack) && itemStack.isEdible();
     }
 
     @NotNull
@@ -61,7 +59,7 @@ public class WolfInventoryProvider {
         return this.inventoryContents.stream()
                 .filter(this::canEat_)
                 .min(Comparator.comparing(itemStack
-                        -> Math.abs(healthDiff - itemStack.get(DataComponents.FOOD).nutrition())))
+                        -> Math.abs(healthDiff - itemStack.getItem().getFoodProperties().getNutrition())))
                 .orElse(ItemStack.EMPTY);
     }
 

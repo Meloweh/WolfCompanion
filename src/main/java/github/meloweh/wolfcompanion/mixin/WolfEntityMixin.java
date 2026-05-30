@@ -10,17 +10,16 @@ import github.meloweh.wolfcompanion.menu.WolfInventoryScreenHandler;
 import github.meloweh.wolfcompanion.config.WolfCompanionConfig;
 import github.meloweh.wolfcompanion.util.LineScan;
 import github.meloweh.wolfcompanion.util.NBTHelper;
+import github.meloweh.wolfcompanion.util.WolfArmorHelper;
 import github.meloweh.wolfcompanion.util.WolfNbtList;
 import github.meloweh.wolfcompanion.util.WolfOwnershipLimits;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
-import net.minecraft.core.Holder;
 import net.minecraft.core.Vec3i;
-import net.minecraft.core.particles.ColorParticleOption;
 import net.minecraft.core.particles.ItemParticleOption;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.*;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -53,8 +52,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.enchantment.EnchantedItemInUse;
-import net.minecraft.world.item.enchantment.EnchantmentEffectComponents;
+import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.GameRules;
@@ -85,7 +83,7 @@ public abstract class WolfEntityMixin implements
         WolfEntityProvider,
         EntityAccessor,
         MobEntityAccessor,
-        ExtendedScreenHandlerFactory<UuidPayload>,
+        ExtendedScreenHandlerFactory,
         WolfXpProvider,
         WolfEntityMixinProvider {
     @Unique
@@ -161,7 +159,7 @@ public abstract class WolfEntityMixin implements
         try {
             CompoundTag nbt;
             try (FileInputStream input = new FileInputStream(playerFile)) {
-                nbt = NbtIo.readCompressed(input, NbtAccounter.unlimitedHeap());
+                nbt = NbtIo.readCompressed(input);
             }
 
             int index = 0;
@@ -183,7 +181,7 @@ public abstract class WolfEntityMixin implements
         final byte shakeReason = getShakeReason();
 
         return switch (shakeReason) {
-            case 1 -> ColorParticleOption.create(ParticleTypes.ENTITY_EFFECT, 0.529f, 0.639f, 0.388f);
+            case 1 -> ParticleTypes.HAPPY_VILLAGER;
             case 2 -> ParticleTypes.SMOKE;
             default -> ParticleTypes.SPLASH;
         };
@@ -191,7 +189,7 @@ public abstract class WolfEntityMixin implements
 
     @Unique
     public boolean isPoisoned(Wolf wolf) {
-        Map<Holder<MobEffect>, MobEffectInstance> effects = wolf.getActiveEffectsMap();
+        Map<MobEffect, MobEffectInstance> effects = wolf.getActiveEffectsMap();
         return effects.keySet().stream().anyMatch(effect ->
                 effect == MobEffects.POISON
         );  // No negative effects found
@@ -352,8 +350,8 @@ public abstract class WolfEntityMixin implements
     }
 
     @Override
-    public UuidPayload getScreenOpeningData(ServerPlayer player) {
-        return new UuidPayload(self.getUUID(), NBTHelper.getWolfNBT(self));
+    public void writeScreenOpeningData(ServerPlayer player, FriendlyByteBuf buf) {
+        new UuidPayload(self.getUUID(), NBTHelper.getWolfNBT(self)).write(buf);
     }
 
 
@@ -371,35 +369,29 @@ public abstract class WolfEntityMixin implements
     }
 
     @Inject(method = "defineSynchedData", at = @At("TAIL"))
-    protected void injectInitDataTracker(SynchedEntityData.Builder builder, CallbackInfo ci) {
-        builder.define(CHEST, false);
-        builder.define(DROP_CHEST, false);
-        builder.define(RELEASE_WOLF, false);
-        builder.define(SHAKE_REASON, (byte)0);
-        builder.define(XP, 0);
-        builder.define(AGGRESSIVE, false);
-        builder.define(LOCK, false);
+    protected void injectInitDataTracker(CallbackInfo ci) {
+        SynchedEntityData data = ((Wolf) (Object) this).getEntityData();
+        data.define(CHEST, false);
+        data.define(DROP_CHEST, false);
+        data.define(RELEASE_WOLF, false);
+        data.define(SHAKE_REASON, (byte)0);
+        data.define(XP, 0);
+        data.define(AGGRESSIVE, false);
+        data.define(LOCK, false);
     }
 
     @Unique
     private float getKnockbackAgainst(Entity target, DamageSource damageSource) {
-        float f = (float)this.self.getAttributeValue(Attributes.ATTACK_KNOCKBACK);
-        Level var5 = this.self.level();
-        if (var5 instanceof ServerLevel serverWorld) {
-            return EnchantmentHelper.modifyKnockback(serverWorld, this.self.getWeaponItem(), target, damageSource, f);
-        } else {
-            return f;
-        }
+        return (float)this.self.getAttributeValue(Attributes.ATTACK_KNOCKBACK) + EnchantmentHelper.getKnockbackBonus(this.self);
     }
 
     @Override
     public boolean tryAttack__(Entity target) {
         float f = (float)this.self.getAttributeValue(Attributes.ATTACK_DAMAGE) + getLevel() * 0.5f;
-        ItemStack itemStack = this.self.getWeaponItem();
+        ItemStack itemStack = this.self.getMainHandItem();
         DamageSource damageSource = this.self.damageSources().mobAttack(this.self);
-        if (this.self.level() instanceof ServerLevel serverWorld) {
-            f = EnchantmentHelper.modifyDamage(serverWorld, itemStack, target, damageSource, f);
-            f += itemStack.getItem().getAttackDamageBonus(target, f, damageSource);
+        if (target instanceof LivingEntity livingTarget) {
+            f += EnchantmentHelper.getDamageBonus(itemStack, livingTarget.getMobType());
         }
         boolean bl = target.hurt(damageSource, f);
         if (bl) {
@@ -411,9 +403,7 @@ public abstract class WolfEntityMixin implements
                 this.self.setDeltaMovement(this.self.getDeltaMovement().multiply(0.6, 1.0, 0.6));
             }
 
-            if (this.self.level() instanceof ServerLevel serverWorld) {
-                EnchantmentHelper.doPostAttackEffects(serverWorld, target, damageSource);
-            }
+            EnchantmentHelper.doPostDamageEffects(this.self, target);
             this.self.setLastHurtMob(target);
         }
 
@@ -528,10 +518,10 @@ public abstract class WolfEntityMixin implements
 
     @Override
     public int repairGear(final int amount) {
-        Optional<EnchantedItemInUse> optional = EnchantmentHelper.getRandomItemWith(EnchantmentEffectComponents.REPAIR_WITH_XP, this.self, ItemStack::isDamaged);
-        if (optional.isPresent()) {
-            ItemStack itemStack = optional.get().itemStack();
-            int i = EnchantmentHelper.modifyDurabilityToRepairFromXp((ServerLevel) this.self.level(), itemStack, amount);
+        Map.Entry<EquipmentSlot, ItemStack> optional = EnchantmentHelper.getRandomItemWith(Enchantments.MENDING, this.self, ItemStack::isDamaged);
+        if (optional != null) {
+            ItemStack itemStack = optional.getValue();
+            int i = amount * 2;
             int j = java.lang.Math.min(i, itemStack.getDamageValue());
             itemStack.setDamageValue(itemStack.getDamageValue() - j);
             if (j > 0) {
@@ -553,7 +543,7 @@ public abstract class WolfEntityMixin implements
         wolfcompanion_template_1_21_1$dropInventoryByButton();
         this.self.setInSittingPose(false);
         if (this.self.getOwner() != null) {
-            this.self.setTame(false, true);
+            this.self.setTame(false);
             this.self.setOwnerUUID(null);
         }
     }
@@ -563,12 +553,13 @@ public abstract class WolfEntityMixin implements
 
         if (shouldDropChest() || !WolfCompanionConfig.current().keepWolfInventory) {
             if (this.items != null) {
-                for (int i = this.items.getContainerSize(); i >= 0; i--) {
+                for (int i = this.items.getContainerSize() - 1; i >= 0; i--) {
                     final ItemStack itemStack = this.items.getItem(i);
                     if (!itemStack.isEmpty()) {
-                        if (self.getItemBySlot(EquipmentSlot.BODY) != itemStack) {
-                            this.items.removeItemNoUpdate(i);
-                            self.spawnAtLocation(itemStack);
+                        boolean isArmorSlot = i == WolfArmorHelper.ARMOR_SLOT && WolfArmorHelper.isWolfArmor(itemStack);
+                        if (!isArmorSlot || (!shouldDropChest() && !WolfCompanionConfig.current().keepWolfArmor)) {
+                            ItemStack dropped = this.items.removeItemNoUpdate(i);
+                            self.spawnAtLocation(dropped);
                         }
                     }
                 }
@@ -593,6 +584,15 @@ public abstract class WolfEntityMixin implements
         if (source.getEntity() instanceof Player && this.self.isTame()) {
             cir.setReturnValue(false);
             cir.cancel();
+            return;
+        }
+
+        if (!this.self.level().isClientSide()
+                && WolfArmorHelper.hasArmor(this.self)
+                && WolfArmorHelper.canAbsorbDamage(source)) {
+            WolfArmorHelper.damageArmor(this.self, amount);
+            cir.setReturnValue(false);
+            cir.cancel();
         }
     }
 
@@ -601,14 +601,14 @@ public abstract class WolfEntityMixin implements
         nbt.putBoolean("ChestedWolf", this.hasChest());
         nbt.putBoolean("wcm_IsAggressive", this.isAggressive__());
         nbt.putBoolean("wcm_IsLock", this.isLock__());
-        if (this.hasChest()) {
+        if (this.hasChest() || WolfArmorHelper.hasArmor(this.self)) {
             ListTag list = new ListTag();
             for (int slot = 0; slot < this.items.getContainerSize(); slot++) {
                 ItemStack stack = this.items.getItem(slot);
                 if (stack.isEmpty()) continue;
 
                 CompoundTag entry = new CompoundTag();
-                stack.save(this.self.registryAccess(), entry);
+                stack.save(entry);
                 entry.putByte("Slot", (byte) slot);
                 list.add(entry);
             }
@@ -623,18 +623,14 @@ public abstract class WolfEntityMixin implements
         this.setAggressive__(nbt.contains("wcm_IsAggressive") && nbt.getBoolean("wcm_IsAggressive"));
         this.setLock__(nbt.contains("wcm_IsLock") && nbt.getBoolean("wcm_IsLock"));
         this.onChestedStatusChanged();
-        if (this.hasChest()) {
+        if (nbt.contains("WolfBagItems", Tag.TAG_LIST)) {
             ListTag list = nbt.getList("WolfBagItems", Tag.TAG_COMPOUND);
             for (int index = 0; index < list.size(); index++) {
                 CompoundTag entry = list.getCompound(index);
                 int slot = entry.getByte("Slot") & 255;
                 if (slot < this.items.getContainerSize()) {
-                    ItemStack stack = ItemStack.parseOptional(this.self.registryAccess(), entry);
-                    if (slot == 0) {
-                        this.self.setBodyArmorItem(stack);
-                    } else {
-                        this.items.setItem(slot, stack);
-                    }
+                    ItemStack stack = ItemStack.of(entry);
+                    this.items.setItem(slot, stack);
                 }
             }
         }
@@ -645,7 +641,9 @@ public abstract class WolfEntityMixin implements
     private void addChest(Player player, ItemStack chest) {
         this.setHasChest(true);
         this.playAddChestSound();
-        chest.consume(1, player);
+        if (!player.getAbilities().instabuild) {
+            chest.shrink(1);
+        }
         this.onChestedStatusChanged();
     }
 
@@ -672,7 +670,7 @@ public abstract class WolfEntityMixin implements
                     this.self.level(), this.self.getX() + this.self.getLookAngle().x, this.self.getY() + 1.0, this.self.getZ() + this.self.getLookAngle().z, stack
             );
             itemEntity.setPickUpDelay(40);
-            itemEntity.setThrower(this.self);
+            itemEntity.setThrower(this.self.getUUID());
             this.self.playSound(SoundEvents.FOX_SPIT, 1.0F, 1.0F);
             this.self.level().addFreshEntity(itemEntity);
         }
@@ -726,7 +724,7 @@ public abstract class WolfEntityMixin implements
     private void fillExistingBagStacks(ItemStack remaining) {
         for (int slot = 1; slot < this.items.getContainerSize() && !remaining.isEmpty(); slot++) {
             ItemStack bagStack = this.items.getItem(slot);
-            if (bagStack.isEmpty() || !ItemStack.isSameItemSameComponents(bagStack, remaining)) {
+            if (bagStack.isEmpty() || !ItemStack.isSameItemSameTags(bagStack, remaining)) {
                 continue;
             }
 
@@ -831,7 +829,22 @@ public abstract class WolfEntityMixin implements
                 self.isOwnedBy(player) &&
                 !self.isBaby()
         ) {
-            if (!this.hasChest() && itemStack.is(ModItems.WOLF_BAG)) {
+            if (WolfArmorHelper.repairArmor(self, itemStack)) {
+                if (!player.getAbilities().instabuild) {
+                    itemStack.shrink(1);
+                }
+                cir.setReturnValue(InteractionResult.SUCCESS);
+                cir.cancel();
+            } else if (!WolfArmorHelper.hasArmor(self) && WolfArmorHelper.isWolfArmor(itemStack)) {
+                ItemStack armor = itemStack.copy();
+                armor.setCount(1);
+                this.items.setItem(WolfArmorHelper.ARMOR_SLOT, armor);
+                if (!player.getAbilities().instabuild) {
+                    itemStack.shrink(1);
+                }
+                cir.setReturnValue(InteractionResult.SUCCESS);
+                cir.cancel();
+            } else if (!this.hasChest() && itemStack.is(ModItems.WOLF_BAG)) {
                 if (isBagLimitReached(player)) {
                     cir.setReturnValue(InteractionResult.FAIL);
                     cir.cancel();

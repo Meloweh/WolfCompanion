@@ -2,24 +2,20 @@ package github.meloweh.wolfcompanion.network;
 
 import github.meloweh.wolfcompanion.WolfCompanion;
 import java.util.UUID;
-import net.minecraft.core.UUIDUtil;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
 
-public record UuidPayload(UUID uuid, CompoundTag nbt) implements CustomPacketPayload {
+public record UuidPayload(UUID uuid, CompoundTag nbt) {
 
-    public static final Type<UuidPayload> ID = new Type<>(WolfCompanion.id("non_block_pos"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, UuidPayload> PACKET_CODEC = StreamCodec.composite(
-            UUIDUtil.STREAM_CODEC, UuidPayload::uuid,
-            ByteBufCodecs.COMPOUND_TAG, UuidPayload::nbt,
-            UuidPayload::new);
+    public static final ResourceLocation ID = WolfCompanion.id("non_block_pos");
 
+    public UuidPayload(FriendlyByteBuf buf) {
+        this(buf.readUUID(), buf.readNbt());
+    }
 
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return ID;
+    public void write(FriendlyByteBuf buf) {
+        buf.writeUUID(this.uuid);
+        buf.writeNbt(this.nbt);
     }
 }

@@ -1,7 +1,6 @@
 package github.meloweh.wolfcompanion.goals;
 
 import github.meloweh.wolfcompanion.accessor.WolfEntityProvider;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.Container;
@@ -47,12 +46,12 @@ public class EatFoodGoal extends Goal {
         final boolean wouldStart = !this.entity.isInvulnerable()
                 && this.entity.hurtTime == 0 && !this.entity.level().isClientSide();
 
-        if (!this.armoredWolf.hasChestEquipped() && this.entity.getItemBySlot(EquipmentSlot.MAINHAND).has(DataComponents.FOOD)) {
+        if (!this.armoredWolf.hasChestEquipped() && this.entity.getItemBySlot(EquipmentSlot.MAINHAND).isEdible()) {
             return wouldStart;
         }
 
         if (this.armoredWolf.hasChestEquipped()) {
-            if (!this.entity.getItemBySlot(EquipmentSlot.MAINHAND).has(DataComponents.FOOD)) {
+            if (!this.entity.getItemBySlot(EquipmentSlot.MAINHAND).isEdible()) {
                 this.entity.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
             }
             return wouldStart && PickUpFoodGoal.playerFoodEnough(this.entity); // && this.entity.getEquippedStack(EquipmentSlot.MAINHAND).isEmpty();
@@ -69,13 +68,13 @@ public class EatFoodGoal extends Goal {
 
         if (mostEfficientFood.isEmpty()) return;
 
-        final FoodProperties foodComponent = mostEfficientFood.get(DataComponents.FOOD);
+        final FoodProperties foodComponent = mostEfficientFood.getItem().getFoodProperties();
 
         if (foodComponent == null) return;
 
         float damageAmount = (this.entity.getMaxHealth() - this.entity.getHealth());
 
-        if (damageAmount < 1.0F || damageAmount < foodComponent.nutrition()) {
+        if (damageAmount < 1.0F || damageAmount < foodComponent.getNutrition()) {
             if (!this.armoredWolf.hasChestEquipped()) {
                 armoredWolf.spit__(this.entity.getItemBySlot(EquipmentSlot.MAINHAND));
             }
@@ -112,12 +111,12 @@ public class EatFoodGoal extends Goal {
                 }
 
                 if (this.eatingTime == 0) {
-                    final FoodProperties foodComponent = itemStack.get(DataComponents.FOOD);
+                    final FoodProperties foodComponent = itemStack.getItem().getFoodProperties();
                     if (foodComponent == null) {
                         this.eatingTime++;
                         return;
                     }
-                    this.entity.heal(foodComponent.nutrition());
+                    this.entity.heal(foodComponent.getNutrition());
                     ItemStack itemStack2 = itemStack.finishUsingItem(this.entity.level(), this.entity);
                     this.entity.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
                     this.eatingTime = -1;
@@ -159,7 +158,7 @@ public class EatFoodGoal extends Goal {
     }
 
     private boolean canEat(final ItemStack itemStack) {
-        return !itemStack.isEmpty() && entity.isFood(itemStack) && itemStack.has(DataComponents.FOOD);
+        return !itemStack.isEmpty() && entity.isFood(itemStack) && itemStack.isEdible();
     }
 
     @NotNull
@@ -168,7 +167,7 @@ public class EatFoodGoal extends Goal {
         return this.inventoryContents.stream()
                 .filter(this::canEat)
                 .min(Comparator.comparing(itemStack
-                        -> Math.abs(healthDiff - itemStack.get(DataComponents.FOOD).nutrition())))
+                        -> Math.abs(healthDiff - itemStack.getItem().getFoodProperties().getNutrition())))
                 .orElse(ItemStack.EMPTY);
     }
 }

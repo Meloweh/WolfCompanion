@@ -7,6 +7,7 @@ import github.meloweh.wolfcompanion.network.DropWolfChestC2SPayload;
 import github.meloweh.wolfcompanion.network.LockWolfC2SPayload;
 import github.meloweh.wolfcompanion.network.ReleaseWolfC2SPayload;
 import github.meloweh.wolfcompanion.menu.WolfInventoryScreenHandler;
+import github.meloweh.wolfcompanion.util.WolfArmorHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -182,11 +183,15 @@ public class WolfInventoryScreen extends AbstractContainerScreen<WolfInventorySc
         context.blit(WolfInventoryTextures.BACKGROUND, i, j, 0.0F, 0.0F, this.imageWidth, this.imageHeight, 256, 256);
 
         if (wolfState().hasChestEquipped()) {
-            context.blitSprite(WolfInventoryTextures.CHEST_SLOTS, 90, 54, 0, 0, i + 79, j + 17, WOLF_SLOT_COLUMNS * 18, 54);
+            for (int row = 0; row < 3; row++) {
+                for (int column = 0; column < WOLF_SLOT_COLUMNS; column++) {
+                    context.blit(WolfInventoryTextures.BACKGROUND, i + 79 + column * 18, j + 17 + row * 18, 7, 35, 18, 18);
+                }
+            }
         }
 
-        if (this.wolf.isWearingBodyArmor()) {
-            context.blitSprite(WolfInventoryTextures.SLOT, i + 7, j + 35 - 18, 18, 18);
+        if (WolfArmorHelper.hasArmor(this.wolf)) {
+            context.blit(WolfInventoryTextures.BACKGROUND, i + 7, j + 35 - 18, 7, 35, 18, 18);
         } else {
             context.blit(WolfInventoryTextures.WOLF_ARMOR_SLOT, i + 7, j + 35 - 18, 0, 0, 18, 18, 18, 18);
         }
@@ -196,7 +201,7 @@ public class WolfInventoryScreen extends AbstractContainerScreen<WolfInventorySc
         drawReleaseButton(context, mouseX, mouseY);
         drawLockButton(context, mouseX, mouseY);
 
-        InventoryScreen.renderEntityInInventoryFollowsMouse(context, i + 26, j + 18, i + 78, j + 70, 33, 0.25F, this.mouseX, this.mouseY, this.wolf);
+        InventoryScreen.renderEntityInInventoryFollowsMouse(context, i + 51, j + 60, 33, this.mouseX, this.mouseY, this.wolf);
     }
 
     private Component tooltipAt(int mouseX, int mouseY) {

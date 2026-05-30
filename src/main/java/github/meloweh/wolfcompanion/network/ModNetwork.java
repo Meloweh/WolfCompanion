@@ -3,7 +3,6 @@ package github.meloweh.wolfcompanion.network;
 import github.meloweh.wolfcompanion.accessor.WolfEntityProvider;
 import java.util.UUID;
 import java.util.function.Consumer;
-import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
@@ -15,34 +14,30 @@ public final class ModNetwork {
     }
 
     public static void registerServerPayloads() {
-        PayloadTypeRegistry.playC2S().register(DropWolfChestC2SPayload.ID, DropWolfChestC2SPayload.PACKET_CODEC);
-        PayloadTypeRegistry.playC2S().register(ReleaseWolfC2SPayload.ID, ReleaseWolfC2SPayload.PACKET_CODEC);
-        PayloadTypeRegistry.playC2S().register(AggressionWolfC2SPayload.ID, AggressionWolfC2SPayload.PACKET_CODEC);
-        PayloadTypeRegistry.playC2S().register(LockWolfC2SPayload.ID, LockWolfC2SPayload.PACKET_CODEC);
     }
 
     public static void registerServerReceivers() {
-        ServerPlayNetworking.registerGlobalReceiver(DropWolfChestC2SPayload.ID, (payload, context) ->
-                context.server().execute(() -> forWolf(context, payload.wolfUUID(), ModNetwork::dropChest)));
+        ServerPlayNetworking.registerGlobalReceiver(DropWolfChestC2SPayload.ID,
+                (payload, player, sender) -> forWolf(player, payload.wolfUUID(), ModNetwork::dropChest));
 
-        ServerPlayNetworking.registerGlobalReceiver(ReleaseWolfC2SPayload.ID, (payload, context) ->
-                context.server().execute(() -> forWolf(context, payload.wolfUUID(), ModNetwork::releaseWolf)));
+        ServerPlayNetworking.registerGlobalReceiver(ReleaseWolfC2SPayload.ID,
+                (payload, player, sender) -> forWolf(player, payload.wolfUUID(), ModNetwork::releaseWolf));
 
-        ServerPlayNetworking.registerGlobalReceiver(AggressionWolfC2SPayload.ID, (payload, context) ->
-                context.server().execute(() -> forWolf(context, payload.wolfUUID(), wolf -> {
+        ServerPlayNetworking.registerGlobalReceiver(AggressionWolfC2SPayload.ID,
+                (payload, player, sender) -> forWolf(player, payload.wolfUUID(), wolf -> {
                     WolfEntityProvider provider = (WolfEntityProvider) wolf;
                     provider.setAggressive__(!provider.isAggressive__());
-                })));
+                }));
 
-        ServerPlayNetworking.registerGlobalReceiver(LockWolfC2SPayload.ID, (payload, context) ->
-                context.server().execute(() -> forWolf(context, payload.wolfUUID(), wolf -> {
+        ServerPlayNetworking.registerGlobalReceiver(LockWolfC2SPayload.ID,
+                (payload, player, sender) -> forWolf(player, payload.wolfUUID(), wolf -> {
                     WolfEntityProvider provider = (WolfEntityProvider) wolf;
                     provider.setLock__(!provider.isLock__());
-                })));
+                }));
     }
 
-    private static void forWolf(ServerPlayNetworking.Context context, UUID wolfUuid, Consumer<Wolf> action) {
-        context.server().getAllLevels().forEach(serverWorld -> {
+    private static void forWolf(ServerPlayer player, UUID wolfUuid, Consumer<Wolf> action) {
+        player.server.getAllLevels().forEach(serverWorld -> {
             Entity entity = serverWorld.getEntity(wolfUuid);
             if (entity instanceof Wolf wolf) {
                 action.accept(wolf);
