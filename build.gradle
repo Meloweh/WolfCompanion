@@ -53,25 +53,40 @@ dependencies {
 
 processResources {
 	def version = project.version
+	def javaVersion = project.java_version
 	inputs.property "version", version
+	inputs.property "java_version", javaVersion
 
 	filesMatching("fabric.mod.json") {
-		expand "version": version
+		expand "version": version, "java_version": javaVersion
 	}
 }
 
+def javaVersion = project.java_version.toInteger()
+def javaRuntimeVersion = project.java_runtime_version.toInteger()
+
 tasks.withType(JavaCompile).configureEach {
-	it.options.release = 25
+	it.options.release = javaVersion
+}
+
+tasks.withType(JavaExec).configureEach {
+	javaLauncher = javaToolchains.launcherFor {
+		languageVersion = JavaLanguageVersion.of(javaRuntimeVersion)
+	}
 }
 
 java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(javaRuntimeVersion)
+	}
+
 	// Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
 	// if it is present.
 	// If you remove this line, sources will not be generated.
 	withSourcesJar()
 
-	sourceCompatibility = JavaVersion.VERSION_25
-	targetCompatibility = JavaVersion.VERSION_25
+	sourceCompatibility = JavaVersion.toVersion(javaVersion)
+	targetCompatibility = JavaVersion.toVersion(javaVersion)
 }
 
 jar {
