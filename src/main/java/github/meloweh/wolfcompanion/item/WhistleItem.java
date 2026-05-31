@@ -108,7 +108,9 @@ public class WhistleItem extends Item {
         );
         if (stage == 1) {
             if (user instanceof ServerPlayer serverPlayer) {
-                final Optional<LivingEntity> target = getLookedAtEntity(serverPlayer);
+                final Optional<LivingEntity> target = WolfCompanionConfig.current().allowWhistleMobTargeting
+                        ? getLookedAtEntity(serverPlayer)
+                        : Optional.empty();
                 final ServerPlayerAccessor serverPlayerAccessor = (ServerPlayerAccessor) serverPlayer;
 
                 if (target.isEmpty()) {

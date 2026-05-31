@@ -17,6 +17,7 @@
   "teleportAtDistance": 3300,
   "attackAcceleration": 1.2,
   "maxSpeed": 3,
+  "allowWhistleMobTargeting": true,
   "allowPassiveRegeneration": true,
   "passiveRegenerationRate": 15,
   "limitTamedWolves": false,

@@ -45,6 +45,7 @@ enum ConfigPage {
         void build(WolfConfigScreen screen, WolfConfig draft, int left, int y, int width) {
             y = screen.addDouble(left, y, width, "Attack acceleration", draft.attackAcceleration, 0.0, value -> draft.attackAcceleration = value);
             y = screen.addDouble(left, y, width, "Max attack speed", draft.maxSpeed, 0.0, value -> draft.maxSpeed = value);
+            y = screen.addBoolean(left, y, width, "Whistle mob targeting", draft.allowWhistleMobTargeting, value -> draft.allowWhistleMobTargeting = value);
             screen.addStringList(left, y, width, "Do not attack mobs/tags", draft.doNotAttackMobs, value -> draft.doNotAttackMobs = value);
         }
     },

@@ -22,6 +22,7 @@ public class WolfConfig {
     public double teleportAtDistance = 3300f;
     public double attackAcceleration = 1.2f;
     public double maxSpeed = 3f;
+    public boolean allowWhistleMobTargeting = true;
     public boolean allowPassiveRegeneration = true;
     public int passiveRegenerationRate = 15;
     public boolean limitTamedWolves = false;
@@ -51,6 +52,7 @@ public class WolfConfig {
         copy.teleportAtDistance = this.teleportAtDistance;
         copy.attackAcceleration = this.attackAcceleration;
         copy.maxSpeed = this.maxSpeed;
+        copy.allowWhistleMobTargeting = this.allowWhistleMobTargeting;
         copy.allowPassiveRegeneration = this.allowPassiveRegeneration;
         copy.passiveRegenerationRate = this.passiveRegenerationRate;
         copy.limitTamedWolves = this.limitTamedWolves;
