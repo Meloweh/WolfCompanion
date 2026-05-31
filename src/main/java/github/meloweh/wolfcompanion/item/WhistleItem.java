@@ -14,8 +14,10 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.EntityReference;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.animal.wolf.Wolf;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.item.Item;
@@ -65,8 +67,7 @@ public class WhistleItem extends Item {
                 serverPlayerAccessor.getServer__().getAllLevels().forEach(world2 -> {
                     world2.getEntities(EntityType.WOLF, wolf ->
                             wolf.isTame() &&
-                                    wolf.getOwner() != null &&
-                                    wolf.getOwner().getUUID() == user.getUUID() &&
+                                    isOwnedBy(wolf, user) &&
                                     !((WolfEntityProvider) wolf).isLock__()
                     ).forEach(wolf -> {
                         final CompoundTag nbt = NBTHelper.getWolfNBT(wolf);
@@ -114,8 +115,7 @@ public class WhistleItem extends Item {
                     serverPlayerAccessor.getServer__().getAllLevels().forEach(world2 -> {
                         world2.getEntities(EntityType.WOLF, wolf ->
                                 wolf.isTame() &&
-                                        wolf.getOwner() != null &&
-                                        wolf.getOwner().getUUID() == user.getUUID() &&
+                                        isOwnedBy(wolf, user) &&
                                         !((WolfEntityProvider) wolf).isLock__()
                         ).forEach(wolf -> {
                             if (WolfCompanionConfig.current().canTeleportSitting)
@@ -130,18 +130,27 @@ public class WhistleItem extends Item {
                     serverPlayerAccessor.getServer__().getAllLevels().forEach(world2 -> {
                         world2.getEntities(EntityType.WOLF, wolf ->
                                 wolf.isTame() &&
-                                        wolf.getOwner() != null &&
-                                        wolf.getOwner().getUUID() == user.getUUID() &&
+                                        isOwnedBy(wolf, user) &&
                                         !((WolfEntityProvider) wolf).isLock__()
                         ).forEach(wolf -> {
-                            if (!wolf.isOrderedToSit() && target.get() != wolf) {
-                                wolf.setTarget(target.get());
+                            LivingEntity attackTarget = target.get();
+                            if (!wolf.isOrderedToSit() && attackTarget != wolf && !isOwnedWolf(attackTarget, user)) {
+                                wolf.setTarget(attackTarget);
                             }
                         });
                     });
                 }
             }
         }
+    }
+
+    private static boolean isOwnedWolf(LivingEntity entity, LivingEntity owner) {
+        return entity instanceof Wolf wolf && isOwnedBy(wolf, owner);
+    }
+
+    private static boolean isOwnedBy(Wolf wolf, LivingEntity owner) {
+        EntityReference<LivingEntity> ownerReference = wolf.getOwnerReference();
+        return ownerReference != null && owner.getUUID().equals(ownerReference.getUUID());
     }
 
     public static Optional<LivingEntity> getLookedAtEntity(ServerPlayer player) {
