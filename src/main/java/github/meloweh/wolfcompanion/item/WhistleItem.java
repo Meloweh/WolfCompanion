@@ -122,8 +122,7 @@ public class WhistleItem extends Item {
                                 wolf.setOrderedToSit(false);
 
                             wolf.snapTo(user.getX(), user.getY(), user.getZ(), user.getYRot(), user.getXRot());
-                            wolf.stopBeingAngry();
-                            ((MobEntityAccessor) wolf).getNavigator__().stop();
+                            clearWolfAggression(wolf);
                         });
                     });
                 } else {
@@ -134,6 +133,7 @@ public class WhistleItem extends Item {
                                         !((WolfEntityProvider) wolf).isLock__()
                         ).forEach(wolf -> {
                             LivingEntity attackTarget = target.get();
+                            clearWolfAggression(wolf);
                             if (!wolf.isOrderedToSit() && attackTarget != wolf && !isOwnedWolf(attackTarget, user)) {
                                 wolf.setTarget(attackTarget);
                             }
@@ -142,6 +142,15 @@ public class WhistleItem extends Item {
                 }
             }
         }
+    }
+
+    private static void clearWolfAggression(Wolf wolf) {
+        wolf.setTarget(null);
+        wolf.setLastHurtByMob(null);
+        wolf.setLastHurtMob(null);
+        wolf.setAggressive(false);
+        wolf.stopBeingAngry();
+        ((MobEntityAccessor) wolf).getNavigator__().stop();
     }
 
     private static boolean isOwnedWolf(LivingEntity entity, LivingEntity owner) {
